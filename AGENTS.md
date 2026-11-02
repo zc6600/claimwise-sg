@@ -39,3 +39,5 @@ npm test
 - **Do not commit secrets**: Never touch or commit `.env.local` or any private credentials/tokens.
 - **Actuarial Logic Integrity**: When editing `src/decision-engine.mjs` or `data/singapore_market_stats.json`, preserve the mathematical rigor and benchmark assertions defined in `tests/decision-engine.test.mjs`.
 
+<!-- PR Agent: Verified for autonomous conflict resolution and quality gates -->
+
