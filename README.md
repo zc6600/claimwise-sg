@@ -213,7 +213,7 @@ Embeds the official insurer PDF at the mapped source page for embedding in the c
 
 ## 🤝 Collaboration & Contribution (团队协作)
 
-For guidelines on branch management, PR Agent automated review, and local development, see [CONTRIBUTION.md](CONTRIBUTION.md).
+For guidelines on branch management, PR Agent automated review, and local development, see [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
 
 ---
 
