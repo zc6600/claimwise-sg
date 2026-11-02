@@ -14,8 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check documentation length
+      - name: Documentation Guard
         uses: zc6600/agentic-swe@main
+        with:
+          readme-limit: 2000
+          doc-limit: 4000
 
   test:
     name: Actuarial Test Suite
@@ -31,4 +34,3 @@ jobs:
 
       - name: Run tests
         run: npm test
-
