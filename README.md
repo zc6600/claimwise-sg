@@ -10,6 +10,8 @@
 
 ClaimWise SG models multi-year No-Claim Discount (NCD) penalties, contractual workshop excess surcharges, young driver liabilities, GIA third-party subrogation protocols, and present value discounting to compute the exact break-even repair threshold ($R^*(S)$), backed by a **100% traceable legal clause audit trail** with **embedded iframe document previews**.
 
+<!-- CI/CD: Automated PR verification enabled via PR Agent -->
+
 ---
 
 ## 🚀 Quick Access (访问方式)
