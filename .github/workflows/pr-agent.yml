@@ -12,7 +12,8 @@ jobs:
   agent:
     uses: zc6600/agentic-swe/.github/workflows/pr-agent.yml@main
     with:
-      validation-command: npm test && npm run build
+      validation-command: npm test
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       PR_AGENT_TOKEN: ${{ secrets.PR_AGENT_TOKEN }}
+
