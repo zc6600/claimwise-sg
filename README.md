@@ -14,7 +14,7 @@ ClaimWise SG models multi-year No-Claim Discount (NCD) penalties, contractual wo
 
 ---
 
-## 🚀 Quick Access (访问方式)
+## 🚀 Quick Access
 
 The production build of ClaimWise SG is currently compiled and actively serving on **port 3000**:
 
@@ -188,7 +188,7 @@ Computes the actuarial comparison and returns the full clause audit trail.
       {
         "id": "workshop_surcharge",
         "category": "Excess & Deductibles",
-        "dataPoint": "Workshop Choice Surcharge (车行维修网络条款)",
+        "dataPoint": "Workshop Choice Surcharge",
         "value": "+S$2,000",
         "status": "active",
         "clauseRef": "Etiqa Tiq Motor Policy Part 1 — Clause 4.2",
@@ -211,7 +211,7 @@ Embeds the official insurer PDF at the mapped source page for embedding in the c
 
 ---
 
-## 🤝 Collaboration & Contribution (团队协作)
+## 🤝 Collaboration & Contribution
 
 For guidelines on branch management, PR Agent automated review, and local development, see [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
 
