@@ -1,0 +1,42 @@
+{
+  "sourceMetadata": {
+    "ltaCitation": "Land Transport Authority (LTA) Singapore - Motor Vehicle Population by Vehicle Type (2025) [4]",
+    "giaCitation": "General Insurance Association of Singapore (GIA) - Motor Insurance Annual Statistics & MCF Guidelines [1, 2, 3]",
+    "currency": "SGD",
+    "market": "Singapore (SG)"
+  },
+  "marketOverview": {
+    "privateCarPopulation": 524312,
+    "totalMotorPopulation": 659889,
+    "averageVehicleAgeYears": 6.4
+  },
+  "premiumBenchmarks": {
+    "p25": 1150,
+    "median": 1450,
+    "mean": 1520,
+    "p75": 1880,
+    "p90": 2400,
+    "description": "Comprehensive private car annual premiums across age categories 28-60 in Singapore."
+  },
+  "claimBenchmarks": {
+    "averageOwnDamageRepairClaim": 2450,
+    "medianOwnDamageRepairClaim": 1850,
+    "p25Claim": 1100,
+    "p75Claim": 3600,
+    "typicalExcessRange": {
+      "min": 500,
+      "median": 600,
+      "max": 1200
+    },
+    "industryClaimFrequencyPercent": 9.8,
+    "industryIncurredLossRatioPercent": 64.2
+  },
+  "ncdDistribution": {
+    "50%": 0.58,
+    "40%": 0.12,
+    "30%": 0.09,
+    "20%": 0.08,
+    "10%": 0.05,
+    "0%": 0.08
+  }
+}

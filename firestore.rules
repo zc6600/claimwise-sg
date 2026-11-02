@@ -1,0 +1,75 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users/{userId}/calculations/{calcId}
+// Document ID: auto-generated or timestamp-based string
+// Fields:
+//   - userId: string (required, must match request.auth.uid)
+//   - title: string (required, max 100 chars)
+//   - createdAt: timestamp or string (required)
+//   - inputs: map (required; current field names)
+//       - repairCost: number (>= 0)
+//       - excess: number (>= 0)
+//       - currentNcd: number (0 <= ncd <= 50)
+//       - ncdProtector: bool
+//       - currentPremium: number (>= 0)
+//   - results: map (required)
+//       - recommendation: string in ['CLAIM', 'SELF_PAY', 'NEUTRAL']
+//       - savings: number
+//       - breakEvenCost: number
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidCalculation(data, userId) {
+      return data.userId == userId &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.inputs is map &&
+             data.inputs.repairCost is number && data.inputs.repairCost >= 0 &&
+             data.inputs.excess is number && data.inputs.excess >= 0 &&
+             data.inputs.currentNcd is number && data.inputs.currentNcd >= 0 && data.inputs.currentNcd <= 50 &&
+             data.inputs.ncdProtector is bool &&
+             data.inputs.currentPremium is number && data.inputs.currentPremium > 0 &&
+             data.inputs.horizonYears in [3, 5] &&
+             data.inputs.baseGrowthRate is number && data.inputs.baseGrowthRate >= -20 && data.inputs.baseGrowthRate <= 50 &&
+             data.inputs.discountRate is number && data.inputs.discountRate >= 0 && data.inputs.discountRate <= 20 &&
+             data.inputs.liability in ['at_fault', 'non_fault', 'partial_fault'] &&
+             data.inputs.thirdPartyClaim is bool &&
+             data.inputs.workshopType in ['authorized', 'independent'] &&
+             data.inputs.youngDriverInvolved is bool &&
+             data.inputs.repairType in ['general', 'windscreen'] &&
+             data.results is map &&
+             data.results.recommendation is string &&
+             data.results.recommendation in ['claim', 'self-pay', 'CLAIM', 'SELF_PAY', 'NEUTRAL'] &&
+             data.results.savings is number &&
+             data.results.breakEvenCost is number;
+    }
+
+    // User calculations subcollection
+    match /users/{userId}/calculations/{calcId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidCalculation(request.resource.data, userId);
+      allow update: if isOwner(userId) && isValidCalculation(request.resource.data, userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(userId);
+    }
+  }
+}

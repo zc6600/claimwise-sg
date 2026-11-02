@@ -1,0 +1,5 @@
+# ClaimWise SG - Ads.txt Specification (IAB Tech Lab)
+# https://iabtechlab.com/ads-txt/
+# Replace 'pub-0000000000000000' with your official Google AdSense Publisher ID
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+

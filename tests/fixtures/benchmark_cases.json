@@ -1,0 +1,295 @@
+[
+  {
+    "id": "CASE-001",
+    "description": "Standard scenario: moderate repair above excess, 50% NCD, no protector",
+    "inputs": {
+      "insurer": "income",
+      "currentPremium": 1650,
+      "currentNcd": 50,
+      "excess": 600,
+      "repairCost": 1200,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "claimNcdAfter": 20,
+      "selfPayNcdAfter": 50,
+      "isBelowExcess": false,
+      "recommendedOption": "self-pay"
+    }
+  },
+  {
+    "id": "CASE-002",
+    "description": "Protector benefit: 50% NCD preserved under claim",
+    "inputs": {
+      "insurer": "income",
+      "currentPremium": 1650,
+      "currentNcd": 50,
+      "excess": 600,
+      "repairCost": 1200,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": true,
+      "liability": "at_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "claimNcdAfter": 50,
+      "selfPayNcdAfter": 50,
+      "isBelowExcess": false,
+      "recommendedOption": "claim"
+    }
+  },
+  {
+    "id": "CASE-003",
+    "description": "Boundary condition: repair cost strictly below excess",
+    "inputs": {
+      "insurer": "fwd",
+      "currentPremium": 1400,
+      "currentNcd": 40,
+      "excess": 750,
+      "repairCost": 500,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "isBelowExcess": true,
+      "recommendedOption": "self-pay"
+    }
+  },
+  {
+    "id": "CASE-004",
+    "description": "Boundary condition: repair cost exactly equals excess",
+    "inputs": {
+      "insurer": "etiqa",
+      "currentPremium": 1500,
+      "currentNcd": 30,
+      "excess": 600,
+      "repairCost": 600,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "isBelowExcess": true,
+      "recommendedOption": "self-pay"
+    }
+  },
+  {
+    "id": "CASE-005",
+    "description": "GIA MCF Rule: 100% non-fault accident preserves NCD in claim path",
+    "inputs": {
+      "insurer": "msig",
+      "currentPremium": 1800,
+      "currentNcd": 50,
+      "excess": 500,
+      "repairCost": 3500,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "non_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "claimNcdAfter": 50,
+      "selfPayNcdAfter": 50,
+      "isBelowExcess": false,
+      "recommendedOption": "claim"
+    }
+  },
+  {
+    "id": "CASE-006",
+    "description": "Section 1.1 Third-party claim: self-pay does not preserve NCD if at-fault",
+    "inputs": {
+      "insurer": "income",
+      "currentPremium": 1650,
+      "currentNcd": 50,
+      "excess": 600,
+      "repairCost": 2000,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": true
+    },
+    "expected": {
+      "claimNcdAfter": 20,
+      "selfPayNcdAfter": 20,
+      "isBelowExcess": false,
+      "recommendedOption": "claim"
+    }
+  },
+  {
+    "id": "CASE-007",
+    "description": "Zero starting NCD: claim cannot reduce NCD below 0%",
+    "inputs": {
+      "insurer": "fwd",
+      "currentPremium": 2600,
+      "currentNcd": 0,
+      "excess": 1000,
+      "repairCost": 4500,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "claimNcdAfter": 0,
+      "selfPayNcdAfter": 0,
+      "isBelowExcess": false,
+      "recommendedOption": "claim"
+    }
+  },
+  {
+    "id": "CASE-008",
+    "description": "High excess luxury vehicle scenario with minor damage",
+    "inputs": {
+      "insurer": "other",
+      "currentPremium": 3500,
+      "currentNcd": 50,
+      "excess": 2500,
+      "repairCost": 2800,
+      "horizonYears": 5,
+      "baseGrowthRate": 5,
+      "discountRate": 4,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "claimNcdAfter": 20,
+      "isBelowExcess": false,
+      "recommendedOption": "self-pay"
+    }
+  },
+  {
+    "id": "CASE-009",
+    "description": "Major structural accident repair: clear claim recommendation",
+    "inputs": {
+      "insurer": "income",
+      "currentPremium": 1300,
+      "currentNcd": 40,
+      "excess": 600,
+      "repairCost": 12500,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false
+    },
+    "expected": {
+      "claimNcdAfter": 10,
+      "isBelowExcess": false,
+      "recommendedOption": "claim"
+    }
+  },
+  {
+    "id": "CASE-010",
+    "description": "Partial fault (50-50) with third-party claim",
+    "inputs": {
+      "insurer": "etiqa",
+      "currentPremium": 1750,
+      "currentNcd": 50,
+      "excess": 800,
+      "repairCost": 2200,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "partial_fault",
+      "thirdPartyClaim": true
+    },
+    "expected": {
+      "claimNcdAfter": 20,
+      "selfPayNcdAfter": 20,
+      "isBelowExcess": false,
+      "recommendedOption": "claim"
+    }
+  },
+  {
+    "id": "CASE-011",
+    "description": "GIA Windscreen Clause: S$100 excess and 0% NCD penalty",
+    "inputs": {
+      "insurer": "income",
+      "currentPremium": 1650,
+      "currentNcd": 50,
+      "excess": 600,
+      "repairCost": 850,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false,
+      "repairType": "windscreen"
+    },
+    "expected": {
+      "claimNcdAfter": 50,
+      "selfPayNcdAfter": 50,
+      "isBelowExcess": false,
+      "recommendedOption": "claim"
+    }
+  },
+  {
+    "id": "CASE-012",
+    "description": "Non-authorised workshop: S$2,000 excess penalty pushes repair below effective excess",
+    "inputs": {
+      "insurer": "etiqa",
+      "currentPremium": 1500,
+      "currentNcd": 50,
+      "excess": 600,
+      "repairCost": 2200,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false,
+      "workshopType": "independent"
+    },
+    "expected": {
+      "isBelowExcess": true,
+      "recommendedOption": "self-pay"
+    }
+  },
+  {
+    "id": "CASE-013",
+    "description": "Young driver (<25yo): S$2,500 mandatory excess surcharge flips recommendation to self-pay",
+    "inputs": {
+      "insurer": "msig",
+      "currentPremium": 1800,
+      "currentNcd": 50,
+      "excess": 600,
+      "repairCost": 3500,
+      "horizonYears": 3,
+      "baseGrowthRate": 5,
+      "discountRate": 3,
+      "ncdProtector": false,
+      "liability": "at_fault",
+      "thirdPartyClaim": false,
+      "youngDriverInvolved": true
+    },
+    "expected": {
+      "claimNcdAfter": 20,
+      "isBelowExcess": false,
+      "recommendedOption": "self-pay"
+    }
+  }
+]

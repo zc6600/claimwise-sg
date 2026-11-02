@@ -1,0 +1,345 @@
+ClaimWise SG
+
+CS5224 Cloud Computing – Preliminary Report
+
+ClaimWise SG: Cloud-Based Motor Insurance
+Claim Decision Support Platform
+CS5224 Cloud Computing – Group Project Preliminary Report
+Team Members: HU YUE (A0357390X), MA RUIYING (A0350873Y), SUN YUAN (A0357290Y),
+WANG KAISI (A0353187X), WU YUHAN (A0351706H), ZHU CHEN (A0357394N)
+
+Abstract
+ClaimWise SG is a cloud-based service that helps Singapore motorists compare an own-damage insurance claim with paying
+for repairs themselves after an accident has been reported. A deterministic rule engine combines policy excess, No-Claim
+Discount (NCD), claim status and explicit renewal-premium scenarios to estimate multi-year costs and a break-even repair
+threshold. Users may also upload current or historical insurance documents; extracted fields are confirmed by the user and
+stored as a personal policy history. The prototype is deployed on AWS and will be evaluated for correctness, scalability,
+document processing, usability and cost. Future premiums are treated as scenarios rather than insurer quotations.
+
+1 Motivation & Business Case
+1.1 Problem and Market Context
+At the end of 2025, Singapore had 659,889 cars and station-wagons, including 524,312 private cars [4]. This provides the
+market context for a service aimed at motorists dealing with post-accident insurance decisions.
+Under the Motor Claims Framework (MCF), motorists must report an accident to their insurer within 24 hours or by
+the next working day, including minor accidents and private settlements [1]. GIA notes that failure to comply with the
+reporting condition can affect claim liability, NCD and policy renewal. However, reporting an accident and making an
+own-damage claim are separate decisions. After reporting, the motorist may still need to decide whether to claim for
+damage to their own vehicle or pay for the repair directly.
+That decision is not determined by the repair bill alone. The main financial factors are:
+• Policy excess: the policyholder may still pay part of the repair cost when making an own-damage claim.
+• NCD and NCD protection: a claim may reduce the No-Claim Discount (NCD), while protection features can change
+the outcome under insurer-specific terms [2].
+• Future renewal premium: NCD is only one part of renewal pricing, and insurers do not publish a universal formula
+for the future premium after a claim.
+• Liability and third-party claims: paying for one’s own repair does not prevent another party from making a claim
+arising from the same accident, so self-pay does not automatically preserve a no-claim premium path [3].
+ClaimWise brings these factors into one scenario-based comparison so that the user can see both the immediate repair cost
+and the possible multi-year insurance effect.
+1.2 Target Users and Value Proposition
+The MVP targets private motorists. A user can enter policy details manually or upload a policy schedule, renewal notice
+or quotation. ClaimWise then provides:
+• a claim-versus-self-pay cost comparison;
+• a dynamic break-even repair threshold and sensitivity range; and
+• a confirmed personal insurance history from uploaded documents.
+MoneySmart and SingSaver mainly support insurance comparison, quotation and purchase [5, 6]. ClaimWise instead
+focuses on the post-incident decision and combines repair cost, excess, NCD rules, policy conditions and renewal uncertainty
+in one workflow.
+1.3 MVP Scope
+The MVP includes the rule engine, web interface, policy-document extraction and personal policy history. It does not
+determine legal liability or reproduce an insurer’s proprietary renewal-pricing model. Cross-user benchmarking and
+personalised premium prediction are later extensions once enough representative, consented data are available.
+
+1 of 5
+
+ClaimWise SG
+
+CS5224 Cloud Computing – Preliminary Report
+
+2 Business Model & Cloud Hosting Justification
+2.1 Monetization Strategy
+ClaimWise uses a B2C-first freemium model with two revenue streams:
+• Advertising revenue. The calculator, document-input workflow and basic personal history remain free. Clearly labelled
+advertisements may be shown for relevant automotive services, but advertising does not affect the financial result.
+• Paid advanced reports. As the historical dataset grows, users may purchase one-off reports with deeper peer
+comparisons, premium trends, renewal analysis and more detailed multi-year scenario analysis.
+This keeps the core decision tool accessible while creating a path from broad usage to paid analysis.
+2.2 B2C Data Flywheel
+The data strategy does not depend on users returning a year later to report a new renewal. Instead, users can upload policy
+schedules, renewal notices and quotations they already possess. ClaimWise converts these files into structured records and
+immediately returns a personal history view.
+With separate consent, anonymised confirmed records can later support aggregate benchmarks. As more records are
+collected, these benchmarks can support more useful personalised analysis and future paid reports. Initially, simple
+empirical distributions and similarity-based comparisons are sufficient; machine learning is not required for the first version.
+The intended long-term relationship is:
+Free Utility → More Users → More Confirmed Records → Better Benchmarks → More Valuable Reports.
+2.3 Cloud Hosting and Cost Comparison
+AWS provides a web-accessible deployment without the team operating physical servers. ECS Service Auto Scaling can
+change application task counts with demand [7]. Document extraction also creates a workload that is heavier than the rule
+calculation and can be measured separately.
+The final report will compare AWS with an equivalent on-premise deployment under the same workload, availability and
+backup assumptions. Costs will include measured cloud usage, annualised hardware, networking, power, backup and
+operational effort.
+Table 1: Preliminary TCO Comparison Framework
+Component
+
+On-premise baseline
+
+AWS baseline
+
+Compute
+Traffic
+Database
+Storage
+Scaling
+Operations
+
+Annualised server capacity
+Reverse proxy/load balancer
+PostgreSQL plus backups/standby
+Local disks and backup media
+Manual capacity or spare headroom
+Power, cooling, patching, monitoring
+
+Fargate vCPU/memory and task duration
+ALB usage and network charges
+RDS Single-AZ and Multi-AZ
+RDS storage/backups and S3
+ECS scale-out/scale-in
+CloudWatch and managed-service charges
+
+The comparison will report one-year total cost of ownership for low, steady and bursty workloads. Credits and free-tier
+benefits will be reported separately from recurring costs [8, 9].
+
+2 of 5
+
+ClaimWise SG
+
+CS5224 Cloud Computing – Preliminary Report
+
+3 Architecture, Decision Model & Preliminary Design
+3.1 Decision Scope and Core Calculation
+Let R be the repair quotation, Eown the applicable own-damage excess, T the analysis horizon and r the discount rate.
+Scenario state S contains current NCD, liability, third-party-claim status, NCD-protector status and insurer/policy rules.
+For the self-pay branch,
+T
+
+Ptself (S)
+,
+t
+t=1 (1 + r)
+
+(T )
+
+Costself (S) = R + ∑
+and for an eligible covered own-damage claim,
+
+T
+
+Ptclaim (S)
+.
+t
+t=1 (1 + r)
+
+(T )
+
+Costclaim (S) = Eown + ∑
+
+Here Ptself and Ptclaim are scenario renewal premiums, not insurer quotations. NCD follows versioned policy rules rather
+than a fixed reduction. For example, GIA’s common private-car schedule includes 50%→20%, 40%→10% and 30% or
+below→0% after one claim, subject to applicable conditions [2].
+The break-even repair threshold is
+T
+
+Ptclaim (S) − Ptself (S)
+.
+(1 + r)t
+t=1
+
+R∗ (S) = Eown + ∑
+
+(1)
+
+Under fixed assumptions, R < R∗ gives the lower modelled cost to self-pay, while R > R∗ gives the lower modelled cost
+to claim. If the covered repair does not exceed the excess, the system reports no positive own-damage payout instead of
+applying the simplified claim branch.
+The MVP generates low/base/high premium paths from the user’s current premium, applicable NCD transition and
+configurable renewal assumptions. Later versions may calibrate these ranges from comparable confirmed renewal histories.
+3.2 Data Sources and Their Roles
+Source
+
+Use
+
+Validation / limit
+
+LTA statistics [4]
+GIA guidance [1, 2, 3]
+Public insurer
+documents
+User inputs
+Uploaded documents
+
+Market context
+Reporting and common NCD/claim rules
+Excess and policy conditions
+
+No individual pricing information
+Policy terms still apply
+Curate/version supported plans
+
+Premium, quote, excess, NCD, claim status
+Candidate fields and personal history
+
+Validate required fields
+User confirmation required
+
+3.3 Document Input and Policy Records
+Users upload a PDF or image of an insurance document. ClaimWise extracts candidate policy fields, which the user reviews
+and corrects before the information is stored as a confirmed policy record.
+Each confirmed record contains the insurer, policy period, annual premium, NCD, excess, available coverage information
+and document type. Purchased policies, renewal offers and comparison quotations remain distinct, so an unaccepted quote
+is not treated as a paid premium.
+A simplified confirmed snapshot is
+Ht = {Pt , nt , et , it , dt , ct },
+representing premium, NCD, excess, insurer, policy period and available coverage. Multiple snapshots form a personal
+timeline H1 → H2 → · · · → HT . The MVP uses this for history and descriptive analysis; later, a larger dataset could support
+empirical benchmark ranges and future-premium models such as P(Pt+1 | Ht ).
+
+3 of 5
+
+ClaimWise SG
+
+CS5224 Cloud Computing – Preliminary Report
+
+3.4 Cloud System Architecture
+Figure 1 shows the proposed AWS deployment in Singapore. React/TypeScript assets are served from S3 through
+CloudFront. API requests reach FastAPI on ECS Fargate through an Application Load Balancer. The application contains
+the rule engine and document-processing module; confirmed policy records and versioned rules are stored in RDS
+PostgreSQL.
+Browser /
+mobile web
+
+CloudFront
+
+S3 frontend assets
+
+Application
+Load Balancer
+
+ECS Fargate
+FastAPI + rule engine
+Document module
+
+RDS PostgreSQL
+Rules + confirmed records
+
+CloudWatch metrics
+ECS Auto Scaling
+
+S3 temporary uploads
+
+Curated GIA
+/ insurer rules
+
+API
+
+Figure 1: AWS deployment in Singapore (dashed boundary: VPC)
+
+Fargate reduces host-management work and supports the planned scaling experiments [7]. Static delivery is separated from
+application compute. RDS lets us compare Single-AZ and Multi-AZ cost/availability [9]. Rule evaluation is lightweight;
+document extraction may require more compute, so these request paths will be measured separately. Sensitive document
+contents are excluded from application logs.
+
+4 Implementation and Evaluation Plan
+4.1 Implementation Milestones
+Period
+
+Work and deliverables
+
+Weeks 1–2
+Weeks 3–4
+
+Curate policy rules; implement and test the threshold engine; define confirmed policy records and boundary cases.
+Build the web interface and document-confirmation prototype; deploy Fargate, RDS, S3 and monitoring with
+Terraform.
+Run load/scaling and extraction tests, gather billing, estimate on-premise TCO, conduct the user study and prepare
+the final report.
+
+Weeks 5–6
+
+4.2 Data and Model Evolution
+1. Rule-based MVP: published policy/NCD rules plus explicit low/base/high premium scenarios.
+2. Empirical calibration: supplement manual ranges with distributions from comparable confirmed renewal transitions.
+3. Personalised model: with a larger representative dataset, estimate future premium distributions from policy, vehicle,
+claim-history and insurer characteristics.
+Historical transitions will be used for prediction and benchmarking, not as direct proof that a claim caused a later premium
+change.
+
+4 of 5
+
+ClaimWise SG
+
+CS5224 Cloud Computing – Preliminary Report
+
+4.3 System and User Evaluation
+This section describes the experiments planned for the implementation and evaluation phase.
+Evaluation
+
+Method and Measures
+
+Correctness
+
+Use hand-checked cases and unit tests to verify NCD transitions, NCD protection, third-party claims, excess
+boundaries, premium scenarios, and break-even threshold calculations.
+Use Locust to generate low, steady, and burst workloads. Measure concurrency, throughput, P95 latency, error
+rate, ECS task counts, and scaling delay. Stress tests will extend to 1,000 virtual users where feasible. The
+provisional target is P95 < 250 ms with an error rate below 1% under the target workload.
+Use controlled, permissioned, or synthetic insurance documents. Measure field-extraction accuracy before
+user correction, together with processing latency and resource usage.
+Verify that extracted records are ordered correctly, different document types remain distinguishable, and
+benchmark statistics are calculated correctly from controlled policy records.
+Compare one-year TCO using Table 1, measured AWS usage, and stated on-premise assumptions. Single-AZ
+and availability-matched Multi-AZ configurations will be evaluated separately.
+Compare participants’ choices and completion time before and after using ClaimWise under fixed scenarios.
+Collect confidence, comprehension, and SUS scores, and compare the effort required for document upload and
+correction with manual data entry.
+
+Performance and
+elasticity
+Document
+processing
+Policy-history
+pipeline
+Cost and availability
+User study (N ≈ 20)
+
+Scenario order will be varied where possible to reduce learning effects. The final report will include participant characteristics and discuss the main limitations of the study. Benchmark testing will use controlled policy records to verify the
+implementation; market-wide benchmarking will require a larger and more representative dataset.
+
+5 Conclusion & Future Work
+ClaimWise combines a claim-versus-self-pay calculator with policy-document extraction and a personal insurance history.
+The MVP will implement the rule engine, document workflow and AWS deployment, then measure system performance,
+scaling behaviour, usability and cost. With enough consented historical records, the same data can later support empirical
+benchmarks and paid advanced reports. NCD and policy rules remain explicit in the rule engine, while data-driven models
+are reserved for future premium estimation.
+AI assistance disclosure. Generative AI assisted in developing and refining project ideas, improving the presentation of the report, and supporting LaTeX
+writing and formatting.
+
+References
+[1] General Insurance Association of Singapore (GIA), Key Points of the Motor Claims Framework (MCF). https://gia.org.sg/images/
+pdf-files/MCF_Brochure.pdf
+[2] GIA, No Claims Discount – Motor Insurance FAQs. https://gia.org.sg/motor-insurance/21-buying-a-motor/
+347-no-claims-discount.html
+[3] GIA, Third Party Claims – Motor Insurance. https://gia.org.sg/motor-insurance/third-party-claims.html
+[4] Land Transport Authority, Annual Vehicle Statistics 2025: Motor Vehicle Population by Vehicle Type. https://www.lta.gov.sg/content/dam/
+ltagov/who_we_are/statistics_and_publications/statistics/pdf/MVP01-1_MVP_by_type.pdf
+[5] MoneySmart Singapore, Car Insurance Comparison. https://www.moneysmart.sg/car-insurance
+[6] SingSaver, Car Insurance Comparison. https://www.singsaver.com.sg/car-insurance
+[7] Amazon Web Services, Amazon ECS Developer Guide – Service Auto Scaling. https://docs.aws.amazon.com/AmazonECS/latest/
+developerguide/
+[8] Amazon Web Services, AWS Pricing Overview and Pricing Calculator. https://aws.amazon.com/pricing/
+[9] Amazon Web Services, Amazon RDS On-Demand DB Instances and Multi-AZ Pricing Considerations. https://docs.aws.amazon.com/
+AmazonRDS/latest/UserGuide/USER_OnDemandDBInstances.html
+
+5 of 5
+
+
