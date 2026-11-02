@@ -211,6 +211,12 @@ Embeds the official insurer PDF at the mapped source page for embedding in the c
 
 ---
 
+## 🤝 Collaboration & Contribution (团队协作)
+
+For guidelines on branch management, PR Agent automated review, and local development, see [CONTRIBUTION.md](CONTRIBUTION.md).
+
+---
+
 ## 📄 License & Disclaimer
 
 This project was developed for **NUS CS5224 Cloud Computing (AY2025/2026)**. It provides objective actuarial modeling for informational post-accident decision support. Policyholders should consult their official insurance schedule and insurer claims department before formal settlement.
