@@ -62,11 +62,25 @@ export default function LoginPage() {
 
   return (
     <div className="auth-wrapper section-pad">
+      <section className="auth-aside" aria-labelledby="auth-aside-title">
+        <div className="section-kicker">ClaimWise · Singapore motor insurance</div>
+        <h2 id="auth-aside-title">Keep your insurance decisions close.</h2>
+        <p>
+          Sign in to pick up where you left off and keep your saved comparisons available
+          wherever you need them.
+        </p>
+        <ul className="auth-benefits">
+          <li>Sync repair comparisons across devices</li>
+          <li>Keep your policy settings in one place</li>
+          <li>Return to your numbers whenever you need</li>
+        </ul>
+      </section>
+
       <div className="auth-card">
         <div className="auth-header">
-          <div className="section-kicker">Account sync</div>
+          <div className="section-kicker">Welcome back</div>
           <h1>Sign in to ClaimWise</h1>
-          <p>Sync your saved repair comparisons and policy settings across devices.</p>
+          <p>Access your saved repair comparisons and policy settings.</p>
         </div>
 
         {error && (
