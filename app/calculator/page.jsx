@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-  INSURER_PROFILES,
-  NCD_STEPS,
-} from "../../src/decision-data.mjs";
-import { formatCurrency, formatPercent } from "../../src/formatters.mjs";
+import { INSURER_PROFILES, NCD_STEPS } from "../../src/decision-data.mjs";
 import { useAuth } from "../../components/AuthProvider";
 import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";
-import PolicySourcePreview from "../../components/PolicySourcePreview";
+import CalculatorForm from "../../components/CalculatorForm";
+import CalculatorResults from "../../components/CalculatorResults";
 
 const DEFAULT_INPUTS = {
   insurer: "income",
@@ -27,8 +24,6 @@ const DEFAULT_INPUTS = {
   youngDriverInvolved: false,
   repairType: "general",
 };
-
-const QUICK_REPAIR_PRESETS = [800, 1200, 2200, 3500];
 
 function validateField(field, value) {
   if (field === "repairCost") {
@@ -103,36 +98,6 @@ async function requestDecision(inputs, user) {
   return payload;
 }
 
-function makeHistoryResults(decision) {
-  const scenario = decision.baseScenario;
-  return {
-    recommendation: decision.recommendation,
-    savings: Math.abs(scenario?.difference || 0),
-    breakEvenCost: scenario?.breakEvenRepairCost || 0,
-    claimScenario: { threeYearTotal: scenario?.claimFutureDiscounted || 0 },
-    selfPayScenario: { threeYearTotal: scenario?.selfPayFutureDiscounted || 0 },
-  };
-}
-
-function getResultSourceMessage(resultMode, saveStatus) {
-  if (resultMode === "saved") {
-    return "Viewing the saved historical result. It has not been recalculated.";
-  }
-  if (saveStatus === "Saving…") {
-    return resultMode === "recalculated"
-      ? "Recalculated from saved inputs; saving the new comparison…"
-      : "Calculated with the current model; saving the result…";
-  }
-  if (saveStatus === "Save unavailable") {
-    return resultMode === "recalculated"
-      ? "Recalculated from saved inputs, but the new result could not be saved."
-      : "Calculated with the current model, but the result could not be saved.";
-  }
-  return resultMode === "recalculated"
-    ? "Recalculated from saved inputs with the current model and saved as a new comparison."
-    : "Calculated with the current model and saved to history.";
-}
-
 export default function CalculatorPage() {
   const { user, loading: authLoading } = useAuth();
   const [inputs, setInputs] = useState(DEFAULT_INPUTS);
@@ -150,7 +115,6 @@ export default function CalculatorPage() {
   const premiumInputRef = useRef(null);
   const excessInputRef = useRef(null);
 
-  // Hydrate initial query parameters if navigated from Home quick estimator
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -207,7 +171,10 @@ export default function CalculatorPage() {
     }
   }
 
-  async function calculateAndCommit(candidate, { resultMode: nextResultMode = "current" } = {}) {
+  async function calculateAndCommit(
+    candidate,
+    { resultMode: nextResultMode = "current" } = {}
+  ) {
     if (authLoading) return;
     setIsCalculating(true);
     setCalculationError("");
@@ -224,20 +191,22 @@ export default function CalculatorPage() {
       if (!saved && !user?.uid) {
         try {
           await saveCalculationRecord(null, {
-            title: `Repair quote ${formatCurrency(calculatedDecision.inputs.repairCost)}`,
-            inputs: calculatedDecision.inputs,
-            results: makeHistoryResults(calculatedDecision),
             decision: calculatedDecision,
           });
           saved = true;
         } catch (error) {
-          console.warn("Local calculation history save failed:", error?.message || error);
+          console.warn(
+            "Local calculation history save failed:",
+            error?.message || error
+          );
         }
       }
 
       setSaveStatus(
         saved
-          ? (user?.uid ? "Saved to cloud" : "Saved in browser")
+          ? user?.uid
+            ? "Saved to cloud"
+            : "Saved in browser"
           : "Save unavailable"
       );
     } catch (error) {
@@ -270,7 +239,8 @@ export default function CalculatorPage() {
     if (isCalculating || authLoading) return;
     const sample = {
       ...inputs,
-      currentPremium: Number(inputs.currentPremium) > 0 ? Number(inputs.currentPremium) : 1650,
+      currentPremium:
+        Number(inputs.currentPremium) > 0 ? Number(inputs.currentPremium) : 1650,
       excess: Number(inputs.excess) >= 0 ? Number(inputs.excess) : 600,
       repairCost: Number(inputs.repairCost) > 0 ? Number(inputs.repairCost) : 1200,
     };
@@ -321,14 +291,16 @@ export default function CalculatorPage() {
     if (!historicalInputs) return null;
     return {
       insurer: historicalInputs.insurer || inputs.insurer || "income",
-      currentPremium: historicalInputs.currentPremium ?? historicalInputs.annualPremium ?? 1650,
+      currentPremium:
+        historicalInputs.currentPremium ?? historicalInputs.annualPremium ?? 1650,
       currentNcd: historicalInputs.currentNcd ?? 50,
       excess: historicalInputs.excess ?? 600,
       repairCost: historicalInputs.repairCost ?? 1200,
       horizonYears: historicalInputs.horizonYears ?? 3,
       baseGrowthRate: historicalInputs.baseGrowthRate ?? 5,
       discountRate: historicalInputs.discountRate ?? DEFAULT_INPUTS.discountRate,
-      ncdProtector: historicalInputs.ncdProtector ?? historicalInputs.hasNcdProtector ?? false,
+      ncdProtector:
+        historicalInputs.ncdProtector ?? historicalInputs.hasNcdProtector ?? false,
       liability: historicalInputs.liability ?? DEFAULT_INPUTS.liability,
       thirdPartyClaim: historicalInputs.thirdPartyClaim ?? false,
       workshopType: historicalInputs.workshopType ?? DEFAULT_INPUTS.workshopType,
@@ -383,29 +355,6 @@ export default function CalculatorPage() {
   const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
   const hasValidDraftQuote = Number(inputs.repairCost) > 0;
 
-  const claimIsBetter = decision?.recommendation === "claim";
-  const baseScenario = decision?.baseScenario;
-  const difference = baseScenario ? Math.abs(baseScenario.difference) : 0;
-  const breakEven = baseScenario?.breakEvenRepairCost || 0;
-  const selfPayTotal = baseScenario?.selfPayTotal || 0;
-  const claimTotal = baseScenario?.claimTotal || 0;
-  const maxTotal = Math.max(selfPayTotal, claimTotal, 1);
-
-  const scaleMax = decision
-    ? Math.max(
-        breakEven * 1.35,
-        Number(decision.inputs.repairCost) * 1.2,
-        decision.effectiveExcess * 2,
-        1000
-      )
-    : 1000;
-  const quotePct = decision
-    ? Math.min(96, Math.max(4, (Number(decision.inputs.repairCost) / scaleMax) * 100))
-    : 0;
-  const breakEvenPct = decision
-    ? Math.min(92, Math.max(8, (breakEven / scaleMax) * 100))
-    : 0;
-
   return (
     <div className="calculator-studio-page section-pad">
       <div className="page-header">
@@ -414,809 +363,48 @@ export default function CalculatorPage() {
           <h1>Compare claim vs. self-pay costs</h1>
         </div>
         <p>
-          Configure your policy details and enter your workshop repair quotation, then run the
-          model to compare your {inputs.horizonYears}-year net cash outlay.
+          Configure your policy details and enter your workshop repair quotation, then run
+          the model to compare your {inputs.horizonYears}-year net cash outlay.
         </p>
       </div>
 
       <div className="studio-grid">
-        {/* LEFT COLUMN: Parameter Form */}
-        <form
-          id="calculator-form"
-          className="decision-form"
-          noValidate
+        <CalculatorForm
+          inputs={inputs}
+          profile={profile}
+          errors={errors}
+          calculationError={calculationError}
+          isCalculating={isCalculating}
+          authLoading={authLoading}
+          submittedInputs={submittedInputs}
+          isDirty={isDirty}
+          hasValidDraftQuote={hasValidDraftQuote}
+          repairCostInputRef={repairCostInputRef}
+          premiumInputRef={premiumInputRef}
+          excessInputRef={excessInputRef}
+          onInputChange={handleInputChange}
+          onFieldBlur={handleFieldBlur}
           onSubmit={handleSubmit}
-          aria-label="Policy and accident parameters"
-        >
-          {/* Section 1: Repair Quote & Core Policy Schedule */}
-          <div className="form-section">
-            <div className="form-section-top">
-              <div className="form-section-title">
-                <span className="step-badge tabular-nums">01</span>
-                <div>
-                  <h2>Repair quote &amp; policy schedule</h2>
-                  <p>Your workshop estimate and current motor insurance terms</p>
-                </div>
-              </div>
-              <button type="button" className="reset-link" onClick={handleReset}>
-                Reset form
-              </button>
-            </div>
+          onReset={handleReset}
+        />
 
-            {/* Primary Input: Repair Quote right at the top above the fold */}
-            <div className="field field-highlight">
-              <div className="field-label-row">
-                <label htmlFor="calc-repair-cost">Workshop repair quotation</label>
-                <span className="required-tag">Primary input</span>
-              </div>
-              <div className="input-prefix">
-                <span>S$</span>
-                <input
-                  ref={repairCostInputRef}
-                  id="calc-repair-cost"
-                  name="repairCost"
-                  type="number"
-                  min="1"
-                  step="50"
-                  placeholder="Enter workshop quote, e.g. 1200"
-                  required
-                  aria-invalid={errors.repairCost ? "true" : undefined}
-                  aria-describedby={
-                    errors.repairCost
-                      ? "calc-repair-cost-hint calc-repair-cost-error"
-                      : "calc-repair-cost-hint"
-                  }
-                  className="tabular-nums"
-                  value={inputs.repairCost}
-                  onChange={(e) => handleInputChange("repairCost", e.target.value)}
-                  onBlur={() => handleFieldBlur("repairCost")}
-                />
-              </div>
-              {errors.repairCost && (
-                <small id="calc-repair-cost-error" className="field-error" role="alert">
-                  {errors.repairCost}
-                </small>
-              )}
-              <div id="calc-repair-cost-hint" className="preset-row">
-                <span className="preset-label">Quick estimate:</span>
-                <div className="preset-chips" role="group" aria-label="Sample repair amounts">
-                  {QUICK_REPAIR_PRESETS.map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      className={`preset-chip tabular-nums ${Number(inputs.repairCost) === amt ? "is-active" : ""}`}
-                      onClick={() => handleInputChange("repairCost", amt)}
-                    >
-                      {formatCurrency(amt)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Insurer Select */}
-            <div className="field">
-              <label htmlFor="calc-insurer">Insurer &amp; plan</label>
-              <select
-                id="calc-insurer"
-                name="insurer"
-                aria-describedby="calc-insurer-hint"
-                value={inputs.insurer}
-                onChange={(e) => handleInputChange("insurer", e.target.value)}
-              >
-                {Object.entries(INSURER_PROFILES).map(([key, item]) => (
-                  <option key={key} value={key}>
-                    {item.name} — {item.planName}
-                  </option>
-                ))}
-              </select>
-              <small id="calc-insurer-hint" className="field-hint tabular-nums">
-                −{profile.ncdDropPoints}% NCD step-down · +{formatCurrency(profile.unauthorizedWorkshopExcess)} non-authorised workshop · +{formatCurrency(profile.youngDriverExcess)} young driver
-              </small>
-            </div>
-
-            {/* Current NCD Segmented Control */}
-            <div className="field">
-              <span className="field-label">Current No Claims Discount (NCD)</span>
-              <div className="segmented-row" role="group" aria-label="Current NCD">
-                {NCD_STEPS.map((step) => (
-                  <button
-                    key={step}
-                    type="button"
-                    className={`segment-btn tabular-nums ${inputs.currentNcd === step ? "is-selected" : ""}`}
-                    onClick={() => handleInputChange("currentNcd", step)}
-                  >
-                    {step}%
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Premium & Excess */}
-            <div className="field-grid two-col">
-              <div className="field">
-                <label htmlFor="calc-premium">Annual premium (after NCD)</label>
-                <div className="input-prefix">
-                  <span>S$</span>
-                  <input
-                    ref={premiumInputRef}
-                    id="calc-premium"
-                    name="currentPremium"
-                    type="number"
-                    min="1"
-                    step="10"
-                    required
-                    aria-invalid={errors.currentPremium ? "true" : undefined}
-                    aria-describedby={errors.currentPremium ? "calc-premium-error" : undefined}
-                    className="tabular-nums"
-                    value={inputs.currentPremium}
-                    onChange={(e) => handleInputChange("currentPremium", e.target.value)}
-                    onBlur={() => handleFieldBlur("currentPremium")}
-                  />
-                </div>
-                {errors.currentPremium && (
-                  <small id="calc-premium-error" className="field-error" role="alert">
-                    {errors.currentPremium}
-                  </small>
-                )}
-              </div>
-
-              <div className="field">
-                <label htmlFor="calc-excess">Standard policy excess</label>
-                <div className="input-prefix">
-                  <span>S$</span>
-                  <input
-                    ref={excessInputRef}
-                    id="calc-excess"
-                    name="excess"
-                    type="number"
-                    min="0"
-                    step="50"
-                    required
-                    aria-invalid={errors.excess ? "true" : undefined}
-                    aria-describedby={errors.excess ? "calc-excess-error" : undefined}
-                    className="tabular-nums"
-                    value={inputs.excess}
-                    onChange={(e) => handleInputChange("excess", e.target.value)}
-                    onBlur={() => handleFieldBlur("excess")}
-                  />
-                </div>
-                {errors.excess && (
-                  <small id="calc-excess-error" className="field-error" role="alert">
-                    {errors.excess}
-                  </small>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Workshop, Liability & Riders */}
-          <div className="form-section">
-            <div className="form-section-top">
-              <div className="form-section-title">
-                <span className="step-badge tabular-nums">02</span>
-                <div>
-                  <h2>Workshop, liability &amp; riders</h2>
-                  <p>Repair channel, fault assessment, and optional policy conditions</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Workshop Preference */}
-            <div className="field">
-              <span className="field-label">Workshop type</span>
-              <div className="choice-grid two-col" role="group" aria-label="Workshop type">
-                <button
-                  type="button"
-                  className={`choice-card ${inputs.workshopType === "authorized" ? "is-selected" : ""}`}
-                  onClick={() => handleInputChange("workshopType", "authorized")}
-                >
-                  <strong>Authorised workshop</strong>
-                  <small>Standard schedule excess applies</small>
-                </button>
-                <button
-                  type="button"
-                  className={`choice-card ${inputs.workshopType === "independent" ? "is-selected" : ""}`}
-                  onClick={() => handleInputChange("workshopType", "independent")}
-                >
-                  <strong>Independent workshop</strong>
-                  <small className="tabular-nums">
-                    Adds +{formatCurrency(profile.unauthorizedWorkshopExcess)} surcharge
-                  </small>
-                </button>
-              </div>
-            </div>
-
-            {/* Liability */}
-            <div className="field">
-              <span className="field-label">Accident liability</span>
-              <div className="choice-grid three-col" role="group" aria-label="Accident liability">
-                <button
-                  type="button"
-                  className={`choice-card ${inputs.liability === "at_fault" ? "is-selected" : ""}`}
-                  onClick={() => handleInputChange("liability", "at_fault")}
-                >
-                  <strong>At-fault / single car</strong>
-                  <small>Standard NCD step-down</small>
-                </button>
-                <button
-                  type="button"
-                  className={`choice-card ${inputs.liability === "non_fault" ? "is-selected" : ""}`}
-                  onClick={() => handleInputChange("liability", "non_fault")}
-                >
-                  <strong>100% non-fault</strong>
-                  <small>NCD shielded under MCF</small>
-                </button>
-                <button
-                  type="button"
-                  className={`choice-card ${inputs.liability === "partial_fault" ? "is-selected" : ""}`}
-                  onClick={() => handleInputChange("liability", "partial_fault")}
-                >
-                  <strong>Split liability (50/50)</strong>
-                  <small>Standard NCD step-down</small>
-                </button>
-              </div>
-            </div>
-
-            {/* Damage Category & Horizon */}
-            <div className="field-grid two-col">
-              <div className="field">
-                <span className="field-label">Damage category</span>
-                <div className="segmented-row" role="group" aria-label="Damage category">
-                  <button
-                    type="button"
-                    className={`segment-btn ${inputs.repairType === "general" ? "is-selected" : ""}`}
-                    onClick={() => handleInputChange("repairType", "general")}
-                  >
-                    Bodywork
-                  </button>
-                  <button
-                    type="button"
-                    className={`segment-btn ${inputs.repairType === "windscreen" ? "is-selected" : ""}`}
-                    onClick={() => handleInputChange("repairType", "windscreen")}
-                  >
-                    Windscreen
-                  </button>
-                </div>
-              </div>
-
-              <div className="field">
-                <span className="field-label">Comparison horizon</span>
-                <div className="segmented-row" role="group" aria-label="Comparison horizon">
-                  <button
-                    type="button"
-                    className={`segment-btn tabular-nums ${inputs.horizonYears === 3 ? "is-selected" : ""}`}
-                    onClick={() => handleInputChange("horizonYears", 3)}
-                  >
-                    3 years
-                  </button>
-                  <button
-                    type="button"
-                    className={`segment-btn tabular-nums ${inputs.horizonYears === 5 ? "is-selected" : ""}`}
-                    onClick={() => handleInputChange("horizonYears", 5)}
-                  >
-                    5 years
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Policy Switches */}
-            <div className="switch-group">
-              <label className="toggle-field">
-                <input
-                  type="checkbox"
-                  name="ncdProtector"
-                  checked={inputs.ncdProtector}
-                  onChange={(e) => handleInputChange("ncdProtector", e.target.checked)}
-                />
-                <span className="toggle-ui"></span>
-                <span>
-                  <strong>NCD Protector rider active</strong>
-                  <small>Shields your current NCD tier for 1 at-fault claim</small>
-                </span>
-              </label>
-
-              <label className="toggle-field">
-                <input
-                  type="checkbox"
-                  name="youngDriverInvolved"
-                  checked={inputs.youngDriverInvolved}
-                  onChange={(e) => handleInputChange("youngDriverInvolved", e.target.checked)}
-                />
-                <span className="toggle-ui"></span>
-                <span>
-                  <strong>Young or inexperienced driver at the wheel</strong>
-                  <small className="tabular-nums">
-                    Under 25 or licence held under 2 years (+{formatCurrency(profile.youngDriverExcess)} excess)
-                  </small>
-                </span>
-              </label>
-
-              <label className="toggle-field">
-                <input
-                  type="checkbox"
-                  name="thirdPartyClaim"
-                  checked={inputs.thirdPartyClaim}
-                  onChange={(e) => handleInputChange("thirdPartyClaim", e.target.checked)}
-                />
-                <span className="toggle-ui"></span>
-                <span>
-                  <strong>Third party is claiming against my policy</strong>
-                  <small>If you bear liability, your insurer settles the third-party claim and steps down NCD even if you self-pay your own car</small>
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* Form Submit Bar */}
-          <div className="form-submit-bar">
-            <div className="form-submit-status">
-              {authLoading ? (
-                <span role="status">Checking your sign-in status…</span>
-              ) : calculationError ? (
-                <span className="field-error" role="alert">{calculationError}</span>
-              ) : isCalculating ? (
-                <span role="status">Calculating and saving your comparison…</span>
-              ) : !submittedInputs ? (
-                <span>
-                  {hasValidDraftQuote
-                    ? `Ready to evaluate ${formatCurrency(inputs.repairCost)} repair quote`
-                    : "Enter your workshop repair quotation in Step 01 to calculate"}
-                </span>
-              ) : isDirty ? (
-                <span className="status-dirty">
-                  Parameters updated — click to recalculate recommendation
-                </span>
-              ) : (
-                <span className="status-synced">
-                  Showing results for {formatCurrency(submittedInputs.repairCost)} quote
-                </span>
-              )}
-            </div>
-            <div className="form-submit-actions">
-              <button type="submit" className="button button-primary button-large" disabled={isCalculating || authLoading}>
-                {authLoading
-                  ? "Checking sign-in…"
-                  : isCalculating
-                  ? "Calculating…"
-                  : !submittedInputs
-                  ? "Calculate recommendation →"
-                  : isDirty
-                  ? "Update calculation →"
-                  : "Recalculate →"}
-              </button>
-            </div>
-          </div>
-        </form>
-
-        {/* RIGHT COLUMN: Sticky Answer Panel */}
         <div className="studio-results">
-          {!decision ? (
-            /* Pre-Submit State: Structured Model Blueprint & Live Parameter Summary */
-            <section className="preview-blueprint-card" aria-live="polite">
-              <div className="verdict-top">
-                <span className="blueprint-pill">Ready to calculate</span>
-                <span className="verdict-horizon tabular-nums">
-                  {inputs.horizonYears}-year present value model
-                </span>
-              </div>
-
-              <h2 className="blueprint-title">
-                Enter your repair quote to run the comparison
-              </h2>
-
-              <p className="blueprint-lead">
-                Enter your workshop repair quotation in Step 01 and review your policy terms.
-                Click <strong>Calculate recommendation</strong> to model your {inputs.horizonYears}-year
-                NCD step-down penalty and exact break-even threshold.
-              </p>
-
-              {/* Parameter summary; decision-derived values are calculated on submit. */}
-              <div className="parameter-receipt">
-                <div className="receipt-header">
-                  <span>Configured policy mechanics</span>
-                  <span className="tabular-nums">{profile.name}</span>
-                </div>
-
-                <dl className="receipt-list tabular-nums">
-                  <div className="receipt-row">
-                    <dt>Workshop repair quotation</dt>
-                    <dd>
-                      {hasValidDraftQuote ? (
-                        <strong className="receipt-quote-ready">
-                          {formatCurrency(inputs.repairCost)}
-                        </strong>
-                      ) : (
-                        <span className="receipt-quote-missing">Awaiting quote input</span>
-                      )}
-                    </dd>
-                  </div>
-
-                  <div className="receipt-row">
-                    <dt>Annual premium &amp; NCD</dt>
-                    <dd>
-                      {Number(inputs.currentPremium) > 0
-                        ? formatCurrency(inputs.currentPremium)
-                        : "—"}{" "}
-                      <span>at {formatPercent(inputs.currentNcd)} NCD</span>
-                    </dd>
-                  </div>
-
-                  <div className="receipt-row">
-                    <dt>Claim NCD impact</dt>
-                    <dd>Calculated when you run the model</dd>
-                  </div>
-
-                  <div className="receipt-row">
-                    <dt>Policy excess entered</dt>
-                    <dd>
-                      <strong>{formatCurrency(inputs.excess)}</strong>{" "}
-                      <span>Final excess includes policy surcharges, if applicable.</span>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="blueprint-actions">
-                <button
-                  type="submit"
-                  form="calculator-form"
-                  className="button button-primary button-large"
-                  disabled={isCalculating || authLoading}
-                >
-                  {authLoading ? "Checking sign-in…" : isCalculating ? "Calculating…" : "Calculate recommendation →"}
-                </button>
-                <button
-                  type="button"
-                  className="button button-ghost"
-                  onClick={handleRunSampleScenario}
-                  disabled={isCalculating || authLoading}
-                >
-                  Try S$1,200 sample scenario
-                </button>
-              </div>
-            </section>
-          ) : (
-            <>
-              {resultMode && (
-                <div className="result-source-banner" role="status">
-                  {getResultSourceMessage(resultMode, saveStatus)}
-                </div>
-              )}
-
-              {/* Dirty State Notification Bar if inputs changed after submit */}
-              {isDirty && (
-                <div className="dirty-banner" role="status">
-                  <span>
-                    You modified parameters on the left. Update to refresh this recommendation.
-                  </span>
-                  <button
-                    type="submit"
-                    form="calculator-form"
-                    className="button button-primary button-sm"
-                    disabled={isCalculating || authLoading}
-                  >
-                    Update calculation →
-                  </button>
-                </div>
-              )}
-
-              {/* Print-Only Report Header & Input Summary */}
-              <section className="print-report-header" aria-label="Printed report summary">
-                <div className="print-report-brand">
-                  <strong>ClaimWise SG · Motor Insurance Claim Decision Report</strong>
-                  <span className="tabular-nums">
-                    {decision.profile?.name} — {decision.profile?.planName}
-                  </span>
-                </div>
-                <dl className="print-input-summary tabular-nums">
-                  <div>
-                    <dt>Repair quote</dt>
-                    <dd>{formatCurrency(decision.inputs.repairCost)}</dd>
-                  </div>
-                  <div>
-                    <dt>Annual premium</dt>
-                    <dd>{formatCurrency(decision.inputs.currentPremium)}</dd>
-                  </div>
-                  <div>
-                    <dt>Current NCD</dt>
-                    <dd>{formatPercent(decision.inputs.currentNcd)}</dd>
-                  </div>
-                  <div>
-                    <dt>Effective excess</dt>
-                    <dd>
-                      {formatCurrency(decision.effectiveExcess)} (base{" "}
-                      {formatCurrency(decision.inputs.excess)})
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Workshop &amp; category</dt>
-                    <dd>
-                      {decision.inputs.workshopType === "independent"
-                        ? "Independent"
-                        : "Authorised"}{" "}
-                      · {decision.inputs.repairType === "windscreen" ? "Windscreen" : "Bodywork"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Liability &amp; riders</dt>
-                    <dd>
-                      {decision.inputs.liability === "non_fault"
-                        ? "100% Non-fault"
-                        : decision.inputs.liability === "partial_fault"
-                        ? "Split liability"
-                        : "At-fault"}
-                      {decision.inputs.ncdProtector ? " · NCD Protector" : ""}
-                    </dd>
-                  </div>
-                </dl>
-              </section>
-
-              {/* 1. Primary Verdict Card */}
-              <section
-                className={`verdict-card ${claimIsBetter ? "is-claim" : "is-self-pay"} ${
-                  isDirty ? "is-stale" : ""
-                }`}
-                aria-live="polite"
-              >
-                <div className="verdict-top">
-                  <span className="verdict-pill">
-                    {decision.isBelowExcess
-                      ? "Below effective excess — self-pay"
-                      : claimIsBetter
-                      ? "Claiming is more cost-effective"
-                      : "Self-paying is more cost-effective"}
-                  </span>
-                  <span className="verdict-horizon tabular-nums">
-                    {decision.inputs.horizonYears}-year present value
-                  </span>
-                </div>
-
-                <h2 className="verdict-amount tabular-nums">
-                  {decision.isBelowExcess
-                    ? `Pay ${formatCurrency(decision.inputs.repairCost)} out-of-pocket`
-                    : claimIsBetter
-                    ? `Claiming saves about ${formatCurrency(difference)}`
-                    : `Self-paying saves about ${formatCurrency(difference)}`}
-                </h2>
-
-                <p className="verdict-explanation">
-                  {decision.isBelowExcess
-                    ? `Your repair quote (${formatCurrency(decision.inputs.repairCost)}) does not exceed your effective policy excess (${formatCurrency(decision.effectiveExcess)}). The insurer payout would be S$0.`
-                    : claimIsBetter
-                    ? `Your ${formatCurrency(decision.inputs.repairCost)} quote exceeds the ${formatCurrency(breakEven)} break-even threshold, so paying your ${formatCurrency(decision.effectiveExcess)} deductible and absorbing the renewal impact is cheaper than paying the full repair bill.`
-                    : `Paying ${formatCurrency(decision.inputs.repairCost)} today preserves your ${formatPercent(decision.selfPayNcdAfter)} renewal NCD and avoids ${formatCurrency(baseScenario.claimFutureDiscounted - baseScenario.selfPayFutureDiscounted)} in discounted renewal surcharges over ${decision.inputs.horizonYears} years.`}
-                </p>
-
-                {/* Break-Even Ruler */}
-                <div className="breakeven-ruler">
-                  <div className="ruler-labels tabular-nums">
-                    <span>
-                      Your quote: <strong>{formatCurrency(decision.inputs.repairCost)}</strong>
-                    </span>
-                    <span>
-                      Break-even threshold: <strong>{formatCurrency(breakEven)}</strong>
-                    </span>
-                  </div>
-                  <div className="ruler-track">
-                    <div
-                      className="ruler-zone-selfpay"
-                      style={{ width: `${breakEvenPct}%` }}
-                    />
-                    <div
-                      className="ruler-threshold"
-                      style={{ left: `${breakEvenPct}%` }}
-                      title={`Break-even threshold: ${formatCurrency(breakEven)}`}
-                    />
-                    <div
-                      className={`ruler-marker ${claimIsBetter ? "is-claim" : "is-self-pay"}`}
-                      style={{ left: `${quotePct}%` }}
-                      title={`Your quote: ${formatCurrency(decision.inputs.repairCost)}`}
-                    />
-                  </div>
-                  <div className="ruler-caption">
-                    <span>← Self-pay cheaper (below {formatCurrency(breakEven)})</span>
-                    <span>Claim cheaper →</span>
-                  </div>
-                </div>
-
-                {/* Key Metrics Grid */}
-                <dl className="verdict-metrics tabular-nums">
-                  <div>
-                    <dt>Day-1 outflow</dt>
-                    <dd>
-                      {formatCurrency(decision.inputs.repairCost)} <span>vs.</span>{" "}
-                      {formatCurrency(decision.effectiveExcess)}
-                    </dd>
-                    <small>Self-pay repair vs. claim excess</small>
-                  </div>
-
-                  <div>
-                    <dt>Next renewal NCD</dt>
-                    <dd>
-                      {decision.claimNcdAfter === decision.selfPayNcdAfter
-                        ? `${formatPercent(decision.claimNcdAfter)} (Unchanged)`
-                        : `${formatPercent(decision.selfPayNcdAfter)} → ${formatPercent(decision.claimNcdAfter)}`}
-                    </dd>
-                    <small>Self-pay vs. claim path</small>
-                  </div>
-
-                  <div>
-                    <dt>Break-even repair</dt>
-                    <dd>{formatCurrency(breakEven)}</dd>
-                    <small>Minimum quote to justify claiming</small>
-                  </div>
-                </dl>
-              </section>
-
-              {/* 2. Total Cost Comparison Bars */}
-              <section className="comparison-card" aria-label="Total cost comparison">
-                <div className="comparison-row">
-                  <div className="comparison-row-head">
-                    <div className="comparison-title-wrap">
-                      <strong>Self-pay path</strong>
-                      {!claimIsBetter && <span className="winner-tag">Lower cost</span>}
-                    </div>
-                    <strong className="comparison-total tabular-nums">
-                      {formatCurrency(selfPayTotal)}
-                    </strong>
-                  </div>
-                  <div className="comparison-bar-track">
-                    <div
-                      className={`comparison-bar-fill ${!claimIsBetter ? "is-winner" : ""}`}
-                      style={{ width: `${Math.max(8, (selfPayTotal / maxTotal) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="comparison-sub tabular-nums">
-                    {formatCurrency(decision.inputs.repairCost)} repair today +{" "}
-                    {formatCurrency(baseScenario?.selfPayFutureDiscounted)} over{" "}
-                    {decision.inputs.horizonYears} renewals (PV)
-                  </div>
-                </div>
-
-                <div className="comparison-row">
-                  <div className="comparison-row-head">
-                    <div className="comparison-title-wrap">
-                      <strong>Insurance claim path</strong>
-                      {claimIsBetter && <span className="winner-tag is-claim">Lower cost</span>}
-                    </div>
-                    <strong className="comparison-total tabular-nums">
-                      {formatCurrency(claimTotal)}
-                    </strong>
-                  </div>
-                  <div className="comparison-bar-track">
-                    <div
-                      className={`comparison-bar-fill ${claimIsBetter ? "is-winner-claim" : ""}`}
-                      style={{ width: `${Math.max(8, (claimTotal / maxTotal) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="comparison-sub tabular-nums">
-                    {formatCurrency(baseScenario?.currentClaimCost)} deductible today +{" "}
-                    {formatCurrency(baseScenario?.claimFutureDiscounted)} over{" "}
-                    {decision.inputs.horizonYears} renewals (PV)
-                  </div>
-                </div>
-              </section>
-
-              {/* 3. Active Policy Advisories (if any) */}
-              {decision.advisories?.length > 0 && (
-                <div className="advisory-stack">
-                  {decision.advisories.map((adv, i) => (
-                    <div key={i} className={`advisory-item is-${adv.type}`}>
-                      <strong>{adv.title}</strong>
-                      <p>{adv.message}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* 4. Expandable Year-by-Year Schedule */}
-              <div className="breakdown-card">
-                <button
-                  type="button"
-                  className="breakdown-toggle"
-                  aria-expanded={showTable}
-                  onClick={() => setShowTable(!showTable)}
-                >
-                  <div>
-                    <strong>Year-by-year renewal schedule</strong>
-                    <span>
-                      Nominal annual premiums and NCD recovery over {decision.inputs.horizonYears} years
-                    </span>
-                  </div>
-                  <svg
-                    className={`chevron-icon ${showTable ? "is-open" : ""}`}
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-
-                <div
-                  className={`breakdown-body ${showTable ? "is-open" : ""}`}
-                  hidden={!showTable}
-                >
-                  <div className="table-wrap">
-                    <table className="tabular-nums">
-                      <thead>
-                        <tr>
-                          <th>Year</th>
-                          <th>Self-pay NCD</th>
-                          <th>Self-pay premium</th>
-                          <th>Claim NCD</th>
-                          <th>Claim premium</th>
-                          <th>Annual penalty</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {baseScenario?.selfPayYears.map((selfPayYear, idx) => {
-                          const claimYear = baseScenario.claimYears[idx];
-                          const gap = claimYear.premium - selfPayYear.premium;
-                          return (
-                            <tr key={selfPayYear.year}>
-                              <td>Year {selfPayYear.year}</td>
-                              <td>{formatPercent(selfPayYear.ncd)}</td>
-                              <td>{formatCurrency(selfPayYear.premium)}</td>
-                              <td>{formatPercent(claimYear.ncd)}</td>
-                              <td>{formatCurrency(claimYear.premium)}</td>
-                              <td className={gap > 0 ? "is-negative" : "is-positive"}>
-                                {gap > 0 ? `+${formatCurrency(gap)}` : formatCurrency(gap)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              {/* 5. Official Policy Clause Audit & PDF Source Viewer */}
-              <PolicySourcePreview
-                clauseAudit={decision.clauseAudit}
-                insurer={decision.inputs.insurer}
-              />
-
-              {/* 6. Utility Actions */}
-              <div className="result-toolbar">
-                <span
-                  role="status"
-                  className={`button button-secondary ${saveStatus.startsWith("Saved") ? "is-saved" : ""}`}
-                >
-                  {saveStatus || "Saved automatically"}
-                </span>
-                <button type="button" className="button button-ghost" onClick={handleShare}>
-                  {shareStatus}
-                </button>
-                <button
-                  type="button"
-                  className="button button-ghost"
-                  onClick={() => window.print()}
-                >
-                  Print / PDF
-                </button>
-              </div>
-
-              {/* 6. GIA MCF 24-Hour Rule */}
-              <div className="result-disclaimer">
-                <p>
-                  <strong>GIA 24-hour reporting rule:</strong> Under the Singapore Motor Claims
-                  Framework, all accidents must be reported to your insurer within 24 hours (or by
-                  the next working day), regardless of whether you file a claim. Reporting an
-                  incident does not obligate you to claim.
-                </p>
-              </div>
-            </>
-          )}
+          <CalculatorResults
+            inputs={inputs}
+            profile={profile}
+            decision={decision}
+            resultMode={resultMode}
+            isDirty={isDirty}
+            isCalculating={isCalculating}
+            authLoading={authLoading}
+            hasValidDraftQuote={hasValidDraftQuote}
+            showTable={showTable}
+            saveStatus={saveStatus}
+            shareStatus={shareStatus}
+            onToggleTable={() => setShowTable(!showTable)}
+            onRunSampleScenario={handleRunSampleScenario}
+            onShare={handleShare}
+          />
 
           <CalculationHistory
             onLoadRecord={handleLoadRecord}
