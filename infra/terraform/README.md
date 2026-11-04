@@ -1,49 +1,34 @@
-# ClaimWise SG · Cloud Infrastructure as Code (Terraform)
+# ClaimWise SG · Terraform Infrastructure as Code
 
-This directory contains the 100% declarative **Infrastructure as Code (IaC)** configuration for ClaimWise SG using Terraform and the official Google Cloud / Google-Beta provider.
-
----
-
-## 🏛️ Architecture Overview
-
-The IaC manifests declare and orchestrate:
-1. **Google Identity Platform (GCIP)**:
-   - Enables `identitytoolkit.googleapis.com` & `firebase.googleapis.com`.
-   - Provisions Google Sign-In IdP provider with OAuth Client ID and Secret.
-   - Configures Authorized Redirection Domains (`localhost`, `127.0.0.1`, `claimwise-sg.firebaseapp.com`, `claimwise-sg.web.app`).
-2. **Firebase Project Association**:
-   - Links the GCP project (`claimwise-sg`) to Firebase services.
-   - Provisions the Web Client Application (`ClaimWiseWeb`).
+This directory defines the declarative **Infrastructure as Code (IaC)** configuration for ClaimWise SG using Terraform (`google` and `google-beta` providers).
 
 ---
 
-## 🚀 Usage
+## Provisioned Resources
 
-### 1. Prerequisites
-- [Terraform](https://developer.hashicorp.com/terraform/install) `>= 1.5.0`
-- Authenticated Google Cloud CLI:
-  ```bash
-  gcloud auth application-default login
-  ```
+1. **Google Cloud APIs**:
+   - `identitytoolkit.googleapis.com` (Identity Platform / Firebase Auth)
+   - `firebase.googleapis.com` (Firebase Management)
+   - `firestore.googleapis.com` (Cloud Firestore)
+   - `run.googleapis.com` (Cloud Run v2)
+2. **Database & Identity**:
+   - Native Cloud Firestore database `(default)` in `asia-southeast1` (Singapore).
+   - Firebase Project binding and Web App registration (`ClaimWiseWeb`).
+   - Identity Platform authorized domains and Google OAuth 2.0 Sign-In provider.
+3. **Serverless Application Runtime**:
+   - `google_cloud_run_v2_service.claimwise_app` (`asia-southeast1`, `0–10` auto-scaling instances, `1 vCPU`, `1 GiB` memory, port `3000`).
+   - `google_cloud_run_v2_service_iam_member.public_access` (`roles/run.invoker` for `allUsers`).
 
-### 2. Configure Variables
-Copy `terraform.tfvars.example` to `terraform.tfvars`:
+---
+
+## Usage
+
 ```bash
+cd infra/terraform
 cp terraform.tfvars.example terraform.tfvars
-```
-Fill in `google_client_secret` with your actual secret.
+# Populate google_client_id, google_client_secret, and optional container_image
 
-### 3. Initialize & Deploy
-```bash
 terraform init
 terraform plan
 terraform apply
-```
-
-### 4. Importing Existing Resources
-Since we already provisioned these resources via CLI, you can import them into Terraform state anytime:
-```bash
-terraform import google_project_service.identity_toolkit claimwise-sg/identitytoolkit.googleapis.com
-terraform import google_identity_platform_default_supported_idp_config.google_signin projects/claimwise-sg/defaultSupportedIdpConfigs/google.com
-terraform import google_firebase_web_app.web_client projects/claimwise-sg/webApps/1:721110976915:web:a6a137a0037af6852e0066
 ```

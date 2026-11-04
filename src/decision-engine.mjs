@@ -235,6 +235,7 @@ export function generateClauseAudit(
 
   // 3. Young / Inexperienced Driver Surcharge
   const hasYoungDriver = excessDetails.youngDriverSurcharge > 0;
+  const ageThreshold = profile.youngDriverAgeThreshold || 25;
   audit.push({
     id: "young_driver_excess",
     category: "Excess & Deductibles",
@@ -244,11 +245,11 @@ export function generateClauseAudit(
     statusLabel: hasYoungDriver ? "Mandatory Surcharge Active" : "Driver Criteria Satisfied",
     clauseRef: profile.clauses?.youngDriver?.ref || "GIA Standard Table of Additional Excesses",
     authority: `General Insurance Association of Singapore (GIA) & ${profile.name}`,
-    statutoryBasis: "Motor Insurers' Bureau of Singapore (MIB) Standard Risk Underwriting Rules",
-    illustrativeText: profile.clauses?.youngDriver?.text || "An additional excess applies if the vehicle is driven by any person under 25 years old or holding a licence for under 2 years.",
+    statutoryBasis: "Policy Schedule & Insurer Underwriting Excess Rules",
+    illustrativeText: profile.clauses?.youngDriver?.text || "An additional excess applies if the vehicle is driven by a young or inexperienced driver as defined in the policy schedule.",
     rationale: hasYoungDriver
-      ? `Because the driver involved in the accident is under 25 years old or has held a Singapore driving licence for under 2 years, a non-negotiable statutory surcharge of ${formatCurrency(excessDetails.youngDriverSurcharge)} is levied.`
-      : "Driver meets standard age (≥25) and licensing experience (≥2 years) thresholds; no supplementary excess is incurred.",
+      ? `Because a young or inexperienced driver (under age ${ageThreshold} or holding a Singapore driving licence for under 2 years) was at the wheel, a modeled schedule excess surcharge of ${formatCurrency(excessDetails.youngDriverSurcharge)} is added.`
+      : `Driver meets standard policy age (≥${ageThreshold}) and licensing experience (≥2 years) thresholds; no supplementary excess is incurred.`,
   });
 
   // 4. Windscreen Special Cover (if windscreen repair)

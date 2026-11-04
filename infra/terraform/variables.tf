@@ -7,7 +7,19 @@ variable "project_id" {
 variable "region" {
   description = "The GCP region for regional resources"
   type        = string
-  default     = "asia-southeast1" # Singapore
+  default     = "asia-southeast1"
+}
+
+variable "service_name" {
+  description = "Cloud Run service name"
+  type        = string
+  default     = "claimwise-sg"
+}
+
+variable "container_image" {
+  description = "Container image URI deployed to Cloud Run"
+  type        = string
+  default     = "asia-southeast1-docker.pkg.dev/claimwise-sg/cloud-run-source-deploy/claimwise-sg:latest"
 }
 
 variable "google_client_id" {
