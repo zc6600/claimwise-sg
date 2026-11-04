@@ -1,65 +1,68 @@
-# 🇸🇬 ClaimWise SG · Cloud Deployment & Access Guide
+# Deployment & Infrastructure Guide
 
-This guide details all methods for deploying and accessing the ClaimWise SG motor insurance decision support SaaS.
+This guide covers local builds, Firebase configuration, Google Cloud Run deployment, Terraform provisioning, and static policy PDF hosting for **ClaimWise SG**.
 
 ---
 
-## 1. Local Production Deployment (Active)
+## 1. Local Build & Verification
 
-The production bundle is currently built and actively serving on **port 3000**.
-
-### Running the Production Server
 ```bash
-# 1. Ensure dependencies are installed
+# 1. Install dependencies
 npm install
 
-# 2. Build production assets
+# 2. Run the deterministic test suite (14 tests)
+npm test
+
+# 3. Build optimized production assets
 npm run build
 
-# 3. Start production server
+# 4. Start the local production server
 npm run start -- -p 3000
 ```
 
-### Access URLs
-- **Web App**: `http://localhost:3000`
-- **Calculator**: `http://localhost:3000/calculator`
+### Key Local Routes
+- **Home & Quick Estimator**: `http://localhost:3000`
+- **Full Decision Calculator**: `http://localhost:3000/calculator`
+- **Insurer Rules & NCD Schedule**: `http://localhost:3000/rules`
+- **Methodology**: `http://localhost:3000/how-it-works`
 - **Health Check**: `http://localhost:3000/api/health`
-- **Clause Preview (Iframe)**: `http://localhost:3000/api/clause-preview?id=workshop_surcharge&insurer=etiqa`
+- **Clause PDF Preview**: `http://localhost:3000/api/clause-preview?id=workshop_surcharge&insurer=etiqa`
 
 ---
 
-## 2. Firebase Cloud Database Deployment
+## 2. Environment Configuration & Firebase
 
-ClaimWise SG uses Google Cloud Firestore in Singapore (`asia-southeast1`) for calculation record persistence.
+Copy `.env.example` to `.env.local` and supply your Firebase web app configuration:
 
-### Deploying Firestore Rules
-The project is configured with `.firebaserc` targeting the active project `claimwise-sg`.
+```bash
+cp .env.example .env.local
+```
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=claimwise-sg.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=claimwise-sg
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=claimwise-sg.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+```
+
+### Deploying Firestore Security Rules
+Calculation history is stored in Google Cloud Firestore (`asia-southeast1`) under user-isolated security rules defined in [`firestore.rules`](../firestore.rules):
 
 ```bash
 firebase deploy --only firestore:rules --project claimwise-sg
 ```
 
-### Environment Configuration (`.env.local`)
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyCz7WYNRb0Nm6WCqfTUlaa3qmCFnarFpOY
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=claimwise-sg.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=claimwise-sg
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=claimwise-sg.firebasestorage.app
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=721110976915
-NEXT_PUBLIC_FIREBASE_APP_ID=1:721110976915:web:a6a137a0037af6852e0066
-```
-
 ---
 
-## 3. Serverless Cloud Run Deployment (GCP)
+## 3. Google Cloud Run Deployment
 
-To deploy ClaimWise SG as a containerized microservice on Google Cloud Run in Singapore (`asia-southeast1`):
+To deploy ClaimWise SG as a serverless container on Google Cloud Run in Singapore (`asia-southeast1`):
 
 ```bash
-# 1. Set your GCP project
 gcloud config set project claimwise-sg
 
-# 2. Build and deploy container directly using Cloud Build and Cloud Run
 gcloud run deploy claimwise-sg \
   --source . \
   --region asia-southeast1 \
@@ -72,32 +75,18 @@ gcloud run deploy claimwise-sg \
   --max-instances 10
 ```
 
-Cloud Run will provide a secure HTTPS endpoint (e.g. `https://claimwise-sg-xxxx-as.a.run.app`).
-
 ---
 
-## 4. Vercel Serverless Edge Deployment
+## 4. Infrastructure as Code (Terraform)
 
-Next.js 15 App Router is natively optimized for Vercel:
-
-```bash
-# Deploy to Vercel production
-npx vercel --prod
-```
-
-Configure the environment variables (`NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, Firebase vars) in the Vercel Project Dashboard.
-
----
-
-## 5. Infrastructure as Code (Terraform)
-
-The [`infra/terraform`](../infra/terraform) folder contains complete Terraform configurations for GCP:
-- Google Cloud Project APIs (Identity Toolkit, Firestore, Firebase)
+The [`infra/terraform`](../infra/terraform) directory provisions the required GCP and Firebase resources:
+- Google Cloud APIs (Identity Toolkit, Cloud Firestore, Firebase)
 - Native Firestore database in `asia-southeast1`
-- Google Identity Platform Authorized Domains
+- Identity Platform authentication configuration
 
 ```bash
 cd infra/terraform
+cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform plan
 terraform apply
@@ -105,26 +94,17 @@ terraform apply
 
 ---
 
-## 6. Official Insurer Policy PDF Wording & Iframe Hover System (Solution 2)
+## 5. Official Insurer Policy PDF Hosting
 
-ClaimWise SG self-hosts public source documents from insurer and GIA websites in `public/policies/`:
+ClaimWise SG hosts public policy wording PDFs in `public/policies/` so they can be embedded same-origin without external CORS or `X-Frame-Options` restrictions:
 
-| Insurer / Body | Official source document | Pages |
+| Insurer / Body | Local File | Pages |
 | :--- | :--- | :---: |
-| **Etiqa Insurance** | [`etiqa_tiq_motor_policy.pdf`](../public/policies/etiqa_tiq_motor_policy.pdf) ([official source](https://www.etiqa.com.sg/wp-content/uploads/2026/02/Private-Car-Insurance-Policy-Wording-v19.pdf)) | 24 |
-| **Income Insurance** | [`income_drivo_policy.pdf`](../public/policies/income_drivo_policy.pdf) ([official source](https://assets-au-01.kc-usercontent.com/8acbd32f-b7e0-0294-6b7d-a2bc72d6b30c/ad09ba9c-acc3-4c91-89af-406a36f7f717/GPC%20Policy%20092026%20V1.pdf)) | 10 |
-| **MSIG Insurance** | [`msig_motormax_policy.pdf`](../public/policies/msig_motormax_policy.pdf) ([official source](https://www.msig.com.sg/sites/msig_sg/files/downloads/MotorMax_Policy.pdf)) | 20 |
-| **GIA Singapore** | [`gia_motor_claims_framework.pdf`](../public/policies/gia_motor_claims_framework.pdf) ([official source](https://gia.org.sg/images/pdf-files/MCF_Brochure.pdf)) | 5 |
+| **Etiqa Insurance** | [`public/policies/etiqa_tiq_motor_policy.pdf`](../public/policies/etiqa_tiq_motor_policy.pdf) | 24 |
+| **Income Insurance** | [`public/policies/income_drivo_policy.pdf`](../public/policies/income_drivo_policy.pdf) | 10 |
+| **MSIG Insurance** | [`public/policies/msig_motormax_policy.pdf`](../public/policies/msig_motormax_policy.pdf) | 20 |
+| **GIA Singapore** | [`public/policies/gia_motor_claims_framework.pdf`](../public/policies/gia_motor_claims_framework.pdf) | 5 |
 
-The PDFs are downloaded from official public webpages. The Income document is the current Drivo policy conditions, not the legacy Drivesafe product. Page references shown in the UI are navigation aids and must be checked against the policy version and the customer's schedule; they do not establish that a particular excess or endorsement applies.
-
-### Native RFC 3778 PDF Page Anchoring in `<iframe>`
-Modern desktop and mobile browsers natively interpret URL fragment parameters:
-```html
-<iframe src="/policies/etiqa_tiq_motor_policy.pdf#page=5&view=FitH" />
-```
-- **Same-Origin Hosting**: Eliminates `X-Frame-Options` and CORS blocks common on external insurer sites.
-- **Hover & Pin Preview**: In calculator results, hover over, focus, or click a clause row in `PolicySourcePreview` to open the official PDF at its mapped page (`Official PDF` vs. `Clause summary` modes), pin the active clause (`📌 Pin`), or open the full PDF tab (`Full tab ↗`).
-- **Printable PDF Report**: Clicking `Print / PDF` formats the results with a parameter summary header, auto-expanded year-by-year renewal table, and full clause audit trail for clean A4/Letter PDF export.
-- **Source Accuracy**: Page labels describe the section visible in the downloaded source. Where an excess or optional benefit depends on an individual policy schedule or rider, the preview says so; it does not invent a matching clause.
-
+### Page-Anchored Preview Architecture
+- Page mappings are maintained in [`lib/clause-documents.js`](../lib/clause-documents.js) using 1-based physical PDF page numbers (`#page=N&view=FitH`).
+- In the calculator results panel, [`components/PolicySourcePreview.jsx`](../components/PolicySourcePreview.jsx) lets users hover or click any clause row to inspect the matching PDF page, toggle between **Official PDF** and **Clause summary** views, pin a clause open (`📌 Pin`), or export a formatted summary via **Print / PDF**.
