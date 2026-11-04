@@ -124,6 +124,7 @@ Modern desktop and mobile browsers natively interpret URL fragment parameters:
 <iframe src="/policies/etiqa_tiq_motor_policy.pdf#page=5&view=FitH" />
 ```
 - **Same-Origin Hosting**: Eliminates `X-Frame-Options` and CORS blocks common on external insurer sites.
-- **Hover Preview**: In calculator results, hover over or focus a clause row to open the official PDF at its mapped page. On touchscreens, tap a row and close the preview with ×.
+- **Hover & Pin Preview**: In calculator results, hover over, focus, or click a clause row in `PolicySourcePreview` to open the official PDF at its mapped page (`Official PDF` vs. `Clause summary` modes), pin the active clause (`📌 Pin`), or open the full PDF tab (`Full tab ↗`).
+- **Printable PDF Report**: Clicking `Print / PDF` formats the results with a parameter summary header, auto-expanded year-by-year renewal table, and full clause audit trail for clean A4/Letter PDF export.
 - **Source Accuracy**: Page labels describe the section visible in the downloaded source. Where an excess or optional benefit depends on an individual policy schedule or rider, the preview says so; it does not invent a matching clause.
 
