@@ -37,12 +37,11 @@ The audit panel shows the assumptions used by the model and references for users
 - **Third-Party Claim Scenario**: The model assumes an at-fault or partial-fault third-party claim can affect NCD even if own damage is self-paid; verify your insurer's handling.
 - **Non-Fault Scenario**: The model assumes no NCD deduction for a 100% non-fault accident; confirm the claim route and terms with your insurer.
 
-### 3. Interactive Multi-Page PDF Iframe Popover (Solution 2 ⭐⭐⭐)
-- Hovering over any citation badge (e.g., `📜 Sec 1 Excess`, `📜 GIA MCF §1.1`, `📜 Actuarial Eq. (1)`) smoothly displays a floating card.
-- **Direct Official Insurer PDF Rendering**: The embedded `<iframe>` loads policy documents sourced from insurers and GIA (for example `/policies/etiqa_tiq_motor_policy.pdf` and `/policies/income_drivo_policy.pdf`) with PDF page anchors (`#page=N&view=FitH`). Clause page references should be verified against the applicable policy version and schedule.
-- **Dual-Mode Viewer**: Instant toggle between a referenced PDF and an illustrative clause summary.
-- **Full Page Flipping**: Users can scroll up or down across the full multi-page legal contract (with official MAS headers, stamps, and schedules) to verify adjacent clauses and definitions.
-- **Pin & Full Tab**: Supports **📌 One-Click Pinning**, **↗ Full Tab**, and **Viewport Collision Auto-Positioning**.
+### 3. Interactive Multi-Page PDF Clause Viewer & Printable Report
+- **Interactive Clause Audit (`PolicySourcePreview`)**: Hovering over or clicking any audited clause row in the calculator results displays the matching rule preview and page citation.
+- **Direct Official Insurer PDF Rendering**: The embedded `<iframe>` loads policy documents sourced from insurers (`etiqa_tiq_motor_policy.pdf`, `income_drivo_policy.pdf`, `msig_motormax_policy.pdf`) via `/api/clause-preview` with PDF page anchors (`#page=N&view=FitH`).
+- **Dual-Mode Viewer & Pinning**: Toggle between **Official PDF** and **Clause summary** views, lock a clause open with **📌 Pin**, or open the source document in a **Full tab ↗**.
+- **Print / PDF Report Export**: Clicking **Print / PDF** generates a clean actuarial report with a dedicated parameter summary header, an automatically expanded year-by-year renewal schedule, and the complete clause audit trail while hiding interactive form controls.
 
 ### 4. Singapore Market Calibration (Section 4.2)
 - Compares user repair quotes and annual premiums against empirical Land Transport Authority (LTA) and General Insurance Association of Singapore (GIA) market statistics:

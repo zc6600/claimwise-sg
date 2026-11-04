@@ -9,6 +9,7 @@ import { formatCurrency, formatPercent } from "../../src/formatters.mjs";
 import { useAuth } from "../../components/AuthProvider";
 import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";
+import PolicySourcePreview from "../../components/PolicySourcePreview";
 
 const DEFAULT_INPUTS = {
   insurer: "income",
@@ -890,6 +891,57 @@ export default function CalculatorPage() {
                 </div>
               )}
 
+              {/* Print-Only Report Header & Input Summary */}
+              <section className="print-report-header" aria-label="Printed report summary">
+                <div className="print-report-brand">
+                  <strong>ClaimWise SG · Motor Insurance Claim Decision Report</strong>
+                  <span className="tabular-nums">
+                    {decision.profile?.name} — {decision.profile?.planName}
+                  </span>
+                </div>
+                <dl className="print-input-summary tabular-nums">
+                  <div>
+                    <dt>Repair quote</dt>
+                    <dd>{formatCurrency(decision.inputs.repairCost)}</dd>
+                  </div>
+                  <div>
+                    <dt>Annual premium</dt>
+                    <dd>{formatCurrency(decision.inputs.currentPremium)}</dd>
+                  </div>
+                  <div>
+                    <dt>Current NCD</dt>
+                    <dd>{formatPercent(decision.inputs.currentNcd)}</dd>
+                  </div>
+                  <div>
+                    <dt>Effective excess</dt>
+                    <dd>
+                      {formatCurrency(decision.effectiveExcess)} (base{" "}
+                      {formatCurrency(decision.inputs.excess)})
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Workshop &amp; category</dt>
+                    <dd>
+                      {decision.inputs.workshopType === "independent"
+                        ? "Independent"
+                        : "Authorised"}{" "}
+                      · {decision.inputs.repairType === "windscreen" ? "Windscreen" : "Bodywork"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Liability &amp; riders</dt>
+                    <dd>
+                      {decision.inputs.liability === "non_fault"
+                        ? "100% Non-fault"
+                        : decision.inputs.liability === "partial_fault"
+                        ? "Split liability"
+                        : "At-fault"}
+                      {decision.inputs.ncdProtector ? " · NCD Protector" : ""}
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+
               {/* 1. Primary Verdict Card */}
               <section
                 className={`verdict-card ${claimIsBetter ? "is-claim" : "is-self-pay"} ${
@@ -1078,45 +1130,52 @@ export default function CalculatorPage() {
                   </svg>
                 </button>
 
-                {showTable && (
-                  <div className="breakdown-body">
-                    <div className="table-wrap">
-                      <table className="tabular-nums">
-                        <thead>
-                          <tr>
-                            <th>Year</th>
-                            <th>Self-pay NCD</th>
-                            <th>Self-pay premium</th>
-                            <th>Claim NCD</th>
-                            <th>Claim premium</th>
-                            <th>Annual penalty</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {baseScenario?.selfPayYears.map((selfPayYear, idx) => {
-                            const claimYear = baseScenario.claimYears[idx];
-                            const gap = claimYear.premium - selfPayYear.premium;
-                            return (
-                              <tr key={selfPayYear.year}>
-                                <td>Year {selfPayYear.year}</td>
-                                <td>{formatPercent(selfPayYear.ncd)}</td>
-                                <td>{formatCurrency(selfPayYear.premium)}</td>
-                                <td>{formatPercent(claimYear.ncd)}</td>
-                                <td>{formatCurrency(claimYear.premium)}</td>
-                                <td className={gap > 0 ? "is-negative" : "is-positive"}>
-                                  {gap > 0 ? `+${formatCurrency(gap)}` : formatCurrency(gap)}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                <div
+                  className={`breakdown-body ${showTable ? "is-open" : ""}`}
+                  hidden={!showTable}
+                >
+                  <div className="table-wrap">
+                    <table className="tabular-nums">
+                      <thead>
+                        <tr>
+                          <th>Year</th>
+                          <th>Self-pay NCD</th>
+                          <th>Self-pay premium</th>
+                          <th>Claim NCD</th>
+                          <th>Claim premium</th>
+                          <th>Annual penalty</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {baseScenario?.selfPayYears.map((selfPayYear, idx) => {
+                          const claimYear = baseScenario.claimYears[idx];
+                          const gap = claimYear.premium - selfPayYear.premium;
+                          return (
+                            <tr key={selfPayYear.year}>
+                              <td>Year {selfPayYear.year}</td>
+                              <td>{formatPercent(selfPayYear.ncd)}</td>
+                              <td>{formatCurrency(selfPayYear.premium)}</td>
+                              <td>{formatPercent(claimYear.ncd)}</td>
+                              <td>{formatCurrency(claimYear.premium)}</td>
+                              <td className={gap > 0 ? "is-negative" : "is-positive"}>
+                                {gap > 0 ? `+${formatCurrency(gap)}` : formatCurrency(gap)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* 5. Utility Actions */}
+              {/* 5. Official Policy Clause Audit & PDF Source Viewer */}
+              <PolicySourcePreview
+                clauseAudit={decision.clauseAudit}
+                insurer={decision.inputs.insurer}
+              />
+
+              {/* 6. Utility Actions */}
               <div className="result-toolbar">
                 <span
                   role="status"
