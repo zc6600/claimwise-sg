@@ -9,28 +9,31 @@ import {
 import Link from "next/link";
 import { formatCurrency } from "../src/formatters.mjs";
 
-export default function CalculationHistory({ onLoadRecord }) {
-  const { user } = useAuth();
+export default function CalculationHistory({ onLoadRecord, onRecalculateRecord, isCalculating = false }) {
+  const { user, loading: authLoading } = useAuth();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("checking");
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || authLoading) return;
     setLoading(true);
-    const unsubscribe = subscribeToCalculations(user, (items) => {
+    setSyncStatus(user ? "checking" : "local");
+    const unsubscribe = subscribeToCalculations(user, (items, status) => {
       setRecords(items || []);
+      setSyncStatus(status?.source || (user ? "checking" : "local"));
       setLoading(false);
     });
 
     return () => {
       if (typeof unsubscribe === "function") unsubscribe();
     };
-  }, [user, mounted]);
+  }, [user, authLoading, mounted]);
 
   async function handleDelete(id, e) {
     e.stopPropagation();
@@ -55,6 +58,14 @@ export default function CalculationHistory({ onLoadRecord }) {
     }
   }
 
+  const syncLabels = {
+    checking: "Checking cloud…",
+    syncing: "Syncing…",
+    cloud: "Cloud synced",
+    local: "Saved in browser",
+    unavailable: "Cloud unavailable · browser history",
+  };
+
   return (
     <div className="history-card">
       <div className="history-header">
@@ -62,12 +73,12 @@ export default function CalculationHistory({ onLoadRecord }) {
           <h3>Saved comparisons</h3>
         </div>
         <div className="history-sync-badge">
-          <span className="history-sync-dot"></span>
-          <span>{user ? "Cloud synced" : "Saved in browser"}</span>
+          <span className={`history-sync-dot is-${syncStatus}`}></span>
+          <span>{syncLabels[syncStatus] || "Checking cloud…"}</span>
         </div>
       </div>
 
-      {!user && (
+      {!authLoading && !user && (
         <div className="history-signin-prompt">
           <Link href="/login">Sign in</Link> to sync saved comparisons across devices.
         </div>
@@ -118,10 +129,19 @@ export default function CalculationHistory({ onLoadRecord }) {
                 <div className="history-item-actions">
                   <button
                     type="button"
-                    onClick={() => onLoadRecord(rec.inputs)}
+                    onClick={() => onLoadRecord(rec)}
                     className="history-load-btn"
+                    disabled={isCalculating || authLoading}
                   >
-                    Load parameters →
+                    {rec.decision ? "View saved result →" : "Load saved inputs →"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onRecalculateRecord(rec)}
+                    className="history-recalculate-btn"
+                    disabled={isCalculating || authLoading}
+                  >
+                    Recalculate &amp; save
                   </button>
                   <button
                     type="button"

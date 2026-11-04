@@ -6,6 +6,7 @@ import { NCD_STEPS } from "../src/decision-data.mjs";
 import { formatCurrency, formatPercent } from "../src/formatters.mjs";
 
 const QUICK_QUOTES = [800, 1200, 2200, 3500];
+const ESTIMATE_DEBOUNCE_MS = 500;
 
 export default function HomePage() {
   const [repairCost, setRepairCost] = useState(1200);
@@ -53,7 +54,7 @@ export default function HomePage() {
           setEstimateStatus("Estimate unavailable. Try again in a moment.");
         }
       }
-    }, 160);
+    }, ESTIMATE_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(timer);
