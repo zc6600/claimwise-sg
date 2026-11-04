@@ -16,7 +16,7 @@ ClaimWise SG models multi-year No-Claim Discount (NCD) penalties, contractual wo
 
 ## 🚀 Quick Access
 
-Access the live application at **[https://claimwise-sg.web.app](https://claimwise-sg.web.app)** (or run locally at `http://localhost:3000`).
+Access the live application at **[https://claimwise-sg-721110976915.asia-southeast1.run.app](https://claimwise-sg-721110976915.asia-southeast1.run.app)** (or run locally at `http://localhost:3000`).
 
 ---
 
