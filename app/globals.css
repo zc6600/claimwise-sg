@@ -226,6 +226,7 @@ p {
 }
 
 .nav-user-chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -271,6 +272,25 @@ p {
 .nav-signout-btn:hover {
   color: var(--ink);
   border-color: var(--line-strong);
+}
+
+.nav-signout-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.nav-signout-error {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  padding: 6px 9px;
+  border: 1px solid var(--amber-border);
+  border-radius: var(--r-sm);
+  background: var(--amber-soft);
+  color: var(--amber);
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .topbar-cta {

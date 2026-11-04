@@ -35,12 +35,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signOut = async () => {
-    setUser(null);
-    try {
-      await fbSignOut(auth);
-    } catch (e) {
-      // ignore
-    }
+    // Keep the current user until Firebase confirms the sign-out. The auth observer
+    // will clear the context state after the Firebase session is actually removed.
+    await fbSignOut(auth);
   };
 
   return (

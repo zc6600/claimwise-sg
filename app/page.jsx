@@ -1,13 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  NCD_STEPS,
-  calculateDecision,
-  formatCurrency,
-  formatPercent,
-} from "../src/decision-engine.mjs";
+import { NCD_STEPS } from "../src/decision-data.mjs";
+import { formatCurrency, formatPercent } from "../src/formatters.mjs";
 
 const QUICK_QUOTES = [800, 1200, 2200, 3500];
 
@@ -16,28 +12,59 @@ export default function HomePage() {
   const [currentNcd, setCurrentNcd] = useState(50);
   const [currentPremium] = useState(1650);
   const [excess] = useState(600);
+  const [decision, setDecision] = useState(null);
+  const [estimateStatus, setEstimateStatus] = useState("Calculating estimate…");
 
-  const decision = calculateDecision({
-    insurer: "income",
-    currentPremium,
-    currentNcd,
-    excess,
-    repairCost,
-    horizonYears: 3,
-    baseGrowthRate: 5,
-    discountRate: 3,
-    ncdProtector: false,
-    liability: "at_fault",
-    thirdPartyClaim: false,
-    workshopType: "authorized",
-    youngDriverInvolved: false,
-    repairType: "general",
-  });
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setEstimateStatus("Calculating estimate…");
+      try {
+        const response = await fetch("/api/decision", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            inputs: {
+              insurer: "income",
+              currentPremium,
+              currentNcd,
+              excess,
+              repairCost,
+              horizonYears: 3,
+              baseGrowthRate: 5,
+              discountRate: 3,
+              ncdProtector: false,
+              liability: "at_fault",
+              thirdPartyClaim: false,
+              workshopType: "authorized",
+              youngDriverInvolved: false,
+              repairType: "general",
+            },
+          }),
+          signal: controller.signal,
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload.error || "Estimate unavailable.");
+        setDecision(payload.decision);
+        setEstimateStatus("");
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setDecision(null);
+          setEstimateStatus("Estimate unavailable. Try again in a moment.");
+        }
+      }
+    }, 160);
 
-  const base = decision.baseScenario;
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [repairCost, currentNcd, currentPremium, excess]);
+
+  const base = decision?.baseScenario;
   const breakEven = base?.breakEvenRepairCost || 0;
   const savings = Math.abs(base?.difference || 0);
-  const claimIsBetter = decision.recommendation === "claim";
+  const claimIsBetter = decision?.recommendation === "claim";
 
   const scaleMax = Math.max(breakEven * 1.35, repairCost * 1.2, excess * 2, 1000);
   const quotePct = Math.min(96, Math.max(4, (repairCost / scaleMax) * 100));
@@ -146,74 +173,80 @@ export default function HomePage() {
           </div>
 
           {/* Live Verdict & Break-Even Ruler */}
-          <div className={`estimator-verdict ${claimIsBetter ? "is-claim" : "is-self-pay"}`}>
-            <div className="verdict-top">
-              <span className="verdict-pill">
-                {decision.isBelowExcess
-                  ? "Below policy excess"
-                  : claimIsBetter
-                  ? "Claiming is lower cost"
-                  : "Self-paying is lower cost"}
-              </span>
-              <span className="verdict-horizon">3-year net present value</span>
-            </div>
+          <div className={`estimator-verdict ${claimIsBetter ? "is-claim" : "is-self-pay"}`} aria-live="polite">
+            {!decision ? (
+              <p className="verdict-sub">{estimateStatus}</p>
+            ) : (
+              <>
+                <div className="verdict-top">
+                  <span className="verdict-pill">
+                    {decision.isBelowExcess
+                      ? "Below policy excess"
+                      : claimIsBetter
+                      ? "Claiming is lower cost"
+                      : "Self-paying is lower cost"}
+                  </span>
+                  <span className="verdict-horizon">3-year net present value</span>
+                </div>
 
-            <div className="verdict-headline tabular-nums">
-              {decision.isBelowExcess
-                ? `Pay ${formatCurrency(repairCost)} out-of-pocket`
-                : claimIsBetter
-                ? `Claiming saves about ${formatCurrency(savings)}`
-                : `Self-paying saves about ${formatCurrency(savings)}`}
-            </div>
+                <div className="verdict-headline tabular-nums">
+                  {decision.isBelowExcess
+                    ? `Pay ${formatCurrency(repairCost)} out-of-pocket`
+                    : claimIsBetter
+                    ? `Claiming saves about ${formatCurrency(savings)}`
+                    : `Self-paying saves about ${formatCurrency(savings)}`}
+                </div>
 
-            <p className="verdict-sub">
-              {decision.isBelowExcess
-                ? `Quote does not exceed your ${formatCurrency(excess)} excess, so insurer payout is S$0.`
-                : `NCD shifts ${formatPercent(currentNcd)} → ${formatPercent(decision.claimNcdAfter)} if you claim. Break-even repair quote is ${formatCurrency(breakEven)}.`}
-            </p>
+                <p className="verdict-sub">
+                  {decision.isBelowExcess
+                    ? `Quote does not exceed your ${formatCurrency(excess)} excess, so insurer payout is S$0.`
+                    : `NCD shifts ${formatPercent(currentNcd)} → ${formatPercent(decision.claimNcdAfter)} if you claim. Break-even repair quote is ${formatCurrency(breakEven)}.`}
+                </p>
 
-            {/* Break-even ruler */}
-            <div className="breakeven-ruler">
-              <div className="ruler-labels tabular-nums">
-                <span>
-                  Your quote: <strong>{formatCurrency(repairCost)}</strong>
-                </span>
-                <span>
-                  Break-even: <strong>{formatCurrency(breakEven)}</strong>
-                </span>
-              </div>
-              <div className="ruler-track">
-                <div
-                  className="ruler-zone-selfpay"
-                  style={{ width: `${breakEvenPct}%` }}
-                />
-                <div
-                  className="ruler-threshold"
-                  style={{ left: `${breakEvenPct}%` }}
-                  title={`Break-even threshold: ${formatCurrency(breakEven)}`}
-                />
-                <div
-                  className={`ruler-marker ${claimIsBetter ? "is-claim" : "is-self-pay"}`}
-                  style={{ left: `${quotePct}%` }}
-                  title={`Your repair quote: ${formatCurrency(repairCost)}`}
-                />
-              </div>
-              <div className="ruler-caption">
-                <span>← Self-pay zone (below {formatCurrency(breakEven)})</span>
-                <span>Claim zone →</span>
-              </div>
-            </div>
+                {/* Break-even ruler */}
+                <div className="breakeven-ruler">
+                  <div className="ruler-labels tabular-nums">
+                    <span>
+                      Your quote: <strong>{formatCurrency(repairCost)}</strong>
+                    </span>
+                    <span>
+                      Break-even: <strong>{formatCurrency(breakEven)}</strong>
+                    </span>
+                  </div>
+                  <div className="ruler-track">
+                    <div
+                      className="ruler-zone-selfpay"
+                      style={{ width: `${breakEvenPct}%` }}
+                    />
+                    <div
+                      className="ruler-threshold"
+                      style={{ left: `${breakEvenPct}%` }}
+                      title={`Break-even threshold: ${formatCurrency(breakEven)}`}
+                    />
+                    <div
+                      className={`ruler-marker ${claimIsBetter ? "is-claim" : "is-self-pay"}`}
+                      style={{ left: `${quotePct}%` }}
+                      title={`Your repair quote: ${formatCurrency(repairCost)}`}
+                    />
+                  </div>
+                  <div className="ruler-caption">
+                    <span>← Self-pay zone (below {formatCurrency(breakEven)})</span>
+                    <span>Claim zone →</span>
+                  </div>
+                </div>
 
-            <div className="estimator-totals tabular-nums">
-              <div>
-                <span>3-yr total if self-pay</span>
-                <strong>{formatCurrency(base?.selfPayTotal)}</strong>
-              </div>
-              <div>
-                <span>3-yr total if claim</span>
-                <strong>{formatCurrency(base?.claimTotal)}</strong>
-              </div>
-            </div>
+                <div className="estimator-totals tabular-nums">
+                  <div>
+                    <span>3-yr total if self-pay</span>
+                    <strong>{formatCurrency(base?.selfPayTotal)}</strong>
+                  </div>
+                  <div>
+                    <span>3-yr total if claim</span>
+                    <strong>{formatCurrency(base?.claimTotal)}</strong>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="estimator-footer">

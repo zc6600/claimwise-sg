@@ -7,7 +7,7 @@ import {
   deleteCalculationRecord,
 } from "../lib/history-service";
 import Link from "next/link";
-import { formatCurrency } from "../src/decision-engine.mjs";
+import { formatCurrency } from "../src/formatters.mjs";
 
 export default function CalculationHistory({ onLoadRecord }) {
   const { user } = useAuth();
@@ -78,7 +78,7 @@ export default function CalculationHistory({ onLoadRecord }) {
       ) : records.length === 0 ? (
         <div className="history-empty">
           <p className="history-empty-title">No saved comparisons yet</p>
-          <span>Save a scenario above to compare quotes from different workshops.</span>
+          <span>Run a calculation to save it here and compare quotes from different workshops.</span>
         </div>
       ) : (
         <div className="history-list">
