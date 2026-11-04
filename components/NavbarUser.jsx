@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 export default function NavbarUser() {
   const { user, loading, signOut } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -48,13 +50,27 @@ export default function NavbarUser() {
         <button
           type="button"
           className="nav-signout-btn"
+          disabled={isSigningOut}
           onClick={async () => {
-            await signOut();
-            router.push("/");
+            setIsSigningOut(true);
+            setSignOutError("");
+            try {
+              await signOut();
+              router.push("/");
+            } catch {
+              setSignOutError("Sign out failed. Please try again.");
+            } finally {
+              setIsSigningOut(false);
+            }
           }}
         >
-          Sign out
+          {isSigningOut ? "Signing out…" : "Sign out"}
         </button>
+        {signOutError && (
+          <span className="nav-signout-error" role="alert">
+            {signOutError}
+          </span>
+        )}
       </span>
     );
   }

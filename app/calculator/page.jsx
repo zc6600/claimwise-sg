@@ -4,10 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import {
   INSURER_PROFILES,
   NCD_STEPS,
-  calculateDecision,
-  formatCurrency,
-  formatPercent,
-} from "../../src/decision-engine.mjs";
+} from "../../src/decision-data.mjs";
+import { formatCurrency, formatPercent } from "../../src/formatters.mjs";
 import { useAuth } from "../../components/AuthProvider";
 import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";
@@ -86,14 +84,48 @@ function areInputsEqual(a, b) {
   );
 }
 
+async function requestDecision(inputs, { persist = false, user, signal } = {}) {
+  const headers = { "content-type": "application/json" };
+  if (persist && user?.getIdToken) {
+    headers.authorization = `Bearer ${await user.getIdToken()}`;
+  }
+
+  const response = await fetch("/api/decision", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ inputs, persist }),
+    signal,
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload.ok) {
+    throw new Error(payload.error || "Unable to calculate this decision.");
+  }
+  return payload;
+}
+
+function makeHistoryResults(decision) {
+  const scenario = decision.baseScenario;
+  return {
+    recommendation: decision.recommendation,
+    savings: Math.abs(scenario?.difference || 0),
+    breakEvenCost: scenario?.breakEvenRepairCost || 0,
+    claimScenario: { threeYearTotal: scenario?.claimFutureDiscounted || 0 },
+    selfPayScenario: { threeYearTotal: scenario?.selfPayFutureDiscounted || 0 },
+  };
+}
+
 export default function CalculatorPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [inputs, setInputs] = useState(DEFAULT_INPUTS);
   const [submittedInputs, setSubmittedInputs] = useState(null);
+  const [decision, setDecision] = useState(null);
+  const [previewDecision, setPreviewDecision] = useState(null);
   const [errors, setErrors] = useState({});
+  const [calculationError, setCalculationError] = useState("");
+  const [isCalculating, setIsCalculating] = useState(false);
   const [showTable, setShowTable] = useState(false);
   const [shareStatus, setShareStatus] = useState("Share link");
-  const [saveStatus, setSaveStatus] = useState("Save comparison");
+  const [saveStatus, setSaveStatus] = useState("");
 
   const repairCostInputRef = useRef(null);
   const premiumInputRef = useRef(null);
@@ -121,18 +153,34 @@ export default function CalculatorPage() {
     }
   }, []);
 
-  // Live preview calculation (for parameter receipt before submit)
-  const previewDecision = calculateDecision({
-    ...inputs,
-    repairCost: Number(inputs.repairCost) > 0 ? Number(inputs.repairCost) : 0,
-  });
-
-  // Committed calculation (only after explicit form submission or loading a saved record)
-  const decision = submittedInputs ? calculateDecision(submittedInputs) : null;
   const isDirty = Boolean(submittedInputs && !areInputsEqual(inputs, submittedInputs));
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const candidate = {
+      ...inputs,
+      currentPremium: Number(inputs.currentPremium),
+      excess: Number(inputs.excess),
+      repairCost: Number(inputs.repairCost) > 0 ? Number(inputs.repairCost) : 0,
+    };
+    const timer = setTimeout(async () => {
+      try {
+        const payload = await requestDecision(candidate, { signal: controller.signal });
+        setPreviewDecision(payload.decision);
+      } catch (error) {
+        if (error.name !== "AbortError") setPreviewDecision(null);
+      }
+    }, 180);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [inputs]);
 
   function handleInputChange(field, value) {
     setInputs((prev) => ({ ...prev, [field]: value }));
+    setCalculationError("");
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -163,8 +211,49 @@ export default function CalculatorPage() {
     }
   }
 
+  async function calculateAndCommit(candidate, { persist = true } = {}) {
+    if (authLoading) return;
+    setIsCalculating(true);
+    setCalculationError("");
+    setSaveStatus(persist ? "Saving…" : "");
+
+    try {
+      const payload = await requestDecision(candidate, { persist, user });
+      const calculatedDecision = payload.decision;
+      setDecision(calculatedDecision);
+      setSubmittedInputs(calculatedDecision.inputs);
+      let saved = Boolean(payload.meta?.persisted);
+
+      if (!saved && !user?.uid) {
+        try {
+          await saveCalculationRecord(null, {
+            title: `Repair quote ${formatCurrency(calculatedDecision.inputs.repairCost)}`,
+            inputs: calculatedDecision.inputs,
+            results: makeHistoryResults(calculatedDecision),
+            decision: calculatedDecision,
+          });
+          saved = true;
+        } catch (error) {
+          console.warn("Local calculation history save failed:", error?.message || error);
+        }
+      }
+
+      setSaveStatus(
+        saved
+          ? (user?.uid ? "Saved to cloud" : "Saved in browser")
+          : "Save unavailable"
+      );
+    } catch (error) {
+      setCalculationError(error.message || "Unable to calculate this decision.");
+      setSaveStatus("Calculation failed");
+    } finally {
+      setIsCalculating(false);
+    }
+  }
+
   function handleSubmit(e) {
     if (e) e.preventDefault();
+    if (isCalculating || authLoading) return;
     const validationErrors = validateAllInputs(inputs);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -172,7 +261,7 @@ export default function CalculatorPage() {
       return;
     }
     setErrors({});
-    setSubmittedInputs({
+    void calculateAndCommit({
       ...inputs,
       currentPremium: Number(inputs.currentPremium),
       excess: Number(inputs.excess),
@@ -181,6 +270,7 @@ export default function CalculatorPage() {
   }
 
   function handleRunSampleScenario() {
+    if (isCalculating || authLoading) return;
     const sample = {
       ...inputs,
       currentPremium: Number(inputs.currentPremium) > 0 ? Number(inputs.currentPremium) : 1650,
@@ -189,13 +279,16 @@ export default function CalculatorPage() {
     };
     setErrors({});
     setInputs(sample);
-    setSubmittedInputs(sample);
+    void calculateAndCommit(sample);
   }
 
   function handleReset() {
     setInputs(DEFAULT_INPUTS);
     setSubmittedInputs(null);
+    setDecision(null);
     setErrors({});
+    setCalculationError("");
+    setSaveStatus("");
     setShowTable(false);
   }
 
@@ -226,32 +319,7 @@ export default function CalculatorPage() {
     setTimeout(() => setShareStatus("Share link"), 2200);
   }
 
-  async function handleSaveCalculation() {
-    if (!decision) return;
-    setSaveStatus("Saving…");
-    try {
-      const base = decision.scenarios?.[1] || decision.scenarios?.[0] || decision.baseScenario;
-      await saveCalculationRecord(user, {
-        title: `Repair quote ${formatCurrency(decision.inputs.repairCost)}`,
-        inputs: { ...decision.inputs },
-        results: {
-          recommendation: decision.recommendation,
-          savings: Math.abs(base?.difference || 0),
-          breakEvenCost: base?.breakEvenRepairCost || 0,
-          claimScenario: { threeYearTotal: base?.claimTotal || 0 },
-          selfPayScenario: { threeYearTotal: base?.selfPayTotal || 0 },
-        },
-      });
-      setSaveStatus("Saved");
-      setTimeout(() => setSaveStatus("Save comparison"), 2500);
-    } catch (e) {
-      console.warn("Save error:", e);
-      setSaveStatus("Save failed");
-      setTimeout(() => setSaveStatus("Save comparison"), 2500);
-    }
-  }
-
-  function handleLoadRecord(historicalInputs) {
+  async function handleLoadRecord(historicalInputs) {
     if (!historicalInputs) return;
     const restored = {
       insurer: historicalInputs.insurer || inputs.insurer || "income",
@@ -271,7 +339,18 @@ export default function CalculatorPage() {
     };
     setErrors({});
     setInputs(restored);
-    setSubmittedInputs(restored);
+    setCalculationError("");
+    setIsCalculating(true);
+    try {
+      const payload = await requestDecision(restored);
+      setDecision(payload.decision);
+      setSubmittedInputs(payload.decision.inputs);
+      setSaveStatus("Loaded from history");
+    } catch (error) {
+      setCalculationError(error.message || "Unable to load this calculation.");
+    } finally {
+      setIsCalculating(false);
+    }
   }
 
   const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
@@ -646,7 +725,13 @@ export default function CalculatorPage() {
           {/* Form Submit Bar */}
           <div className="form-submit-bar">
             <div className="form-submit-status">
-              {!submittedInputs ? (
+              {authLoading ? (
+                <span role="status">Checking your sign-in status…</span>
+              ) : calculationError ? (
+                <span className="field-error" role="alert">{calculationError}</span>
+              ) : isCalculating ? (
+                <span role="status">Calculating and saving your comparison…</span>
+              ) : !submittedInputs ? (
                 <span>
                   {hasValidDraftQuote
                     ? `Ready to evaluate ${formatCurrency(inputs.repairCost)} repair quote`
@@ -663,8 +748,12 @@ export default function CalculatorPage() {
               )}
             </div>
             <div className="form-submit-actions">
-              <button type="submit" className="button button-primary button-large">
-                {!submittedInputs
+              <button type="submit" className="button button-primary button-large" disabled={isCalculating || authLoading}>
+                {authLoading
+                  ? "Checking sign-in…"
+                  : isCalculating
+                  ? "Calculating…"
+                  : !submittedInputs
                   ? "Calculate recommendation →"
                   : isDirty
                   ? "Update calculation →"
@@ -730,7 +819,9 @@ export default function CalculatorPage() {
                   <div className="receipt-row">
                     <dt>Next renewal NCD if claiming</dt>
                     <dd>
-                      {previewDecision.claimNcdAfter === previewDecision.selfPayNcdAfter ? (
+                      {!previewDecision ? (
+                        <span>Loading policy preview…</span>
+                      ) : previewDecision.claimNcdAfter === previewDecision.selfPayNcdAfter ? (
                         <span className="receipt-tag is-protected">
                           {formatPercent(previewDecision.claimNcdAfter)} (Protected)
                         </span>
@@ -746,9 +837,15 @@ export default function CalculatorPage() {
                   <div className="receipt-row">
                     <dt>Effective day-1 claim excess</dt>
                     <dd>
-                      <strong>{formatCurrency(previewDecision.effectiveExcess)}</strong>
-                      {previewDecision.effectiveExcess > Number(inputs.excess || 0) && (
-                        <span> (incl. surcharges)</span>
+                      {previewDecision ? (
+                        <>
+                          <strong>{formatCurrency(previewDecision.effectiveExcess)}</strong>
+                          {previewDecision.effectiveExcess > Number(inputs.excess || 0) && (
+                            <span> (incl. surcharges)</span>
+                          )}
+                        </>
+                      ) : (
+                        <span>Loading…</span>
                       )}
                     </dd>
                   </div>
@@ -760,13 +857,15 @@ export default function CalculatorPage() {
                   type="submit"
                   form="calculator-form"
                   className="button button-primary button-large"
+                  disabled={isCalculating || authLoading}
                 >
-                  Calculate recommendation →
+                  {authLoading ? "Checking sign-in…" : isCalculating ? "Calculating…" : "Calculate recommendation →"}
                 </button>
                 <button
                   type="button"
                   className="button button-ghost"
                   onClick={handleRunSampleScenario}
+                  disabled={isCalculating || authLoading}
                 >
                   Try S$1,200 sample scenario
                 </button>
@@ -784,6 +883,7 @@ export default function CalculatorPage() {
                     type="submit"
                     form="calculator-form"
                     className="button button-primary button-sm"
+                    disabled={isCalculating || authLoading}
                   >
                     Update calculation →
                   </button>
@@ -1018,13 +1118,12 @@ export default function CalculatorPage() {
 
               {/* 5. Utility Actions */}
               <div className="result-toolbar">
-                <button
-                  type="button"
-                  className={`button button-secondary ${saveStatus === "Saved" ? "is-saved" : ""}`}
-                  onClick={handleSaveCalculation}
+                <span
+                  role="status"
+                  className={`button button-secondary ${saveStatus.startsWith("Saved") ? "is-saved" : ""}`}
                 >
-                  {saveStatus}
-                </button>
+                  {saveStatus || "Saved automatically"}
+                </span>
                 <button type="button" className="button button-ghost" onClick={handleShare}>
                   {shareStatus}
                 </button>

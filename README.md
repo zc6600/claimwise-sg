@@ -66,6 +66,8 @@ The audit panel shows the assumptions used by the model and references for users
 - **Testing**: Node.js Native Test Runner (`node --test`)
 - **Infrastructure as Code**: Terraform GCP & Firebase configuration in [`infra/terraform`](infra/terraform)
 
+The home estimator and calculator request decisions from `/api/decision`. Submitting a calculation stores its inputs, summary, and full decision result in the signed-in user's Firestore history. Guest calculations are stored in browser local storage.
+
 ---
 
 ## 📦 Running & Deployment Instructions
