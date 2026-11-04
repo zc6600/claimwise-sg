@@ -85,17 +85,16 @@ function areInputsEqual(a, b) {
   );
 }
 
-async function requestDecision(inputs, { persist = false, user, signal } = {}) {
+async function requestDecision(inputs, user) {
   const headers = { "content-type": "application/json" };
-  if (persist && user?.getIdToken) {
+  if (user?.getIdToken) {
     headers.authorization = `Bearer ${await user.getIdToken()}`;
   }
 
   const response = await fetch("/api/decision", {
     method: "POST",
     headers,
-    body: JSON.stringify({ inputs, persist }),
-    signal,
+    body: JSON.stringify({ inputs, persist: true }),
   });
   const payload = await response.json();
   if (!response.ok || !payload.ok) {
@@ -115,12 +114,31 @@ function makeHistoryResults(decision) {
   };
 }
 
+function getResultSourceMessage(resultMode, saveStatus) {
+  if (resultMode === "saved") {
+    return "Viewing the saved historical result. It has not been recalculated.";
+  }
+  if (saveStatus === "Saving…") {
+    return resultMode === "recalculated"
+      ? "Recalculated from saved inputs; saving the new comparison…"
+      : "Calculated with the current model; saving the result…";
+  }
+  if (saveStatus === "Save unavailable") {
+    return resultMode === "recalculated"
+      ? "Recalculated from saved inputs, but the new result could not be saved."
+      : "Calculated with the current model, but the result could not be saved.";
+  }
+  return resultMode === "recalculated"
+    ? "Recalculated from saved inputs with the current model and saved as a new comparison."
+    : "Calculated with the current model and saved to history.";
+}
+
 export default function CalculatorPage() {
   const { user, loading: authLoading } = useAuth();
   const [inputs, setInputs] = useState(DEFAULT_INPUTS);
   const [submittedInputs, setSubmittedInputs] = useState(null);
   const [decision, setDecision] = useState(null);
-  const [previewDecision, setPreviewDecision] = useState(null);
+  const [resultMode, setResultMode] = useState(null);
   const [errors, setErrors] = useState({});
   const [calculationError, setCalculationError] = useState("");
   const [isCalculating, setIsCalculating] = useState(false);
@@ -156,29 +174,6 @@ export default function CalculatorPage() {
 
   const isDirty = Boolean(submittedInputs && !areInputsEqual(inputs, submittedInputs));
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const candidate = {
-      ...inputs,
-      currentPremium: Number(inputs.currentPremium),
-      excess: Number(inputs.excess),
-      repairCost: Number(inputs.repairCost) > 0 ? Number(inputs.repairCost) : 0,
-    };
-    const timer = setTimeout(async () => {
-      try {
-        const payload = await requestDecision(candidate, { signal: controller.signal });
-        setPreviewDecision(payload.decision);
-      } catch (error) {
-        if (error.name !== "AbortError") setPreviewDecision(null);
-      }
-    }, 180);
-
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, [inputs]);
-
   function handleInputChange(field, value) {
     setInputs((prev) => ({ ...prev, [field]: value }));
     setCalculationError("");
@@ -212,17 +207,18 @@ export default function CalculatorPage() {
     }
   }
 
-  async function calculateAndCommit(candidate, { persist = true } = {}) {
+  async function calculateAndCommit(candidate, { resultMode: nextResultMode = "current" } = {}) {
     if (authLoading) return;
     setIsCalculating(true);
     setCalculationError("");
-    setSaveStatus(persist ? "Saving…" : "");
+    setSaveStatus("Saving…");
 
     try {
-      const payload = await requestDecision(candidate, { persist, user });
+      const payload = await requestDecision(candidate, user);
       const calculatedDecision = payload.decision;
       setDecision(calculatedDecision);
       setSubmittedInputs(calculatedDecision.inputs);
+      setResultMode(nextResultMode);
       let saved = Boolean(payload.meta?.persisted);
 
       if (!saved && !user?.uid) {
@@ -287,6 +283,7 @@ export default function CalculatorPage() {
     setInputs(DEFAULT_INPUTS);
     setSubmittedInputs(null);
     setDecision(null);
+    setResultMode(null);
     setErrors({});
     setCalculationError("");
     setSaveStatus("");
@@ -320,9 +317,9 @@ export default function CalculatorPage() {
     setTimeout(() => setShareStatus("Share link"), 2200);
   }
 
-  async function handleLoadRecord(historicalInputs) {
-    if (!historicalInputs) return;
-    const restored = {
+  function restoreHistoricalInputs(historicalInputs) {
+    if (!historicalInputs) return null;
+    return {
       insurer: historicalInputs.insurer || inputs.insurer || "income",
       currentPremium: historicalInputs.currentPremium ?? historicalInputs.annualPremium ?? 1650,
       currentNcd: historicalInputs.currentNcd ?? 50,
@@ -338,20 +335,49 @@ export default function CalculatorPage() {
       youngDriverInvolved: historicalInputs.youngDriverInvolved ?? false,
       repairType: historicalInputs.repairType ?? DEFAULT_INPUTS.repairType,
     };
+  }
+
+  function handleLoadRecord(record) {
+    if (!record?.inputs || isCalculating || authLoading) return;
+    const restored = restoreHistoricalInputs(record.decision?.inputs || record.inputs);
+    if (!restored) return;
+
+    setErrors({});
+    setCalculationError("");
+    setInputs(restored);
+    setShowTable(false);
+
+    if (record.decision) {
+      setDecision(record.decision);
+      setSubmittedInputs(record.decision.inputs || restored);
+      setResultMode("saved");
+      setSaveStatus("Viewing saved result");
+      return;
+    }
+
+    setDecision(null);
+    setSubmittedInputs(null);
+    setResultMode(null);
+    setSaveStatus("Loaded saved inputs");
+  }
+
+  function handleRecalculateRecord(record) {
+    if (!record?.inputs || isCalculating || authLoading) return;
+    const restored = restoreHistoricalInputs(record.decision?.inputs || record.inputs);
+    if (!restored) return;
+
     setErrors({});
     setInputs(restored);
-    setCalculationError("");
-    setIsCalculating(true);
-    try {
-      const payload = await requestDecision(restored);
-      setDecision(payload.decision);
-      setSubmittedInputs(payload.decision.inputs);
-      setSaveStatus("Loaded from history");
-    } catch (error) {
-      setCalculationError(error.message || "Unable to load this calculation.");
-    } finally {
-      setIsCalculating(false);
-    }
+    setShowTable(false);
+    void calculateAndCommit(
+      {
+        ...restored,
+        currentPremium: Number(restored.currentPremium),
+        excess: Number(restored.excess),
+        repairCost: Number(restored.repairCost),
+      },
+      { resultMode: "recalculated" }
+    );
   }
 
   const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
@@ -786,7 +812,7 @@ export default function CalculatorPage() {
                 NCD step-down penalty and exact break-even threshold.
               </p>
 
-              {/* Live Parameter Receipt (shows active rules without giving a premature verdict) */}
+              {/* Parameter summary; decision-derived values are calculated on submit. */}
               <div className="parameter-receipt">
                 <div className="receipt-header">
                   <span>Configured policy mechanics</span>
@@ -818,36 +844,15 @@ export default function CalculatorPage() {
                   </div>
 
                   <div className="receipt-row">
-                    <dt>Next renewal NCD if claiming</dt>
-                    <dd>
-                      {!previewDecision ? (
-                        <span>Loading policy preview…</span>
-                      ) : previewDecision.claimNcdAfter === previewDecision.selfPayNcdAfter ? (
-                        <span className="receipt-tag is-protected">
-                          {formatPercent(previewDecision.claimNcdAfter)} (Protected)
-                        </span>
-                      ) : (
-                        <span>
-                          {formatPercent(inputs.currentNcd)} →{" "}
-                          <strong>{formatPercent(previewDecision.claimNcdAfter)}</strong>
-                        </span>
-                      )}
-                    </dd>
+                    <dt>Claim NCD impact</dt>
+                    <dd>Calculated when you run the model</dd>
                   </div>
 
                   <div className="receipt-row">
-                    <dt>Effective day-1 claim excess</dt>
+                    <dt>Policy excess entered</dt>
                     <dd>
-                      {previewDecision ? (
-                        <>
-                          <strong>{formatCurrency(previewDecision.effectiveExcess)}</strong>
-                          {previewDecision.effectiveExcess > Number(inputs.excess || 0) && (
-                            <span> (incl. surcharges)</span>
-                          )}
-                        </>
-                      ) : (
-                        <span>Loading…</span>
-                      )}
+                      <strong>{formatCurrency(inputs.excess)}</strong>{" "}
+                      <span>Final excess includes policy surcharges, if applicable.</span>
                     </dd>
                   </div>
                 </dl>
@@ -874,6 +879,12 @@ export default function CalculatorPage() {
             </section>
           ) : (
             <>
+              {resultMode && (
+                <div className="result-source-banner" role="status">
+                  {getResultSourceMessage(resultMode, saveStatus)}
+                </div>
+              )}
+
               {/* Dirty State Notification Bar if inputs changed after submit */}
               {isDirty && (
                 <div className="dirty-banner" role="status">
@@ -1207,7 +1218,11 @@ export default function CalculatorPage() {
             </>
           )}
 
-          <CalculationHistory onLoadRecord={handleLoadRecord} />
+          <CalculationHistory
+            onLoadRecord={handleLoadRecord}
+            onRecalculateRecord={handleRecalculateRecord}
+            isCalculating={isCalculating}
+          />
         </div>
       </div>
     </div>
