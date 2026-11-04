@@ -1,153 +1,89 @@
-# 🇸🇬 ClaimWise SG · Singapore Motor Insurance Decision Support SaaS
+# ClaimWise SG · Motor Insurance Claim Decision Support
 
-[![Tests](https://img.shields.io/badge/tests-13%2F13%20passed%20(100%25)-success)](tests/decision-engine.test.mjs)
-[![Correctness Evaluation](https://img.shields.io/badge/correctness-13%2F13%20hand--checked-teal)](evaluation/correctness_results.tex)
-[![Next.js 15](https://img.shields.io/badge/Next.js-15.1.0-black)](https://nextjs.org)
-[![Cloud Engine](https://img.shields.io/badge/Cloud%20Engine-Next.js%20Route%20Handlers-blue)](app/api/decision/route.js)
-[![Cloud Database](https://img.shields.io/badge/GCP%20Firestore-asia--southeast1%20(Singapore)-orange)](https://console.firebase.google.com/project/claimwise-sg)
+[![Tests](https://img.shields.io/badge/tests-14%2F14%20passed-success)](tests/decision-engine.test.mjs)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
+[![Cloud Engine](https://img.shields.io/badge/API-Next.js%20Route%20Handlers-blue)](app/api/decision/route.js)
+[![Cloud Database](https://img.shields.io/badge/Firestore-asia--southeast1-orange)](https://console.firebase.google.com/project/claimwise-sg)
 
-**ClaimWise SG** is an actuarially rigorous, cloud-native post-accident decision-support platform designed for Singapore private car owners. When minor collision damage occurs, motorists face a complex trade-off: **pay out-of-pocket (Self-Pay) or file an Own-Damage insurance claim (Claim)**.
+**ClaimWise SG** is a cloud-native decision-support web application for Singapore private car owners. After a minor collision, motorists must decide whether to **pay out-of-pocket (Self-Pay)** or **file an own-damage insurance claim (Claim)**.
 
-ClaimWise SG models multi-year No-Claim Discount (NCD) penalties, contractual workshop excess surcharges, young driver liabilities, GIA third-party subrogation protocols, and present value discounting to compute the exact break-even repair threshold ($R^*(S)$), backed by a **100% traceable legal clause audit trail** with **embedded iframe document previews**.
-
-<!-- CI/CD: Automated PR verification enabled via PR Agent -->
+ClaimWise SG models multi-year No-Claim Discount (NCD) step-down penalties, workshop and young-driver excess surcharges, General Insurance Association (GIA) subrogation rules, and present-value discounting to compute the exact break-even repair threshold $R^*(S)$, paired with an interactive policy clause audit and official insurer PDF previews.
 
 ---
 
-## 🚀 Quick Access
+## Live Application
 
-Access the live application at **[https://claimwise-sg-721110976915.asia-southeast1.run.app](https://claimwise-sg-721110976915.asia-southeast1.run.app)** (or run locally at `http://localhost:3000`).
-
----
-
-## 🌟 Key Features
-
-### 1. Actuarially Rigorous Decision Engine (Equation 1)
-- Implements the multi-year Discounted Cash Flow (DCF) net present value formula:
-  $$R^*(S) = E_{own} + \sum_{t=1}^{T} \frac{P_t^{claim} - P_t^{self}}{(1 + r)^t}$$
-- Discounts future renewal cash flows using Singapore's sovereign risk-free yield rate ($r=3.0\%$ p.a.) across 3-year or 5-year planning horizons.
-- Evaluates sensitivity across Lower (-5%), Neutral (Base), and Higher (+5%) premium escalation bands.
-
-### 2. Policy References & Calculation Assumptions
-The audit panel shows the assumptions used by the model and references for users to verify against their own policy. Generated summaries are illustrative and are not verbatim contract extracts:
-- **Base Excess ($E_{base}$)**: Section 1 (Own Damage) Policy Schedule.
-- **Workshop Excess Surcharge ($E_{workshop}$)**: Etiqa Tiq Part 1 Clause 4.2 (+S$2,000) / Income Endorsement 101 (+S$1,000) / MSIG Endorsement M101 (+S$1,000) / FWD Network Clause (+S$1,000).
-- **Young / Inexperienced Driver Surcharge ($E_{young}$)**: General Exceptions Clause 3(b) (+S$2,000 ~ S$2,500) for drivers aged <25 or licensed <2 years.
-- **GIA Windscreen Endorsement W1**: S$100 fixed excess with 0% NCD penalty.
-- **Third-Party Claim Scenario**: The model assumes an at-fault or partial-fault third-party claim can affect NCD even if own damage is self-paid; verify your insurer's handling.
-- **Non-Fault Scenario**: The model assumes no NCD deduction for a 100% non-fault accident; confirm the claim route and terms with your insurer.
-
-### 3. Interactive Multi-Page PDF Clause Viewer & Printable Report
-- **Interactive Clause Audit (`PolicySourcePreview`)**: Hovering over or clicking any audited clause row in the calculator results displays the matching rule preview and page citation.
-- **Direct Official Insurer PDF Rendering**: The embedded `<iframe>` loads policy documents sourced from insurers (`etiqa_tiq_motor_policy.pdf`, `income_drivo_policy.pdf`, `msig_motormax_policy.pdf`) via `/api/clause-preview` with PDF page anchors (`#page=N&view=FitH`).
-- **Dual-Mode Viewer & Pinning**: Toggle between **Official PDF** and **Clause summary** views, lock a clause open with **📌 Pin**, or open the source document in a **Full tab ↗**.
-- **Print / PDF Report Export**: Clicking **Print / PDF** generates a clean actuarial report with a dedicated parameter summary header, an automatically expanded year-by-year renewal schedule, and the complete clause audit trail while hiding interactive form controls.
-
-### 4. Singapore Market Calibration (Section 4.2)
-- Compares user repair quotes and annual premiums against empirical Land Transport Authority (LTA) and General Insurance Association of Singapore (GIA) market statistics:
-  - SG Private Car Repair Quote Median: **S$1,850**
-  - SG Comprehensive Annual Premium Median: **S$1,650**
-  - SG Typical Comprehensive Policy Excess: **S$500 – S$1,000**
-
-### 5. Firebase Authentication & Singapore Firestore Cloud Sync
-- Google and email/password sign-in via Firebase Authentication.
-- Calculations can be saved to Google Cloud Firestore native instances in Singapore (`asia-southeast1`) with user-isolated security rules (`firestore.rules`).
+Access the deployed service at **[https://claimwise-sg-721110976915.asia-southeast1.run.app](https://claimwise-sg-721110976915.asia-southeast1.run.app)** (or run locally at `http://localhost:3000`).
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Core Capabilities
 
-- **Web Framework**: Next.js 15 (App Router, React 19)
-- **Styling**: Vanilla Modern Responsive CSS (Glassmorphism, DM Mono typography, Dark accents)
-- **State & Backend**: Next.js Route Handlers (`/api/decision`, `/api/clause-preview`)
-- **Cloud Database**: Google Cloud Firestore Native in `asia-southeast1` (Singapore)
-- **Authentication**: Firebase Authentication (Google and email/password)
-- **Testing**: Node.js Native Test Runner (`node --test`)
-- **Infrastructure as Code**: Terraform GCP & Firebase configuration in [`infra/terraform`](infra/terraform)
+### 1. Actuarial Break-Even Engine
+- Computes the multi-year Discounted Cash Flow (DCF) net present value break-even threshold:
+  $$R^*(S) = E_{\text{own}} + \sum_{t=1}^{T} \frac{P_t^{\text{claim}} - P_t^{\text{self}}}{(1 + r)^t}$$
+- Discounts future renewal cash flows across 3-year or 5-year horizons (default $r = 3.0\%$ p.a.) and evaluates sensitivity across Lower ($-5\%$), Base, and Higher ($+5\%$) premium growth bands.
 
-The home estimator and calculator request decisions from `/api/decision`. Submitting a calculation stores its inputs, summary, and full decision result in the signed-in user's Firestore history. Guest calculations are stored in browser local storage.
+### 2. Singapore Motor Policy Mechanics
+- **Insurer Profiles**: Pre-configured rules for **Income**, **Etiqa**, **MSIG**, **FWD**, and a standard GIA baseline.
+- **Effective Excess Calculation**: Combines standard policy excess with non-authorised workshop surcharges (`+S$1,000` to `+S$2,000`) and young/inexperienced driver surcharges (`+S$2,000` to `+S$2,500`).
+- **Special Claim Scenarios**: Supports GIA Windscreen Endorsement (`S$100` excess with `0%` NCD penalty), `100%` non-fault protection, NCD Protector riders, and third-party adverse claims.
+
+### 3. Policy Clause Audit & Printable Report
+- **Interactive Clause Audit (`PolicySourcePreview`)**: Hover or click any audited rule in the calculator results to inspect its calculation rationale and contract citation.
+- **Official Insurer PDF Viewer**: Embeds self-hosted insurer policy wordings (`etiqa_tiq_motor_policy.pdf`, `income_drivo_policy.pdf`, `msig_motormax_policy.pdf`) via `/api/clause-preview` at the mapped page (`#page=N&view=FitH`), with **Official PDF** / **Clause summary** switching, **📌 Pin**, and **Full tab ↗**.
+- **Print / PDF Export**: Generates a clean A4/Letter actuarial report with a parameter summary header, auto-expanded year-by-year renewal schedule, and complete clause audit trail.
+
+### 4. Authentication & Cloud History
+- **Firebase Authentication**: Supports Google and email/password sign-in.
+- **Cloud & Local Persistence**: Signed-in calculations are persisted to Google Cloud Firestore in Singapore (`asia-southeast1`) under user-scoped security rules (`firestore.rules`). Guest calculations are stored in browser `localStorage`.
 
 ---
 
-## 📦 Running & Deployment Instructions
+## Tech Stack & Repository Structure
 
-### 1. Prerequisites
+| Layer | Technology / Path |
+| :--- | :--- |
+| **Frontend & Routing** | Next.js 15 App Router, React 19 (`app/`, `components/`) |
+| **Decision Engine** | Pure ESM actuarial model & insurer data (`src/decision-engine.mjs`, `src/decision-data.mjs`) |
+| **Backend API** | Next.js Route Handlers (`app/api/decision`, `app/api/clause-preview`, `app/api/rules`, `app/api/benchmarks`, `app/api/health`) |
+| **Auth & Database** | Firebase Authentication & Cloud Firestore (`lib/firebase.js`, `lib/history-service.js`, `firestore.rules`) |
+| **Testing & Evaluation** | Node.js native test runner (`tests/decision-engine.test.mjs`) & evaluation scripts (`scripts/`, `evaluation/`) |
+| **Infrastructure** | Terraform GCP & Firebase configuration (`infra/terraform/`) |
+
+---
+
+## Quick Start
+
+### Prerequisites
 - Node.js `>= 20.0.0`
-- Python 3 (`python`) for evaluation scripts
+- Python 3 (`python`) for optional benchmark/evaluation scripts
 
-### 2. Local Production Mode (Currently Running)
+### Local Development
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Build the optimized production bundle
-npm run build
-
-# 3. Start the production server on port 3000
-npm run start -- -p 3000
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### 3. Local Development Mode
-```bash
+cp .env.example .env.local
 npm run dev
 ```
-Open [http://localhost:3000/calculator](http://localhost:3000/calculator).
+Open `http://localhost:3000` (or `http://localhost:3000/calculator`).
 
-### 4. Deploying Firestore Security Rules
+### Production Build & Test Suite
 ```bash
-firebase deploy --only firestore:rules --project claimwise-sg
-```
-
-### 5. Automated Infrastructure Deployment (GCP / Terraform)
-```bash
-cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars
-# Update your GCP project ID and region
-terraform init
-terraform plan
-terraform apply
-```
-
----
-
-## 🧪 Evaluation Deliverables (CS5224 Section 4.3)
-
-All empirical evaluation results have been generated and exported to LaTeX tables for report inclusion:
-
-| Dimension | Method & Tool | Result & Metric | LaTeX Report File |
-| :--- | :--- | :--- | :--- |
-| **Mathematical Correctness** | 13 hand-checked boundary test cases ([`tests/fixtures/benchmark_cases.json`](tests/fixtures/benchmark_cases.json)) executed via [`scripts/run_correctness_eval.py`](scripts/run_correctness_eval.py) | **13/13 Passed (100.0%)**, mean engine latency **18.99 ms** | [`evaluation/correctness_results.tex`](evaluation/correctness_results.tex) |
-| **Performance & Elasticity** | Locust headless load testing ([`tests/load/locustfile.py`](tests/load/locustfile.py)) executed via [`scripts/run_locust_evaluation.py`](scripts/run_locust_evaluation.py) | **357 requests**, **0.00% failures**, Median latency **8.00 ms**, 95th percentile **21.00 ms** | [`evaluation/performance_results.tex`](evaluation/performance_results.tex) |
-| **Cloud TCO Evaluation** | 3-Year Total Cost of Ownership model ([`scripts/tco_calculator.py`](scripts/tco_calculator.py)) comparing Cloud Native Serverless vs. On-Premises | **78.4% Cost Reduction** (Cloud: US\$2,374 vs On-Prem: US\$11,000) | [`evaluation/tco_comparison.tex`](evaluation/tco_comparison.tex) |
-| **User Usability Study** | Standard System Usability Scale (SUS, $N=20$ motorists) evaluated via [`scripts/analyze_user_study.py`](scripts/analyze_user_study.py) | **SUS Score: 89.6 / 100 (Grade A+, Excellent)** | [`evaluation/user_study_results.tex`](evaluation/user_study_results.tex) |
-
-To re-run the entire evaluation pipeline:
-```bash
-# 1. Run unit tests
+# Run all 14 actuarial & API unit tests
 npm test
 
-# 2. Run correctness evaluation
-python scripts/run_correctness_eval.py
-
-# 3. Run load test evaluation
-python scripts/run_locust_evaluation.py
-
-# 4. Run TCO evaluation
-python scripts/tco_calculator.py
-
-# 5. Run User Usability analysis
-python scripts/analyze_user_study.py
+# Build and start the production server
+npm run build
+npm run start -- -p 3000
 ```
 
 ---
 
-## 📡 API Reference
+## API Reference
 
-### 1. `POST /api/decision`
-Computes the actuarial comparison and returns the full clause audit trail.
+### `POST /api/decision`
+Computes the actuarial comparison, break-even repair threshold, renewal schedule, and clause audit trail.
 
-**Request Body:**
 ```json
 {
   "insurer": "etiqa",
@@ -167,48 +103,35 @@ Computes the actuarial comparison and returns the full clause audit trail.
 }
 ```
 
-**Response:**
-```json
-{
-  "ok": true,
-  "decision": {
-    "recommendation": "self-pay",
-    "effectiveExcess": 4600,
-    "claimNcdAfter": 20,
-    "selfPayNcdAfter": 50,
-    "clauseAudit": [
-      {
-        "id": "workshop_surcharge",
-        "category": "Excess & Deductibles",
-        "dataPoint": "Workshop Choice Surcharge",
-        "value": "+S$2,000",
-        "status": "active",
-        "clauseRef": "Etiqa Tiq Motor Policy Part 1 — Clause 4.2",
-        "authority": "Etiqa (Tiq) Network Scheme",
-        "statutoryBasis": "General Insurance Association of Singapore (GIA) Approved Workshop Guidelines",
-        "illustrativeText": "Illustrative workshop surcharge summary; verify the amount and conditions against your policy schedule.",
-        "rationale": "You selected an independent/unauthorised workshop. Under Etiqa (Tiq) Endorsement terms, an additional penalty of S$2,000 is added to your excess."
-      }
-    ]
-  }
-}
-```
+### `GET /api/clause-preview?id=<clauseId>&insurer=<insurerKey>`
+Renders an HTML wrapper embedding the matching official policy wording PDF at its mapped source page (`income`, `etiqa`, `msig`) or a fallback notice when no local document is mapped.
 
-### 2. `GET /api/clause-preview`
-Embeds the official insurer PDF at the mapped source page for embedding in the calculator's hover preview.
-
-**Query Parameters:**
-- `id`: Clause identifier (`base_excess`, `workshop_surcharge`, `young_driver_excess`, `windscreen_clause`, `effective_excess`, `ncd_step_down`, `ncd_protector_rider`, `third_party_liability`, `actuarial_model`).
-- `insurer`: Insurer key (`income`, `etiqa`, `msig`, `fwd`, `other`). Official local PDFs are currently mapped for `income`, `etiqa`, and `msig`; the other keys show a no-source notice instead of another insurer's document.
+### Additional Endpoints
+- `GET /api/rules` — Insurer profiles and standard GIA NCD step-down scale.
+- `GET /api/benchmarks` — Singapore motor repair and premium benchmark statistics.
+- `GET /api/health` — Service health check.
 
 ---
 
-## 🤝 Collaboration & Contribution
+## Evaluation & Benchmarks
 
-For guidelines on branch management, PR Agent automated review, and local development, see [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
+| Evaluation | Script | Summary |
+| :--- | :--- | :--- |
+| **Actuarial Correctness** | `python scripts/run_correctness_eval.py` | 13/13 boundary benchmark cases passed (`tests/fixtures/benchmark_cases.json`) |
+| **Load & Latency** | `python scripts/run_locust_evaluation.py` | Median latency `8.00 ms`, p95 `21.00 ms`, `0.00%` error rate |
+| **Cloud TCO Model** | `python scripts/tco_calculator.py` | 3-year serverless vs. on-premises cost comparison |
+| **Usability Analysis** | `python scripts/analyze_user_study.py` | System Usability Scale (SUS) aggregation (`89.6 / 100`) |
 
 ---
 
-## 📄 License & Disclaimer
+## Documentation
 
-This project was developed for **NUS CS5224 Cloud Computing (AY2025/2026)**. It provides objective actuarial modeling for informational post-accident decision support. Policyholders should consult their official insurance schedule and insurer claims department before formal settlement.
+- [Deployment & Infrastructure Guide](docs/DEPLOYMENT_GUIDE.md)
+- [Advertising & Revenue Architecture](docs/ADVERTISING_AND_REVENUE_MODEL.md)
+- [Contribution Workflow](CONTRIBUTING.md) · [Agent Guidelines](AGENTS.md)
+
+---
+
+## Disclaimer
+
+ClaimWise SG provides actuarial modeling for informational post-accident decision support. Policyholders should verify their individual Policy Schedule, endorsements, and insurer claims guidelines before making a settlement decision.
