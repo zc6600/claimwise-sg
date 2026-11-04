@@ -16,16 +16,7 @@ ClaimWise SG models multi-year No-Claim Discount (NCD) penalties, contractual wo
 
 ## 🚀 Quick Access
 
-The production build of ClaimWise SG is currently compiled and actively serving on **port 3000**:
-
-| Service / Interface | URL | Description |
-| :--- | :--- | :--- |
-| **🌐 Interactive Web Application** | **[http://localhost:3000](http://localhost:3000)** | Full SaaS landing page, hero preview, and interactive decision calculator |
-| **🧮 Calculator Page** | **[http://localhost:3000/calculator](http://localhost:3000/calculator)** | Complete decision engine with sliders, insurer panel, and audit trail |
-| **📄 Iframe Policy Clause Viewer** | **[http://localhost:3000/api/clause-preview?id=workshop_surcharge&insurer=etiqa](http://localhost:3000/api/clause-preview?id=workshop_surcharge&insurer=etiqa)** | Opens the official PDF at the relevant policy section |
-| **⚡ Decision JSON API** | **[http://localhost:3000/api/decision](http://localhost:3000/api/decision)** | `POST` endpoint exposing pure algorithmic calculation engine |
-| **📊 Singapore Benchmark API** | **[http://localhost:3000/api/benchmarks](http://localhost:3000/api/benchmarks)** | Empirical Singapore fleet medians (LTA & GIA stats) |
-| **🩺 Health Check API** | **[http://localhost:3000/api/health](http://localhost:3000/api/health)** | Production runtime status, memory consumption, and uptime monitor |
+Access the live application at **[https://claimwise-sg.web.app](https://claimwise-sg.web.app)** (or run locally at `http://localhost:3000`).
 
 ---
 
