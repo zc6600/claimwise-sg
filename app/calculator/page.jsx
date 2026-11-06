@@ -429,18 +429,27 @@ export default function CalculatorPage() {
 
   function restoreHistoricalInputs(historicalInputs) {
     if (!historicalInputs) return null;
+    const insurer = historicalInputs.insurer || inputs.insurer || "income";
+    const profile = INSURER_PROFILES[insurer] || INSURER_PROFILES.other;
+    const currentNcd = historicalInputs.currentNcd ?? 50;
+    const rawProtector = Boolean(
+      historicalInputs.ncdProtector ?? historicalInputs.hasNcdProtector ?? false
+    );
+    const ncdProtector = Boolean(
+      rawProtector && currentNcd >= (profile.minNcdForProtector ?? 50)
+    );
+
     return {
-      insurer: historicalInputs.insurer || inputs.insurer || "income",
+      insurer,
       currentPremium:
         historicalInputs.currentPremium ?? historicalInputs.annualPremium ?? 1650,
-      currentNcd: historicalInputs.currentNcd ?? 50,
+      currentNcd,
       excess: historicalInputs.excess ?? 600,
       repairCost: historicalInputs.repairCost ?? 1200,
       horizonYears: historicalInputs.horizonYears ?? 3,
       baseGrowthRate: historicalInputs.baseGrowthRate ?? 5,
       discountRate: historicalInputs.discountRate ?? DEFAULT_INPUTS.discountRate,
-      ncdProtector:
-        historicalInputs.ncdProtector ?? historicalInputs.hasNcdProtector ?? false,
+      ncdProtector,
       liability: historicalInputs.liability ?? DEFAULT_INPUTS.liability,
       thirdPartyClaim: historicalInputs.thirdPartyClaim ?? false,
       workshopType: historicalInputs.workshopType ?? DEFAULT_INPUTS.workshopType,

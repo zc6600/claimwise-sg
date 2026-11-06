@@ -299,21 +299,31 @@ export function generateClauseAudit(
   });
 
   // 6. NCD Step-Down Penalty Rule
-  const isNcdShielded = inputs.ncdProtector || inputs.liability === "non_fault" || inputs.repairType === "windscreen";
+  const isNcdShielded = claimNcdAfter === inputs.currentNcd;
+  const actualPenalty = inputs.currentNcd - claimNcdAfter;
+
+  const shieldReason = inputs.liability === "non_fault"
+    ? "Non-Fault Subrogation"
+    : inputs.ncdProtector && isNcdProtectorEligible(inputs)
+    ? "NCD Protector Endorsement"
+    : "Windscreen Endorsement W1";
+
   audit.push({
     id: "ncd_step_down",
     category: "NCD & Discount Rules",
     dataPoint: "No-Claim Discount (NCD) Step-Down",
-    value: isNcdShielded ? "0% (Shielded / Protected)" : `-${profile.ncdDropPoints}% (${inputs.currentNcd}% → ${claimNcdAfter}%)`,
+    value: isNcdShielded
+      ? "0% (Shielded / Protected)"
+      : `-${actualPenalty}% (${inputs.currentNcd}% → ${claimNcdAfter}%)`,
     status: isNcdShielded ? "protected" : "active",
-    statusLabel: isNcdShielded ? "Protected from Reduction" : "30-Point Penalty Active",
+    statusLabel: isNcdShielded ? "Protected from Reduction" : `${actualPenalty}-Point Penalty Active`,
     clauseRef: "GIA Motor Claims Framework (MCF) Standard Scale of No-Claim Discount",
     authority: "General Insurance Association of Singapore (GIA)",
     statutoryBasis: "GIA Industry Code of Practice on Motor Claims & MAS Notice 122",
     illustrativeText: "Under the standard GIA scale, an at-fault or unsettled claim results in a 30% reduction from the policyholder's accrued NCD upon the next renewal (e.g. 50% to 20%, 40% to 10%, 30% or below to 0%).",
     rationale: isNcdShielded
-      ? `Your NCD tier of ${inputs.currentNcd}% is preserved without deduction due to ${inputs.ncdProtector && isNcdProtectorEligible(inputs) ? "NCD Protector Endorsement" : inputs.repairType === "windscreen" ? "Windscreen Endorsement W1" : "Non-Fault Subrogation"}.`
-      : `Filing an own-damage at-fault claim causes your NCD to drop by ${profile.ncdDropPoints} percentage points from ${inputs.currentNcd}% to ${claimNcdAfter}%, increasing renewal premiums over the next 3 years.`,
+      ? `Your NCD tier of ${inputs.currentNcd}% is preserved without deduction due to ${shieldReason}.`
+      : `Filing an own-damage at-fault claim causes your NCD to drop by ${actualPenalty} percentage points from ${inputs.currentNcd}% to ${claimNcdAfter}%, increasing renewal premiums over the next ${inputs.horizonYears} years.`,
   });
 
   // 7. NCD Protector Rider
@@ -432,10 +442,11 @@ export function calculateDecision(rawInputs) {
   }
 
   if (excessDetails.youngDriverSurcharge > 0) {
+    const ageThreshold = profile.youngDriverAgeThreshold || 25;
     advisories.push({
       type: "amber",
       title: "Young / Inexperienced Driver Excess (+S$" + excessDetails.youngDriverSurcharge + ")",
-      message: `Because the driver involved is under 25 or has held a driving license for < 2 years, ${profile.name} requires an additional mandatory excess of S$${excessDetails.youngDriverSurcharge}.`,
+      message: `Because the driver involved is under ${ageThreshold} or has held a driving license for < 2 years, ${profile.name} requires an additional mandatory excess of S$${excessDetails.youngDriverSurcharge}.`,
     });
   }
 

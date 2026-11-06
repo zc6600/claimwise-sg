@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCurrency, formatPercent } from "../src/formatters.mjs";
+import { isNcdProtectorEligible } from "../src/decision-engine.mjs";
 import PolicySourcePreview from "./PolicySourcePreview";
 
 function getResultSourceMessage(resultMode, saveStatus) {
@@ -218,7 +219,9 @@ export default function CalculatorResults({
                 : decision.inputs.liability === "partial_fault"
                 ? "Split liability"
                 : "At-fault"}
-              {decision.inputs.ncdProtector ? " · NCD Protector" : ""}
+              {decision.inputs.ncdProtector && isNcdProtectorEligible(decision.inputs)
+                ? " · NCD Protector"
+                : ""}
             </dd>
           </div>
         </dl>
