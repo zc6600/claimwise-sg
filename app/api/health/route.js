@@ -6,7 +6,7 @@ export async function GET() {
       status: "ready",
       framework: "nextjs",
       rulesStore: "versioned-code-config",
-      persistence: "disabled-by-default",
+      persistence: "authenticated-firestore",
       timestamp: new Date().toISOString(),
     },
     {

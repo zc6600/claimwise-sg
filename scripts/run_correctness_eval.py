@@ -12,7 +12,7 @@ import os
 import urllib.request
 import urllib.error
 
-ENDPOINT = "http://localhost:3000/api/decision"
+ENDPOINT = os.getenv("CLAIMWISE_API_URL", "http://localhost:3000/api/decision")
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), "../tests/fixtures/benchmark_cases.json")
 OUTPUT_TEX_PATH = os.path.join(os.path.dirname(__file__), "../evaluation/correctness_results.tex")
 
