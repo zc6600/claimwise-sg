@@ -5,6 +5,7 @@ import { useAuth } from "./AuthProvider";
 import {
   subscribeToCalculations,
   deleteCalculationRecord,
+  syncLocalCalculationsToCloud,
 } from "../lib/history-service";
 import Link from "next/link";
 import { formatCurrency } from "../src/formatters.mjs";
@@ -24,6 +25,11 @@ export default function CalculationHistory({ onLoadRecord, onRecalculateRecord, 
     if (!mounted || authLoading) return;
     setLoading(true);
     setSyncStatus(user ? "checking" : "local");
+
+    if (user?.uid) {
+      syncLocalCalculationsToCloud(user).catch(() => {});
+    }
+
     const unsubscribe = subscribeToCalculations(user, (items, status) => {
       setRecords(items || []);
       setSyncStatus(status?.source || (user ? "checking" : "local"));

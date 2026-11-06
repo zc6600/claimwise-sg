@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth, googleProvider } from "@/lib/firebase";
+import { useAuth } from "../../components/AuthProvider";
 import {
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -12,12 +13,19 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/calculator");
+    }
+  }, [user, authLoading, router]);
 
   async function handleGoogleLogin() {
     setGoogleLoading(true);

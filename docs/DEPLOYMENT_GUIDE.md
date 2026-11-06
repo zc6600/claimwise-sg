@@ -10,7 +10,7 @@ This guide covers local builds, Firebase configuration, Google Cloud Run deploym
 # 1. Install dependencies
 npm install
 
-# 2. Run the deterministic test suite (14 tests)
+# 2. Run the deterministic test suite (20 tests)
 npm test
 
 # 3. Build optimized production assets
