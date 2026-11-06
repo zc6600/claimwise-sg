@@ -4,10 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { auth, googleProvider } from "@/lib/firebase";
-import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,17 +48,35 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      if (isSignUp) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
       router.push("/calculator");
     } catch (err) {
-      if (
-        err.code === "auth/user-not-found" ||
-        err.code === "auth/wrong-password" ||
-        err.code === "auth/invalid-credential"
-      ) {
-        setError("Email or password is incorrect. Check your details and try again.");
+      if (isSignUp) {
+        if (err.code === "auth/email-already-in-use") {
+          setError("This email is already registered. Please sign in instead.");
+        } else if (err.code === "auth/weak-password") {
+          setError("Password should be at least 6 characters long.");
+        } else if (err.code === "auth/invalid-email") {
+          setError("Please enter a valid email address.");
+        } else {
+          setError(err.message || "Failed to create account. Please try again.");
+        }
       } else {
-        setError(err.message || "Sign in failed. Please check your credentials.");
+        if (
+          err.code === "auth/user-not-found" ||
+          err.code === "auth/wrong-password" ||
+          err.code === "auth/invalid-credential"
+        ) {
+          setError("Email or password is incorrect. Check your details or create an account.");
+        } else if (err.code === "auth/invalid-email") {
+          setError("Please enter a valid email address.");
+        } else {
+          setError(err.message || "Sign in failed. Please check your credentials.");
+        }
       }
     } finally {
       setLoading(false);
@@ -78,9 +101,15 @@ export default function LoginPage() {
 
       <div className="auth-card">
         <div className="auth-header">
-          <div className="section-kicker">Welcome back</div>
-          <h1>Sign in to ClaimWise</h1>
-          <p>Access your saved repair comparisons and policy settings.</p>
+          <div className="section-kicker">
+            {isSignUp ? "Get started" : "Welcome back"}
+          </div>
+          <h1>{isSignUp ? "Create an account" : "Sign in to ClaimWise"}</h1>
+          <p>
+            {isSignUp
+              ? "Create an account to save your comparisons and sync across devices."
+              : "Access your saved repair comparisons and policy settings."}
+          </p>
         </div>
 
         {error && (
@@ -141,7 +170,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="current-password"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
             />
           </label>
 
@@ -150,9 +179,70 @@ export default function LoginPage() {
             className="button button-primary button-large auth-submit-btn"
             disabled={loading || googleLoading}
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading
+              ? isSignUp
+                ? "Creating account…"
+                : "Signing in…"
+              : isSignUp
+              ? "Create account"
+              : "Sign in"}
           </button>
         </form>
+
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "1.25rem",
+            fontSize: "0.875rem",
+            color: "var(--muted)",
+          }}
+        >
+          {isSignUp ? (
+            <span>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(false);
+                  setError("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--teal-dark)",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: 0,
+                  fontSize: "inherit",
+                }}
+              >
+                Sign in
+              </button>
+            </span>
+          ) : (
+            <span>
+              Don&apos;t have an account?{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(true);
+                  setError("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--teal-dark)",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: 0,
+                  fontSize: "inherit",
+                }}
+              >
+                Create one
+              </button>
+            </span>
+          )}
+        </div>
 
         <div className="auth-footer">
           No account needed to run numbers —

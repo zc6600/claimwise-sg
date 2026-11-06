@@ -5,11 +5,14 @@ import { useState } from "react";
 /**
  * SponsoredAdUnit - Commercial Monetization & Partner Referral Component
  *
+ * Status: Planned / Under Development (待开发)
+ * This prototype component is unmounted from production calculator flows.
+ *
  * Implements CS5224 Preliminary Report Section 2.1:
  * "Clearly labelled advertisements may be shown for relevant automotive services,
  *  but advertising does not affect the financial result."
  *
- * Revenue Channels:
+ * Revenue Channels (Planned):
  * 1. High-Yield Contextual CPA/CPL: GIA Workshops (Self-Pay) & Reporting Centres (Claim)
  * 2. Motor Insurance Renewal Brokerage Leads: CPL S$25 - S$45 per valid submission
  * 3. Programmatic Display Container: Google AdSense (ca-pub-xxx) slot
