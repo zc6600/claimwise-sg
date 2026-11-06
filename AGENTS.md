@@ -39,5 +39,8 @@ npm test
 - **Do not commit secrets**: Never touch or commit `.env.local` or any private credentials/tokens.
 - **Actuarial Logic Integrity**: When editing `src/decision-engine.mjs` or `data/singapore_market_stats.json`, preserve the mathematical rigor and benchmark assertions defined in `tests/decision-engine.test.mjs`.
 
-<!-- PR Agent: Verified for autonomous conflict resolution and quality gates -->
+### 4. Language, Professionalism & Clean Code Standards
+- **Strict Separation Between Chat and Codebase**: While conversational chat responses with users can adapt to the user's preferred natural language (e.g., answering in Chinese when addressed in Chinese), all codebase artifacts—including source code, comments, docstrings, tests, configuration files, commit messages, and formal technical documentation—must strictly use clean, professional English.
+- **Zero Meta-Language**: Never write conversational meta-commentary, prompt references, or self-referential agent artifacts into code or documentation (e.g., avoid "as requested by user", "fixed issue per conversation", "AI note:", "PR Agent: Verified", or similar prompt artifacts). Code comments must solely describe domain mechanisms, actuarial logic, edge cases, and contractual invariants.
+- **No Bilingual Comments**: Avoid mixed bilingual comments (e.g., do not write `// 计算减档 / Calculate drop`). Keep all code comments, docstrings, variable identifiers, and architectural prose in unified, professional English without parallel translations or language clutter.
 
