@@ -50,6 +50,12 @@ test("NCD Protector is ineffective when current NCD is below insurer minNcdForPr
   assert.equal(incomeProtectorAudit.status, "warning");
   assert.equal(incomeProtectorAudit.statusLabel, "Eligibility Threshold Not Met");
 
+  const incomeStepDownAudit = incomeUnderThreshold.clauseAudit.find(
+    (c) => c.id === "ncd_step_down"
+  );
+  assert.equal(incomeStepDownAudit.status, "active");
+  assert.equal(incomeStepDownAudit.value, "-30% (40% → 10%)");
+
   // Etiqa allows 40% NCD for protector
   const etiqaEligible = calculateDecision({
     ...baseInputs,
@@ -64,6 +70,12 @@ test("NCD Protector is ineffective when current NCD is below insurer minNcdForPr
   );
   assert.equal(etiqaProtectorAudit.status, "active");
   assert.equal(etiqaProtectorAudit.statusLabel, "Rider Active");
+
+  const etiqaStepDownAudit = etiqaEligible.clauseAudit.find(
+    (c) => c.id === "ncd_step_down"
+  );
+  assert.equal(etiqaStepDownAudit.status, "protected");
+  assert.equal(etiqaStepDownAudit.value, "0% (Shielded / Protected)");
 
   // Etiqa with 30% NCD is below 40% threshold
   const etiqaUnderThreshold = calculateDecision({
@@ -224,6 +236,32 @@ test("young/inexperienced driver (<25yo) adds mandatory excess surcharge", () =>
   assert.equal(result.excessDetails.youngDriverSurcharge, 2500);
   assert.equal(result.effectiveExcess, 3100); // 600 + 2500
   assert.ok(result.advisories.some((a) => a.title.includes("Young / Inexperienced Driver")));
+});
+
+test("MSIG young driver advisory notice specifies 23 age threshold", () => {
+  const result = calculateDecision({
+    ...baseInputs,
+    insurer: "msig",
+    youngDriverInvolved: true,
+  });
+  const youngAdvisory = result.advisories.find((a) =>
+    a.title.includes("Young / Inexperienced Driver")
+  );
+  assert.ok(youngAdvisory);
+  assert.ok(youngAdvisory.message.includes("under 23"));
+});
+
+test("GET /api/rules route exposes all insurer parameters and thresholds", async () => {
+  const { GET } = await import("../app/api/rules/route.js");
+  const res = await GET();
+  const data = await res.json();
+  assert.equal(data.ok, true);
+  assert.equal(data.profiles.length, 5);
+  const msig = data.profiles.find((p) => p.id === "msig");
+  assert.equal(msig.youngDriverAgeThreshold, 23);
+  assert.equal(msig.minNcdForProtector, 50);
+  const etiqa = data.profiles.find((p) => p.id === "etiqa");
+  assert.equal(etiqa.minNcdForProtector, 40);
 });
 
 import { POST as handleDecisionPost } from "../app/api/decision/route.js";
