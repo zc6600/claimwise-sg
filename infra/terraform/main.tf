@@ -33,6 +33,12 @@ resource "google_project_service" "cloud_run" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "firebaserules" {
+  project            = var.project_id
+  service            = "firebaserules.googleapis.com"
+  disable_on_destroy = false
+}
+
 # 2. Firestore Native Database in Singapore
 resource "google_firestore_database" "default" {
   project     = var.project_id
@@ -52,6 +58,30 @@ resource "google_firebase_project" "default" {
     google_project_service.identity_toolkit,
     google_project_service.firebase
   ]
+}
+
+# 3b. Declarative Firestore Security Rules Deployment
+resource "google_firebaserules_ruleset" "firestore" {
+  project = var.project_id
+  source {
+    files {
+      name    = "firestore.rules"
+      content = file("${path.module}/../../firestore.rules")
+    }
+  }
+
+  depends_on = [
+    google_project_service.firebaserules,
+    google_firestore_database.default
+  ]
+}
+
+resource "google_firebaserules_release" "firestore" {
+  name         = "cloud.firestore"
+  project      = var.project_id
+  ruleset_name = google_firebaserules_ruleset.firestore.name
+
+  depends_on = [google_firebaserules_ruleset.firestore]
 }
 
 # 4. Global Identity Platform Configuration (Authorized Domains)

@@ -80,9 +80,11 @@ gcloud run deploy claimwise-sg \
 ## 4. Infrastructure as Code (Terraform)
 
 The [`infra/terraform`](../infra/terraform) directory provisions the required GCP and Firebase resources:
-- Google Cloud APIs (Identity Toolkit, Cloud Firestore, Firebase)
-- Native Firestore database in `asia-southeast1`
-- Identity Platform authentication configuration
+- Google Cloud APIs (Identity Toolkit, Cloud Firestore, Firebase, Firebase Security Rules, Cloud Run v2)
+- Native Firestore database in `asia-southeast1` (Singapore)
+- Declarative Firestore Security Rules deployment (`firestore.rules` via `google_firebaserules_ruleset` and `google_firebaserules_release`)
+- Identity Platform authentication configuration, authorized domains, and Google OAuth 2.0 provider
+- Serverless Cloud Run v2 service with auto-scaling (0–10 instances) and public HTTPS access
 
 ```bash
 cd infra/terraform
