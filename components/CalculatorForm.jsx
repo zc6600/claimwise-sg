@@ -24,6 +24,7 @@ export default function CalculatorForm({
   onReset,
 }) {
   const ageThreshold = profile.youngDriverAgeThreshold || 25;
+  const isProtectorEligible = Number(inputs.currentNcd) >= (profile.minNcdForProtector || 50);
 
   return (
     <form
@@ -328,17 +329,22 @@ export default function CalculatorForm({
 
         {/* Policy Switches */}
         <div className="switch-group">
-          <label className="toggle-field">
+          <label className={`toggle-field ${!isProtectorEligible ? "is-disabled" : ""}`}>
             <input
               type="checkbox"
               name="ncdProtector"
-              checked={inputs.ncdProtector}
+              checked={Boolean(inputs.ncdProtector && isProtectorEligible)}
+              disabled={!isProtectorEligible}
               onChange={(e) => onInputChange("ncdProtector", e.target.checked)}
             />
             <span className="toggle-ui"></span>
             <span>
               <strong>NCD Protector rider active</strong>
-              <small>Shields your current NCD tier for 1 at-fault claim</small>
+              <small>
+                {isProtectorEligible
+                  ? "Shields your current NCD tier for 1 at-fault claim"
+                  : `Requires minimum ${profile.minNcdForProtector}% NCD for ${profile.name} (currently ${inputs.currentNcd}%)`}
+              </small>
             </span>
           </label>
 

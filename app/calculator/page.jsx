@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { INSURER_PROFILES, NCD_STEPS } from "../../src/decision-data.mjs";
+import { formatCurrency } from "../../src/decision-engine.mjs";
 import { useAuth } from "../../components/AuthProvider";
 import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";
@@ -114,32 +115,150 @@ export default function CalculatorPage() {
   const repairCostInputRef = useRef(null);
   const premiumInputRef = useRef(null);
   const excessInputRef = useRef(null);
+  const initialShareProcessedRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const qRepair = params.get("repairCost");
-    const qNcd = params.get("currentNcd");
-    if (qRepair !== null || qNcd !== null) {
-      const parsedRepair =
-        qRepair !== null && Number(qRepair) > 0 ? Number(qRepair) : "";
-      const parsedNcd =
-        qNcd !== null && NCD_STEPS.includes(Number(qNcd))
-          ? Number(qNcd)
-          : DEFAULT_INPUTS.currentNcd;
+    if (typeof window === "undefined" || authLoading || initialShareProcessedRef.current) return;
+    initialShareProcessedRef.current = true;
 
-      setInputs((prev) => ({
-        ...prev,
-        repairCost: parsedRepair !== "" ? parsedRepair : prev.repairCost,
-        currentNcd: parsedNcd,
-      }));
+    const params = new URLSearchParams(window.location.search);
+    if (!params.toString()) return;
+
+    const parsed = { ...DEFAULT_INPUTS };
+    let hasExplicitParams = false;
+
+    if (params.has("insurer") && INSURER_PROFILES[params.get("insurer")]) {
+      parsed.insurer = params.get("insurer");
+      hasExplicitParams = true;
     }
-  }, []);
+
+    if (params.has("repairCost")) {
+      const val = Number(params.get("repairCost"));
+      if (Number.isFinite(val) && val > 0) {
+        parsed.repairCost = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("currentPremium")) {
+      const val = Number(params.get("currentPremium"));
+      if (Number.isFinite(val) && val > 0) {
+        parsed.currentPremium = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("currentNcd")) {
+      const val = Number(params.get("currentNcd"));
+      if (NCD_STEPS.includes(val)) {
+        parsed.currentNcd = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("excess")) {
+      const val = Number(params.get("excess"));
+      if (Number.isFinite(val) && val >= 0) {
+        parsed.excess = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("horizonYears")) {
+      const val = Number(params.get("horizonYears"));
+      if ([3, 5].includes(val)) {
+        parsed.horizonYears = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("liability")) {
+      const val = params.get("liability");
+      if (["at_fault", "non_fault", "partial_fault"].includes(val)) {
+        parsed.liability = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("workshopType")) {
+      const val = params.get("workshopType");
+      if (["authorized", "independent"].includes(val)) {
+        parsed.workshopType = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("repairType")) {
+      const val = params.get("repairType");
+      if (["general", "windscreen"].includes(val)) {
+        parsed.repairType = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("ncdProtector")) {
+      parsed.ncdProtector =
+        params.get("ncdProtector") === "1" || params.get("ncdProtector") === "true";
+      hasExplicitParams = true;
+    }
+
+    if (params.has("youngDriverInvolved")) {
+      parsed.youngDriverInvolved =
+        params.get("youngDriverInvolved") === "1" ||
+        params.get("youngDriverInvolved") === "true";
+      hasExplicitParams = true;
+    }
+
+    if (params.has("thirdPartyClaim")) {
+      parsed.thirdPartyClaim =
+        params.get("thirdPartyClaim") === "1" ||
+        params.get("thirdPartyClaim") === "true";
+      hasExplicitParams = true;
+    }
+
+    if (params.has("baseGrowthRate")) {
+      const val = Number(params.get("baseGrowthRate"));
+      if (Number.isFinite(val) && val >= -20 && val <= 50) {
+        parsed.baseGrowthRate = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("discountRate")) {
+      const val = Number(params.get("discountRate"));
+      if (Number.isFinite(val) && val >= 0 && val <= 20) {
+        parsed.discountRate = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    // Enforce protector eligibility threshold on incoming parameters
+    const parsedProfile = INSURER_PROFILES[parsed.insurer] || INSURER_PROFILES.other;
+    if (parsed.currentNcd < (parsedProfile.minNcdForProtector ?? 50)) {
+      parsed.ncdProtector = false;
+    }
+
+    if (hasExplicitParams) {
+      setInputs(parsed);
+
+      if (Number(parsed.repairCost) > 0) {
+        void calculateAndCommit(parsed);
+      }
+    }
+  }, [authLoading]);
 
   const isDirty = Boolean(submittedInputs && !areInputsEqual(inputs, submittedInputs));
 
   function handleInputChange(field, value) {
-    setInputs((prev) => ({ ...prev, [field]: value }));
+    setInputs((prev) => {
+      const next = { ...prev, [field]: value };
+      const nextProfile = INSURER_PROFILES[next.insurer] || INSURER_PROFILES.other;
+      const minNcd = nextProfile.minNcdForProtector ?? 50;
+      if (Number(next.currentNcd) < minNcd && next.ncdProtector) {
+        next.ncdProtector = false;
+      }
+      return next;
+    });
     setCalculationError("");
     if (errors[field]) {
       setErrors((prev) => {
@@ -264,19 +383,37 @@ export default function CalculatorPage() {
   }
 
   async function handleShare() {
-    const active = submittedInputs || inputs;
+    const active = isDirty ? inputs : (submittedInputs || inputs);
     const url = new URL(window.location.href);
-    if (Number(active.repairCost) > 0) {
-      url.searchParams.set("repairCost", String(active.repairCost));
+    url.search = "";
+    if (active.insurer) url.searchParams.set("insurer", active.insurer);
+    if (Number(active.repairCost) > 0) url.searchParams.set("repairCost", String(active.repairCost));
+    if (Number(active.currentPremium) > 0) url.searchParams.set("currentPremium", String(active.currentPremium));
+    if (active.currentNcd !== undefined && active.currentNcd !== "") url.searchParams.set("currentNcd", String(active.currentNcd));
+    if (Number(active.excess) >= 0 && active.excess !== "") url.searchParams.set("excess", String(active.excess));
+    if (active.horizonYears) url.searchParams.set("horizonYears", String(active.horizonYears));
+    if (active.liability) url.searchParams.set("liability", active.liability);
+    if (active.workshopType) url.searchParams.set("workshopType", active.workshopType);
+    if (active.repairType) url.searchParams.set("repairType", active.repairType);
+    if (active.ncdProtector) url.searchParams.set("ncdProtector", "1");
+    if (active.youngDriverInvolved) url.searchParams.set("youngDriverInvolved", "1");
+    if (active.thirdPartyClaim) url.searchParams.set("thirdPartyClaim", "1");
+    if (Number(active.baseGrowthRate) !== 5 && Number.isFinite(Number(active.baseGrowthRate))) {
+      url.searchParams.set("baseGrowthRate", String(active.baseGrowthRate));
     }
-    url.searchParams.set("currentNcd", String(active.currentNcd));
+    if (Number(active.discountRate) !== 3 && Number.isFinite(Number(active.discountRate))) {
+      url.searchParams.set("discountRate", String(active.discountRate));
+    }
     const shareUrl = url.toString();
+
+    const repairSummary = Number(active.repairCost) > 0 ? ` for ${formatCurrency(active.repairCost)} repair quote` : "";
+    const insurerName = (INSURER_PROFILES[active.insurer] || INSURER_PROFILES.other).name;
 
     try {
       if (navigator.share) {
         await navigator.share({
           title: "ClaimWise SG Decision Estimate",
-          text: "Motor insurance claim vs. self-pay cost comparison",
+          text: `Motor insurance claim vs. self-pay decision${repairSummary} (${insurerName})`,
           url: shareUrl,
         });
         setShareStatus("Shared");
