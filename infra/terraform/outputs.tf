@@ -22,3 +22,8 @@ output "authorized_domains" {
   description = "Configured authorized OAuth domains"
   value       = var.authorized_domains
 }
+
+output "firestore_ruleset" {
+  description = "Deployed Firestore Ruleset Name"
+  value       = google_firebaserules_ruleset.firestore.name
+}

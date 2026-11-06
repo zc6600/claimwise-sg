@@ -1,13 +1,41 @@
 # Decision and History Data Flow
 
-## Decision calculation and persistence
+## 1. Decision Calculation and Persistence
 
-The home estimator and calculator send inputs to `POST /api/decision`, where the decision engine calculates the result. The home estimator waits 500 ms after the latest input change before requesting an estimate. The full calculator requests a decision when the user submits or explicitly chooses to recalculate a saved comparison.
+The home estimator and calculator send inputs to `POST /api/decision`, where the deterministic decision engine calculates the multi-year actuarial comparison. The home estimator debounces input changes by 500 ms before requesting an estimate. The full calculator requests a decision when the user submits or explicitly recalculates a comparison.
 
-For a signed-in user, the calculator sends the Firebase ID token and asks the route to save the calculation. The route decodes the token UID to choose the user-scoped Firestore document path and forwards the original token to Firestore. Firestore Security Rules authenticate and authorize the write; the route does not independently verify the token signature. The saved record includes the inputs and complete decision result. Guests save records in browser local storage.
+### Authentication & Token Verification
+For a signed-in user, the calculator passes the Firebase ID token in the `Authorization: Bearer <token>` header and sets `persist: true`. The server-side storage module (`lib/server-calculation-storage.js`) enforces strict pre-flight token claims verification:
+1. Validates payload length (max 8,192 bytes) and standard 3-part JWT base64url structure.
+2. Asserts token expiration (`claims.exp * 1000 > Date.now()`).
+3. Asserts audience (`claims.aud === projectId`) and issuer (`claims.iss === https://securetoken.google.com/${projectId}`).
+4. Validates user ID formatting via regex (`/^[A-Za-z0-9_-]{1,128}$/`).
 
-## History access and result semantics
+The calculation record is committed via the Google Cloud Firestore REST API scoped directly to `users/{userId}/calculations/{calcId}`. Google Cloud Firestore cryptographically validates the token signature and enforces declarative access control defined in `firestore.rules`.
 
-History subscriptions and deletes still use the Firebase Web SDK in the browser. The history badge reflects Firestore snapshot metadata, including initial cache state, pending writes, confirmed server state, and fallback to browser storage. Calculation writes use the server route.
+### Guest Storage & Cloud Synchronization
+- **Guests**: Users without an active session save calculation records directly to browser `localStorage` (`claimwise_local_history`, capped at 20 recent records).
+- **Offline / Cloud Fallback**: If Firestore is unavailable or offline, signed-in users seamlessly fall back to browser local storage so no calculation data is discarded.
+- **Guest-to-Cloud Auto-Sync**: When a guest subsequently logs in or registers, `syncLocalCalculationsToCloud(user)` reads pending browser history and migrates records to the user's Firestore subcollection.
 
-Opening a record with a stored decision displays that exact saved result without recalculating it. Legacy records without a full decision load their saved inputs. “Recalculate & save” sends the saved inputs to the current decision engine and saves the new result as a separate comparison.
+## 2. Parameter Sharing & Link Reproduction
+
+The calculator supports full-fidelity state sharing via URL query parameters:
+- **Full Serialization**: All 14 decision parameters (`insurer`, `repairCost`, `currentPremium`, `currentNcd`, `excess`, `horizonYears`, `liability`, `workshopType`, `repairType`, `ncdProtector`, `youngDriverInvolved`, `thirdPartyClaim`, `baseGrowthRate`, `discountRate`) are encoded into the URL.
+- **Dirty State Resolution**: When users modify inputs without submitting, the share action automatically captures the active form state (`isDirty ? inputs : (submittedInputs || inputs)`).
+- **Auto-Calculation on Load**: When receiving a shared URL, parameters are validated and loaded once auth loading settles, immediately executing the comparison to reproduce identical recommendations and metrics for the receiver.
+
+## 3. History Access and Result Semantics
+
+History subscriptions and deletions use the Firebase Web SDK in the client (`components/CalculationHistory.jsx`). The history badge reflects realtime snapshot metadata, including initial cache state, pending writes, confirmed server state, and browser fallback.
+
+- **Saved Result Viewing**: Opening a historical record with a stored `decision` object displays that exact snapshot without recalculating it.
+- **Recalculation**: Clicking **Recalculate & save** sends the saved inputs to the current decision engine and saves the refreshed output as a new comparison record.
+
+## 4. Declarative Infrastructure as Code (Terraform)
+
+All core cloud infrastructure is managed declaratively under `infra/terraform`:
+- **GCP APIs**: `identitytoolkit`, `firebase`, `firestore`, `firebaserules`, and `run`.
+- **Database & Security Rules**: Native Firestore database in `asia-southeast1` (Singapore) linked to `firestore.rules` via `google_firebaserules_ruleset` and `google_firebaserules_release`.
+- **Identity & Auth**: Google Cloud Identity Platform configuration with authorized OAuth domains and Google Sign-In IdP.
+- **Serverless Runtime**: Google Cloud Run v2 auto-scaling container service (0–10 instances) serving Next.js on port 3000.

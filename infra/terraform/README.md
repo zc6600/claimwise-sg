@@ -10,9 +10,11 @@ This directory defines the declarative **Infrastructure as Code (IaC)** configur
    - `identitytoolkit.googleapis.com` (Identity Platform / Firebase Auth)
    - `firebase.googleapis.com` (Firebase Management)
    - `firestore.googleapis.com` (Cloud Firestore)
+   - `firebaserules.googleapis.com` (Firebase Security Rules API)
    - `run.googleapis.com` (Cloud Run v2)
-2. **Database & Identity**:
+2. **Database, Security Rules & Identity**:
    - Native Cloud Firestore database `(default)` in `asia-southeast1` (Singapore).
+   - Declarative deployment of `firestore.rules` via `google_firebaserules_ruleset` and `google_firebaserules_release`.
    - Firebase Project binding and Web App registration (`ClaimWiseWeb`).
    - Identity Platform authorized domains and Google OAuth 2.0 Sign-In provider.
 3. **Serverless Application Runtime**:
