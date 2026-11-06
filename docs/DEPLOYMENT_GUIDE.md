@@ -4,7 +4,7 @@ This guide covers local development setup on any machine, environment configurat
 
 ---
 
-## 1. Quick Setup on Any Machine (他人电脑 / 新设备运行指南)
+## 1. Quick Setup on Any Machine (New Environment & Collaborator Setup)
 
 ClaimWise SG is engineered with a **zero local database footprint**:
 - The actuarial decision engine runs as pure ECMAScript modules (`src/decision-engine.mjs`) on the server and client.
@@ -127,7 +127,7 @@ ClaimWise SG hosts public policy wording PDFs in `public/policies/` so they can 
 
 ---
 
-## 6. Troubleshooting & Common Pitfalls (排错与常见问题)
+## 6. Troubleshooting & Common Pitfalls
 
 ### 1. `node -v` Version Mismatch
 * **Symptom**: `npm test` fails with unrecognized `--test` flag or syntax error on native ESM modules.
