@@ -73,9 +73,15 @@ export function ncdAfterSelfPay(inputs) {
 export function ncdAfterClaim(inputs) {
   // GIA MCF: If 100% non-fault (clear third-party liability), NCD is protected.
   if (inputs.liability === "non_fault") return inputs.currentNcd;
+  // A third-party liability claim can affect NCD even when the insured's own damage
+  // is a windscreen claim. A valid protector still preserves the tier.
+  if (inputs.ncdProtector) return inputs.currentNcd;
+  if (inputs.thirdPartyClaim) {
+    const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
+    return clamp(inputs.currentNcd - profile.ncdDropPoints, 0, 50);
+  }
   // GIA Windscreen Clause: Windscreen repair/replacement claims do not dock NCD
   if (inputs.repairType === "windscreen") return inputs.currentNcd;
-  if (inputs.ncdProtector) return inputs.currentNcd;
   const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
   return clamp(inputs.currentNcd - profile.ncdDropPoints, 0, 50);
 }
@@ -90,7 +96,7 @@ export function computeEffectiveExcess(inputs) {
       windscreenExcessApplied: true,
       unauthorizedWorkshopSurcharge: 0,
       youngDriverSurcharge: 0,
-      totalEffectiveExcess: Math.min(inputs.excess, windscreenExcess),
+      totalEffectiveExcess: windscreenExcess,
     };
   }
 

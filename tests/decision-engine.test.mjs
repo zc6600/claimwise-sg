@@ -111,6 +111,41 @@ test("windscreen repair applies GIA S$100 excess and preserves 50% NCD", () => {
   assert.ok(result.advisories.some((a) => a.title.includes("GIA Windscreen Clause")));
 });
 
+test("windscreen excess is independent of the standard policy excess", () => {
+  const result = calculateDecision({
+    ...baseInputs,
+    repairType: "windscreen",
+    excess: 0,
+  });
+
+  assert.equal(result.effectiveExcess, 100);
+});
+
+test("at-fault third-party claim reduces NCD even when own damage is windscreen", () => {
+  const result = calculateDecision({
+    ...baseInputs,
+    repairType: "windscreen",
+    thirdPartyClaim: true,
+    liability: "at_fault",
+  });
+
+  assert.equal(result.selfPayNcdAfter, 20);
+  assert.equal(result.claimNcdAfter, 20);
+});
+
+test("NCD Protector still shields a third-party claim involving windscreen damage", () => {
+  const result = calculateDecision({
+    ...baseInputs,
+    repairType: "windscreen",
+    thirdPartyClaim: true,
+    liability: "at_fault",
+    ncdProtector: true,
+  });
+
+  assert.equal(result.selfPayNcdAfter, 50);
+  assert.equal(result.claimNcdAfter, 50);
+});
+
 test("unauthorized independent workshop adds insurer-specific excess surcharge", () => {
   const incomeResult = calculateDecision({
     ...baseInputs,
