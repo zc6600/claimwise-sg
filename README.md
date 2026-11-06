@@ -1,6 +1,6 @@
 # ClaimWise SG · Motor Insurance Claim Decision Support
 
-[![Tests](https://img.shields.io/badge/tests-14%2F14%20passed-success)](tests/decision-engine.test.mjs)
+[![Tests](https://img.shields.io/badge/tests-26%2F26%20passed-success)](tests/decision-engine.test.mjs)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![Cloud Engine](https://img.shields.io/badge/API-Next.js%20Route%20Handlers-blue)](app/api/decision/route.js)
 [![Cloud Database](https://img.shields.io/badge/Firestore-asia--southeast1-orange)](https://console.firebase.google.com/project/claimwise-sg)
@@ -53,26 +53,41 @@ Access the deployed service at **[https://claimwise-sg-721110976915.asia-southea
 
 ---
 
-## Quick Start
+## Quick Start (Running on Any Machine)
 
 ### Prerequisites
-- Node.js `>= 20.0.0`
-- Python 3 (`python`) for optional benchmark/evaluation scripts
+- **Node.js**: `>= 20.0.0` (Verify with `node -v`; required for Node's native test runner and React 19).
+- **Git**: To clone the repository.
+- *Zero local database installation required* (actuarial calculation runs locally in pure JavaScript; guest history uses browser storage).
 
-### Local Development
+### 1. Local Run in 3 Minutes (Zero-Config)
+The app comes with built-in client fallbacks so anyone can clone and immediately run it without having to configure cloud credentials:
+
 ```bash
+# Clone and enter the repository
+git clone https://github.com/zc6600/claimwise-sg.git
+cd claimwise-sg
+
+# Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
-cp .env.example .env.local
-npm run dev
-```
-Open `http://localhost:3000` (or `http://localhost:3000/calculator`).
 
-### Production Build & Test Suite
-```bash
-# Run all 14 actuarial & API unit tests
+# Run the deterministic test suite (26 tests, completes in ~200ms)
 npm test
 
-# Build and start the production server
+# Start the local development server
+npm run dev
+```
+Open **`http://localhost:3000`** in your browser.
+
+> [!TIP]
+> **Optional Custom Configuration**: To connect your own Firebase project rather than using default demo credentials, copy `.env.example` to `.env.local` and provide your project keys.
+
+### 2. Production Build & Test
+```bash
+# Run all 26 actuarial & API unit tests
+npm test
+
+# Build and start the optimized standalone production server
 npm run build
 npm run start -- -p 3000
 ```
