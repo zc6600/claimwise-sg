@@ -1,0 +1,15 @@
+.dockerignore
+.gcloudignore
+.git
+.gitignore
+node_modules/
+.next/
+dist/
+.DS_Store
+.env*.local
+.env
+.terraform/
+*.tfstate*
+*.tfvars
+evaluation/
+report/
