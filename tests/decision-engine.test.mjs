@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateDecision } from "../src/decision-engine.mjs";
+import { calculateDecision, isNcdProtectorEligible } from "../src/decision-engine.mjs";
 
 const baseInputs = {
   insurer: "income",
@@ -32,6 +32,54 @@ test("NCD Protector preserves the current NCD in the claim path", () => {
   assert.equal(result.claimNcdAfter, 50);
   assert.equal(result.baseScenario.claimYears[0].ncd, 50);
   assert.equal(result.baseScenario.claimYears[1].ncd, 50);
+});
+
+test("NCD Protector is ineffective when current NCD is below insurer minNcdForProtector", () => {
+  // Income requires min 50% NCD for protector
+  const incomeUnderThreshold = calculateDecision({
+    ...baseInputs,
+    insurer: "income",
+    currentNcd: 40,
+    ncdProtector: true,
+  });
+  // Should drop by 30% from 40 to 10 despite ncdProtector: true
+  assert.equal(incomeUnderThreshold.claimNcdAfter, 10);
+  const incomeProtectorAudit = incomeUnderThreshold.clauseAudit.find(
+    (c) => c.id === "ncd_protector_rider"
+  );
+  assert.equal(incomeProtectorAudit.status, "warning");
+  assert.equal(incomeProtectorAudit.statusLabel, "Eligibility Threshold Not Met");
+
+  // Etiqa allows 40% NCD for protector
+  const etiqaEligible = calculateDecision({
+    ...baseInputs,
+    insurer: "etiqa",
+    currentNcd: 40,
+    ncdProtector: true,
+  });
+  // Should be preserved at 40
+  assert.equal(etiqaEligible.claimNcdAfter, 40);
+  const etiqaProtectorAudit = etiqaEligible.clauseAudit.find(
+    (c) => c.id === "ncd_protector_rider"
+  );
+  assert.equal(etiqaProtectorAudit.status, "active");
+  assert.equal(etiqaProtectorAudit.statusLabel, "Rider Active");
+
+  // Etiqa with 30% NCD is below 40% threshold
+  const etiqaUnderThreshold = calculateDecision({
+    ...baseInputs,
+    insurer: "etiqa",
+    currentNcd: 30,
+    ncdProtector: true,
+  });
+  // 30% docks to 0%
+  assert.equal(etiqaUnderThreshold.claimNcdAfter, 0);
+
+  // Helper function test
+  assert.equal(isNcdProtectorEligible({ insurer: "income", currentNcd: 40 }), false);
+  assert.equal(isNcdProtectorEligible({ insurer: "income", currentNcd: 50 }), true);
+  assert.equal(isNcdProtectorEligible({ insurer: "etiqa", currentNcd: 40 }), true);
+  assert.equal(isNcdProtectorEligible({ insurer: "etiqa", currentNcd: 30 }), false);
 });
 
 test("break-even repair cost increases when a claim loses NCD", () => {

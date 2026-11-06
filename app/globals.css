@@ -1142,6 +1142,16 @@ h3 {
   line-height: 1.4;
 }
 
+.toggle-field.is-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.toggle-field input:disabled + .toggle-ui {
+  cursor: not-allowed;
+  background: #cbd5e1;
+}
+
 /* Field Highlight, Presets, Validation & Submit Bar */
 .field-highlight {
   padding: 14px 16px;

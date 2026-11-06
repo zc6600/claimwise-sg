@@ -58,12 +58,18 @@ function nextNcd(ncd) {
   return NCD_STEPS.find((step) => step > ncd) ?? 50;
 }
 
+export function isNcdProtectorEligible(inputs) {
+  const profile = INSURER_PROFILES[inputs?.insurer] || INSURER_PROFILES.other;
+  const minNcd = profile.minNcdForProtector ?? 50;
+  return Number(inputs?.currentNcd ?? 0) >= minNcd;
+}
+
 export function ncdAfterSelfPay(inputs) {
   // GIA MCF Section 1.1 / Ref [3]: If a third party claims against the user and the user is
   // at fault or partial fault, the insurer must settle the third party claim.
   // This triggers an NCD reduction regardless of whether the user self-pays their own vehicle repair!
   if (inputs.thirdPartyClaim && inputs.liability !== "non_fault") {
-    if (inputs.ncdProtector) return inputs.currentNcd;
+    if (inputs.ncdProtector && isNcdProtectorEligible(inputs)) return inputs.currentNcd;
     const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
     return clamp(inputs.currentNcd - profile.ncdDropPoints, 0, 50);
   }
@@ -75,7 +81,7 @@ export function ncdAfterClaim(inputs) {
   if (inputs.liability === "non_fault") return inputs.currentNcd;
   // A third-party liability claim can affect NCD even when the insured's own damage
   // is a windscreen claim. A valid protector still preserves the tier.
-  if (inputs.ncdProtector) return inputs.currentNcd;
+  if (inputs.ncdProtector && isNcdProtectorEligible(inputs)) return inputs.currentNcd;
   if (inputs.thirdPartyClaim) {
     const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
     return clamp(inputs.currentNcd - profile.ncdDropPoints, 0, 50);
@@ -306,25 +312,45 @@ export function generateClauseAudit(
     statutoryBasis: "GIA Industry Code of Practice on Motor Claims & MAS Notice 122",
     illustrativeText: "Under the standard GIA scale, an at-fault or unsettled claim results in a 30% reduction from the policyholder's accrued NCD upon the next renewal (e.g. 50% to 20%, 40% to 10%, 30% or below to 0%).",
     rationale: isNcdShielded
-      ? `Your NCD tier of ${inputs.currentNcd}% is preserved without deduction due to ${inputs.ncdProtector ? "NCD Protector Endorsement" : inputs.repairType === "windscreen" ? "Windscreen Endorsement W1" : "Non-Fault Subrogation"}.`
+      ? `Your NCD tier of ${inputs.currentNcd}% is preserved without deduction due to ${inputs.ncdProtector && isNcdProtectorEligible(inputs) ? "NCD Protector Endorsement" : inputs.repairType === "windscreen" ? "Windscreen Endorsement W1" : "Non-Fault Subrogation"}.`
       : `Filing an own-damage at-fault claim causes your NCD to drop by ${profile.ncdDropPoints} percentage points from ${inputs.currentNcd}% to ${claimNcdAfter}%, increasing renewal premiums over the next 3 years.`,
   });
 
   // 7. NCD Protector Rider
+  const protectorEligible = isNcdProtectorEligible(inputs);
+  const protectorActive = inputs.ncdProtector && protectorEligible;
+
+  let protectorValue = "Not Elected / Inactive";
+  let protectorStatus = "inactive";
+  let protectorStatusLabel = "No Protector on Policy";
+  let protectorRationale = `Because NCD Protector is inactive, any at-fault claim triggers the full ${profile.ncdDropPoints}% standard GIA penalty.`;
+
+  if (inputs.ncdProtector) {
+    if (protectorEligible) {
+      protectorValue = "Active · 1 Claim Shielded";
+      protectorStatus = "active";
+      protectorStatusLabel = "Rider Active";
+      protectorRationale = `Your NCD Protector absorbs the ${profile.ncdDropPoints}% drop on this claim, saving substantial multi-year renewal surcharges.`;
+    } else {
+      protectorValue = `Ineligible (Requires ${profile.minNcdForProtector}% NCD)`;
+      protectorStatus = "warning";
+      protectorStatusLabel = "Eligibility Threshold Not Met";
+      protectorRationale = `NCD Protector is only available for ${profile.name} policyholders with at least ${profile.minNcdForProtector}% NCD. Because your current NCD is ${inputs.currentNcd}%, the protector is legally inactive.`;
+    }
+  }
+
   audit.push({
     id: "ncd_protector_rider",
     category: "NCD & Discount Rules",
     dataPoint: "NCD Protector Endorsement",
-    value: inputs.ncdProtector ? "Active · 1 Claim Shielded" : "Not Elected / Inactive",
-    status: inputs.ncdProtector ? "active" : "inactive",
-    statusLabel: inputs.ncdProtector ? "Rider Active" : "No Protector on Policy",
+    value: protectorValue,
+    status: protectorStatus,
+    statusLabel: protectorStatusLabel,
     clauseRef: profile.clauses?.ncdProtector?.ref || "Insurer NCD Protector Endorsement",
     authority: profile.name,
     statutoryBasis: `Insurer Specific Policy Endorsement (Eligible at ${profile.minNcdForProtector}%+ NCD)`,
     illustrativeText: profile.clauses?.ncdProtector?.text || "Maintains current NCD tier upon the first own-damage at-fault claim within the policy period.",
-    rationale: inputs.ncdProtector
-      ? `Your NCD Protector absorbs the 30% drop on this claim, saving substantial multi-year renewal surcharges.`
-      : `Because NCD Protector is inactive, any at-fault claim triggers the full ${profile.ncdDropPoints}% standard GIA penalty.`,
+    rationale: protectorRationale,
   });
 
   // 8. Third-Party Adverse Claim Settlement Rule
