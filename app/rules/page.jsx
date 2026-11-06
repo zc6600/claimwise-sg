@@ -148,7 +148,7 @@ export default function RulesPage() {
 
         <div className="source-links">
           <a
-            href="https://gia.org.sg/motor-insurance/22-premium-renewal-of-policy/348-motor-claims-framewor"
+            href="https://gia.org.sg/motor-insurance/22-premium-renewal-of-policy/348-motor-claims-framework.html"
             target="_blank"
             rel="noreferrer"
           >

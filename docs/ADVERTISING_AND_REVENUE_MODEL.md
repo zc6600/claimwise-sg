@@ -1,5 +1,9 @@
 # Advertising & Partner Revenue Architecture
 
+> [!NOTE]
+> **Status: Under Development / Planned Feature (待开发)**
+> Commercial partner referrals and programmatic display units are part of the planned post-MVP commercial roadmap. In the current production release, all ad units are kept unmounted from user flows to guarantee an uninterrupted, zero-distraction actuarial decision experience.
+
 This document outlines the monetization design, actuarial neutrality guardrails, and unit economics for **ClaimWise SG**.
 
 ---

@@ -40,6 +40,7 @@ variable "authorized_domains" {
     "localhost",
     "127.0.0.1",
     "claimwise-sg.firebaseapp.com",
-    "claimwise-sg.web.app"
+    "claimwise-sg.web.app",
+    "claimwise-sg-721110976915.asia-southeast1.run.app"
   ]
 }

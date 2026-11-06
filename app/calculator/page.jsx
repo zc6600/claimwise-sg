@@ -186,14 +186,15 @@ export default function CalculatorPage() {
       setDecision(calculatedDecision);
       setSubmittedInputs(calculatedDecision.inputs);
       setResultMode(nextResultMode);
-      let saved = Boolean(payload.meta?.persisted);
+      const savedToCloud = Boolean(payload.meta?.persisted);
+      let savedLocally = false;
 
-      if (!saved && !user?.uid) {
+      if (!savedToCloud) {
         try {
           await saveCalculationRecord(null, {
             decision: calculatedDecision,
           });
-          saved = true;
+          savedLocally = true;
         } catch (error) {
           console.warn(
             "Local calculation history save failed:",
@@ -203,9 +204,11 @@ export default function CalculatorPage() {
       }
 
       setSaveStatus(
-        saved
+        savedToCloud
+          ? "Saved to cloud"
+          : savedLocally
           ? user?.uid
-            ? "Saved to cloud"
+            ? "Saved in browser (cloud unavailable)"
             : "Saved in browser"
           : "Save unavailable"
       );
