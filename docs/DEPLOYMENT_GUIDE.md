@@ -1,24 +1,38 @@
 # Deployment & Infrastructure Guide
 
-This guide covers local builds, Firebase configuration, Google Cloud Run deployment, Terraform provisioning, and static policy PDF hosting for **ClaimWise SG**.
+This guide covers local development setup on any machine, environment configuration, Firebase authentication, Google Cloud Run serverless deployment, Terraform IaC provisioning, and troubleshooting for **ClaimWise SG**.
 
 ---
 
-## 1. Local Build & Verification
+## 1. Quick Setup on Any Machine (他人电脑 / 新设备运行指南)
 
+ClaimWise SG is engineered with a **zero local database footprint**:
+- The actuarial decision engine runs as pure ECMAScript modules (`src/decision-engine.mjs`) on the server and client.
+- You do **not** need to install PostgreSQL, MySQL, Redis, or Docker just to run and test the application locally.
+- In guest mode, calculation comparisons persist in browser `localStorage`.
+- [`lib/firebase-config.js`](../lib/firebase-config.js) contains public demo project fallbacks, allowing the app and Google OAuth (`localhost:3000` is pre-authorized) to function immediately without creating `.env.local`.
+
+### Prerequisites
+* **Node.js**: `>= 20.0.0` (Run `node -v` to check; required for native `node:test` and React 19 / Next.js 15).
+* **Git**: To clone the repository.
+
+### Step-by-Step Local Run
 ```bash
-# 1. Install dependencies
+# 1. Clone repository
+git clone https://github.com/zc6600/claimwise-sg.git
+cd claimwise-sg
+
+# 2. Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
 
-# 2. Run the deterministic test suite (26 tests)
+# 3. Run the deterministic test suite (26 tests, 0 failures required)
 npm test
 
-# 3. Build optimized production assets
-npm run build
-
-# 4. Start the local production server
-npm run start -- -p 3000
+# 4. Start local development server (or npm run build && npm run start for production)
+npm run dev
 ```
+
+Open `http://localhost:3000` in your browser.
 
 ### Key Local Routes
 - **Home & Quick Estimator**: `http://localhost:3000`
@@ -110,3 +124,34 @@ ClaimWise SG hosts public policy wording PDFs in `public/policies/` so they can 
 ### Page-Anchored Preview Architecture
 - Page mappings are maintained in [`lib/clause-documents.js`](../lib/clause-documents.js) using 1-based physical PDF page numbers (`#page=N&view=FitH`).
 - In the calculator results panel, [`components/PolicySourcePreview.jsx`](../components/PolicySourcePreview.jsx) lets users hover or click any clause row to inspect the matching PDF page, toggle between **Official PDF** and **Clause summary** views, pin a clause open (`📌 Pin`), or export a formatted summary via **Print / PDF**.
+
+---
+
+## 6. Troubleshooting & Common Pitfalls (排错与常见问题)
+
+### 1. `node -v` Version Mismatch
+* **Symptom**: `npm test` fails with unrecognized `--test` flag or syntax error on native ESM modules.
+* **Cause**: Node.js version is below `v20.0.0` (e.g. Node 16 or 18).
+* **Fix**: Install or switch to Node 20 or Node 22 via `nvm`:
+  ```bash
+  nvm install 20
+  nvm use 20
+  ```
+
+### 2. Google Sign-In Fails with `auth/unauthorized-domain`
+* **Symptom**: Clicking "Sign in with Google" prompts an error: *"This domain is not yet authorized in Firebase Authentication."*
+* **Cause**: Deploying to a new custom domain, preview branch URL, or newly deployed Cloud Run service URL that has not been whitelisted in Google Identity Platform.
+* **Fix**:
+  1. Open [Firebase Console](https://console.firebase.google.com/) -> Select your project -> **Authentication** -> **Settings** -> **Authorized domains**.
+  2. Click **Add domain** and enter your new hostname (e.g. `your-app-xxxx.asia-southeast1.run.app`).
+  3. Alternatively, update `authorized_domains` in `infra/terraform/variables.tf` and run `terraform apply`.
+
+### 3. Firestore Permission Denied on Cloud Save
+* **Symptom**: Calculator displays *"Saved in browser (cloud unavailable)"* instead of *"Saved to cloud"*.
+* **Cause**: `firestore.rules` has not been published to your target GCP/Firebase project.
+* **Fix**:
+  ```bash
+  firebase deploy --only firestore:rules --project <YOUR_PROJECT_ID>
+  # Or via Terraform:
+  cd infra/terraform && terraform apply
+  ```
