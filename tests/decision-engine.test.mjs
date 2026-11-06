@@ -370,3 +370,24 @@ test("validates all 13 Singapore benchmark cases against decision engine", () =>
   }
 });
 
+test("next.config.mjs exports security headers, disabled powered-by header, and strict mode", async () => {
+  const nextConfigModule = await import("../next.config.mjs");
+  const config = nextConfigModule.default;
+
+  assert.equal(config.poweredByHeader, false);
+  assert.equal(config.reactStrictMode, true);
+  assert.equal(typeof config.headers, "function");
+
+  const headerRules = await config.headers();
+  assert.ok(Array.isArray(headerRules));
+  const globalRule = headerRules.find((rule) => rule.source === "/:path*");
+  assert.ok(globalRule);
+
+  const headerKeys = globalRule.headers.map((h) => h.key.toLowerCase());
+  assert.ok(headerKeys.includes("x-frame-options"));
+  assert.ok(headerKeys.includes("x-content-type-options"));
+  assert.ok(headerKeys.includes("referrer-policy"));
+  assert.ok(headerKeys.includes("permissions-policy"));
+  assert.ok(headerKeys.includes("strict-transport-security"));
+});
+

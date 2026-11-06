@@ -10,10 +10,50 @@ const inter = Inter({
   display: "swap",
 });
 
+export const viewport = {
+  themeColor: "#0b1320",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata = {
-  title: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://claimwise-sg.web.app"
+  ),
+  title: {
+    default: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
+    template: "%s · ClaimWise SG",
+  },
   description:
     "Compare the multi-year cost of paying for minor car repairs out-of-pocket versus filing an own-damage motor insurance claim in Singapore.",
+  keywords: [
+    "Singapore motor insurance",
+    "NCD calculator",
+    "car claim decision",
+    "own damage claim",
+    "GIA MCF",
+    "Singapore car insurance excess",
+  ],
+  authors: [{ name: "ClaimWise SG" }],
+  openGraph: {
+    title: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
+    description:
+      "Compare the multi-year cost of paying for minor car repairs out-of-pocket versus filing an own-damage motor insurance claim in Singapore.",
+    url: "https://claimwise-sg.web.app",
+    siteName: "ClaimWise SG",
+    locale: "en_SG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
+    description:
+      "Compare the multi-year cost of paying for minor car repairs out-of-pocket versus filing an own-damage motor insurance claim in Singapore.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({ children }) {
