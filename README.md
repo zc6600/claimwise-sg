@@ -68,8 +68,6 @@ ClaimWise SG is deployed serverless on **Google Cloud Platform (GCP)** in Singap
 - **On-Scene Protocol & Anti-Scam Guidance**: Features the statutory Road Traffic Act (Section 84) police reporting checklist, GIA 24-hour mandatory insurer reporting rule, and predatory tow-truck scam protection warnings.
 - **Emergency Directory**: Provides verified direct hotlines and operating hours for statutory services (Police 999, SCDF 995, LTA EMAS 1800-2255-582) and authorized insurer assistance centers (Income, Tiq/Etiqa, MSIG).
 
----
-
 ### 7. Car Decision Tools (`/tools`)
 - **NCD Protector** (`/tools/ncd-protector`): Finds the at-fault claim probability at which the rider pays for itself.
 - **Renewal Quote Comparison** (`/tools/quote-compare`): Ranks quotes by expected cost, including excess and workshop surcharges.
