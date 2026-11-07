@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../AuthProvider";
 import {
   cacheCarLocally,
@@ -17,8 +17,24 @@ import { EMPTY_CAR, hasCarDetails } from "../../src/my-car.mjs";
  */
 export function useMyCar() {
   const { user, loading: authLoading } = useAuth();
-  const [car, setCar] = useState(EMPTY_CAR);
+  const [stored, setStored] = useState({ ownerUid: null, car: EMPTY_CAR });
   const [ready, setReady] = useState(false);
+  const viewerUid = user?.uid ?? null;
+
+  // State from a previous account is never exposed, even for the render before the effect runs.
+  const car = stored.ownerUid === viewerUid ? stored.car : EMPTY_CAR;
+
+  const setCar = useCallback(
+    (update) =>
+      setStored((current) => {
+        const base = current.ownerUid === viewerUid ? current.car : EMPTY_CAR;
+        return {
+          ownerUid: viewerUid,
+          car: typeof update === "function" ? update(base) : update,
+        };
+      }),
+    [viewerUid]
+  );
 
   useEffect(() => {
     if (authLoading) return undefined;
@@ -50,7 +66,7 @@ export function useMyCar() {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading]);
+  }, [user, authLoading, setCar]);
 
   return { car, setCar, ready, user };
 }

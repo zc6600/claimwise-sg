@@ -362,6 +362,16 @@ test("a failed confirmation email can be retried immediately", async () => {
   assert.equal(sent.length, 1);
 });
 
+test("concurrent sign-ups render one deduplicated confirmation", async () => {
+  const { service, sent } = createHarness();
+  const request = { email: "a@b.co", dates: { insuranceRenewal: "2027-03-01" }, consent: true };
+  await Promise.all([service.subscribe(request), service.subscribe(request)]);
+
+  assert.equal(sent.length, 2);
+  assert.equal(sent[0].idempotencyKey, sent[1].idempotencyKey);
+  assert.equal(sent[0].text, sent[1].text);
+});
+
 test("the daily email cap applies across addresses", async () => {
   const { service, store, sent } = createHarness();
   const dates = { insuranceRenewal: "2027-03-01" };

@@ -1,6 +1,6 @@
 # ClaimWise SG · Motor Insurance Claim Decision Support
 
-[![Tests](https://img.shields.io/badge/tests-115%2F115%20passed-success)](tests/)
+[![Tests](https://img.shields.io/badge/tests-116%2F116%20passed-success)](tests/)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-asia--southeast1-blue?logo=googlecloud)](https://claimwise-sg-721110976915.asia-southeast1.run.app)
 [![Firebase](https://img.shields.io/badge/Firebase%20Hosting-claimwise--sg.web.app-orange?logo=firebase)](https://claimwise-sg.web.app)
