@@ -3179,3 +3179,209 @@ td:first-child {
   }
 }
 
+/* ==========================================================================
+   Trajectory Visualizer (Interactive Cumulative Outflow & NCD Chart)
+   ========================================================================== */
+.trajectory-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.trajectory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.trajectory-title {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+  margin: 0;
+}
+
+.chart-mode-tabs {
+  display: inline-flex;
+  background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--r-sm) - 2px);
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: var(--ink);
+}
+
+.tab-btn.is-active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.trajectory-crossover-banner {
+  background: var(--surface-subtle);
+  border-left: 3px solid var(--teal);
+  padding: 8px 12px;
+  border-radius: var(--r-xs);
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+}
+
+.crossover-badge {
+  background: var(--teal);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.svg-chart-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.trajectory-svg {
+  width: 100%;
+  height: auto;
+  min-width: 440px;
+  display: block;
+}
+
+.chart-grid-line line {
+  stroke: var(--line);
+  stroke-dasharray: 2 4;
+}
+
+.chart-axis-label {
+  fill: var(--muted);
+  font-size: 0.6875rem;
+  font-family: inherit;
+}
+
+.chart-axis-label.is-selected {
+  fill: var(--teal);
+  font-weight: 700;
+}
+
+.chart-dot {
+  cursor: pointer;
+  transition: r 0.15s ease, stroke 0.15s ease;
+}
+
+.chart-dot:hover {
+  r: 7;
+  stroke: #ffffff;
+  stroke-width: 2px;
+}
+
+.chart-interactive-dot-group:focus {
+  outline: none;
+}
+
+.chart-interactive-dot-group:focus circle {
+  stroke: #ffffff;
+  stroke-width: 2.5px;
+}
+
+.milestone-selector-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.milestone-pill {
+  background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xs);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.milestone-pill:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.milestone-pill.is-selected {
+  background: var(--teal);
+  color: #ffffff;
+  border-color: var(--teal);
+}
+
+.trajectory-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid var(--line-subtle);
+  padding-top: 12px;
+}
+
+.trajectory-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-swatch.is-self-pay {
+  background: var(--teal);
+}
+
+.legend-swatch.is-claim {
+  background: var(--coral, #e11d48);
+}
+
+.trajectory-hint {
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+
