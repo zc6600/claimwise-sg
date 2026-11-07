@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatCurrency, formatPercent } from "../src/formatters.mjs";
 import { isNcdProtectorEligible } from "../src/decision-engine.mjs";
 import PolicySourcePreview from "./PolicySourcePreview";
+import TrajectoryVisualizer from "./TrajectoryVisualizer";
 
 function getResultSourceMessage(resultMode, saveStatus) {
   if (resultMode === "saved") {
@@ -428,6 +429,13 @@ export default function CalculatorResults({
           ))}
         </div>
       )}
+
+      {/* 3b. Interactive Multi-Year Trajectory Visualizer */}
+      <TrajectoryVisualizer
+        baseScenario={baseScenario}
+        inputs={decision.inputs}
+        effectiveExcess={decision.effectiveExcess}
+      />
 
       {/* 4. Expandable Year-by-Year Schedule */}
       <div className="breakdown-card">
