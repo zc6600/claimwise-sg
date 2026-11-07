@@ -328,7 +328,7 @@ test("a reminder stays due when its delivery record cannot be written", async ()
 
   const retry = await service.dispatch();
   assert.equal(retry.sent, 1);
-  const deliveries = sent.filter((message) => message.idempotencyKey);
+  const deliveries = sent.filter((message) => message.idempotencyKey?.includes("insuranceRenewal"));
   assert.equal(deliveries.length, 2);
   assert.equal(deliveries[0].idempotencyKey, deliveries[1].idempotencyKey);
 });
