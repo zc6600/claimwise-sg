@@ -10,6 +10,7 @@ const MAX_BODY_BYTES = 16384;
 const VALID_LIABILITIES = ["at_fault", "non_fault", "partial_fault"];
 const VALID_WORKSHOPS = ["authorized", "independent"];
 const VALID_REPAIR_TYPES = ["general", "windscreen"];
+const VALID_VEHICLE_USAGES = ["private", "phv"];
 
 function isFiniteNumber(value) {
   if (typeof value === "boolean" || value === null || value === "") return false;
@@ -140,6 +141,64 @@ export function validateDecisionInputs(rawInputs, { persist = false } = {}) {
     return {
       field: "repairType",
       message: `repairType must be one of ${VALID_REPAIR_TYPES.join(", ")}.`,
+    };
+  }
+
+  if (
+    rawInputs.vehicleUsage !== undefined &&
+    !VALID_VEHICLE_USAGES.includes(rawInputs.vehicleUsage)
+  ) {
+    return {
+      field: "vehicleUsage",
+      message: `vehicleUsage must be one of ${VALID_VEHICLE_USAGES.join(", ")}.`,
+    };
+  }
+
+  if (
+    rawInputs.commercialClaimLoading !== undefined &&
+    (!isFiniteNumber(rawInputs.commercialClaimLoading) ||
+      Number(rawInputs.commercialClaimLoading) < 0 ||
+      Number(rawInputs.commercialClaimLoading) > 100)
+  ) {
+    return {
+      field: "commercialClaimLoading",
+      message: "commercialClaimLoading must be a percentage between 0 and 100.",
+    };
+  }
+
+  if (
+    rawInputs.dailyDowntimeCost !== undefined &&
+    (!isFiniteNumber(rawInputs.dailyDowntimeCost) ||
+      Number(rawInputs.dailyDowntimeCost) < 0 ||
+      Number(rawInputs.dailyDowntimeCost) > 5000)
+  ) {
+    return {
+      field: "dailyDowntimeCost",
+      message: "dailyDowntimeCost must be a number between S$0 and S$5,000.",
+    };
+  }
+
+  if (
+    rawInputs.claimDowntimeDays !== undefined &&
+    (!isFiniteNumber(rawInputs.claimDowntimeDays) ||
+      Number(rawInputs.claimDowntimeDays) < 0 ||
+      Number(rawInputs.claimDowntimeDays) > 60)
+  ) {
+    return {
+      field: "claimDowntimeDays",
+      message: "claimDowntimeDays must be a number of days between 0 and 60.",
+    };
+  }
+
+  if (
+    rawInputs.selfPayDowntimeDays !== undefined &&
+    (!isFiniteNumber(rawInputs.selfPayDowntimeDays) ||
+      Number(rawInputs.selfPayDowntimeDays) < 0 ||
+      Number(rawInputs.selfPayDowntimeDays) > 60)
+  ) {
+    return {
+      field: "selfPayDowntimeDays",
+      message: "selfPayDowntimeDays must be a number of days between 0 and 60.",
     };
   }
 

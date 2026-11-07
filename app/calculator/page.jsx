@@ -24,6 +24,11 @@ const DEFAULT_INPUTS = {
   workshopType: "authorized",
   youngDriverInvolved: false,
   repairType: "general",
+  vehicleUsage: "private",
+  commercialClaimLoading: 15,
+  dailyDowntimeCost: 80,
+  claimDowntimeDays: 5,
+  selfPayDowntimeDays: 1,
 };
 
 function validateField(field, value) {
@@ -77,7 +82,12 @@ function areInputsEqual(a, b) {
     Boolean(a.thirdPartyClaim) === Boolean(b.thirdPartyClaim) &&
     a.workshopType === b.workshopType &&
     Boolean(a.youngDriverInvolved) === Boolean(b.youngDriverInvolved) &&
-    a.repairType === b.repairType
+    a.repairType === b.repairType &&
+    (a.vehicleUsage || "private") === (b.vehicleUsage || "private") &&
+    Number(a.commercialClaimLoading ?? 0) === Number(b.commercialClaimLoading ?? 0) &&
+    Number(a.dailyDowntimeCost ?? 0) === Number(b.dailyDowntimeCost ?? 0) &&
+    Number(a.claimDowntimeDays ?? 0) === Number(b.claimDowntimeDays ?? 0) &&
+    Number(a.selfPayDowntimeDays ?? 0) === Number(b.selfPayDowntimeDays ?? 0)
   );
 }
 
@@ -192,6 +202,46 @@ export default function CalculatorPage() {
       const val = params.get("repairType");
       if (["general", "windscreen"].includes(val)) {
         parsed.repairType = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("vehicleUsage")) {
+      const val = params.get("vehicleUsage");
+      if (["private", "phv"].includes(val)) {
+        parsed.vehicleUsage = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("commercialClaimLoading")) {
+      const val = Number(params.get("commercialClaimLoading"));
+      if (Number.isFinite(val) && val >= 0 && val <= 100) {
+        parsed.commercialClaimLoading = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("dailyDowntimeCost")) {
+      const val = Number(params.get("dailyDowntimeCost"));
+      if (Number.isFinite(val) && val >= 0 && val <= 5000) {
+        parsed.dailyDowntimeCost = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("claimDowntimeDays")) {
+      const val = Number(params.get("claimDowntimeDays"));
+      if (Number.isFinite(val) && val >= 0 && val <= 60) {
+        parsed.claimDowntimeDays = val;
+        hasExplicitParams = true;
+      }
+    }
+
+    if (params.has("selfPayDowntimeDays")) {
+      const val = Number(params.get("selfPayDowntimeDays"));
+      if (Number.isFinite(val) && val >= 0 && val <= 60) {
+        parsed.selfPayDowntimeDays = val;
         hasExplicitParams = true;
       }
     }
@@ -395,6 +445,21 @@ export default function CalculatorPage() {
     if (active.liability) url.searchParams.set("liability", active.liability);
     if (active.workshopType) url.searchParams.set("workshopType", active.workshopType);
     if (active.repairType) url.searchParams.set("repairType", active.repairType);
+    if (active.vehicleUsage && active.vehicleUsage !== "private") {
+      url.searchParams.set("vehicleUsage", active.vehicleUsage);
+      if (Number.isFinite(Number(active.commercialClaimLoading))) {
+        url.searchParams.set("commercialClaimLoading", String(active.commercialClaimLoading));
+      }
+      if (Number.isFinite(Number(active.dailyDowntimeCost))) {
+        url.searchParams.set("dailyDowntimeCost", String(active.dailyDowntimeCost));
+      }
+      if (Number.isFinite(Number(active.claimDowntimeDays))) {
+        url.searchParams.set("claimDowntimeDays", String(active.claimDowntimeDays));
+      }
+      if (Number.isFinite(Number(active.selfPayDowntimeDays))) {
+        url.searchParams.set("selfPayDowntimeDays", String(active.selfPayDowntimeDays));
+      }
+    }
     if (active.ncdProtector) url.searchParams.set("ncdProtector", "1");
     if (active.youngDriverInvolved) url.searchParams.set("youngDriverInvolved", "1");
     if (active.thirdPartyClaim) url.searchParams.set("thirdPartyClaim", "1");
@@ -455,6 +520,15 @@ export default function CalculatorPage() {
       workshopType: historicalInputs.workshopType ?? DEFAULT_INPUTS.workshopType,
       youngDriverInvolved: historicalInputs.youngDriverInvolved ?? false,
       repairType: historicalInputs.repairType ?? DEFAULT_INPUTS.repairType,
+      vehicleUsage: historicalInputs.vehicleUsage ?? DEFAULT_INPUTS.vehicleUsage,
+      commercialClaimLoading:
+        historicalInputs.commercialClaimLoading ?? DEFAULT_INPUTS.commercialClaimLoading,
+      dailyDowntimeCost:
+        historicalInputs.dailyDowntimeCost ?? DEFAULT_INPUTS.dailyDowntimeCost,
+      claimDowntimeDays:
+        historicalInputs.claimDowntimeDays ?? DEFAULT_INPUTS.claimDowntimeDays,
+      selfPayDowntimeDays:
+        historicalInputs.selfPayDowntimeDays ?? DEFAULT_INPUTS.selfPayDowntimeDays,
     };
   }
 

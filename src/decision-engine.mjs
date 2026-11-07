@@ -1,7 +1,14 @@
-import { INSURER_PROFILES, NCD_STEPS } from "./decision-data.mjs";
+import { INSURER_PROFILES, NCD_STEPS, VEHICLE_USAGES, PHV_DEFAULTS } from "./decision-data.mjs";
 import { formatCurrency, formatPercent } from "./formatters.mjs";
 
-export { INSURER_PROFILES, NCD_STEPS, formatCurrency, formatPercent };
+export {
+  INSURER_PROFILES,
+  NCD_STEPS,
+  VEHICLE_USAGES,
+  PHV_DEFAULTS,
+  formatCurrency,
+  formatPercent,
+};
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -35,6 +42,42 @@ export function normalizeInputs(raw = {}) {
   const repairType = ["general", "windscreen"].includes(raw.repairType)
     ? raw.repairType
     : "general";
+  const vehicleUsage = ["private", "phv"].includes(raw.vehicleUsage)
+    ? raw.vehicleUsage
+    : "private";
+  const isPhv = vehicleUsage === "phv";
+  const commercialClaimLoading = clamp(
+    parseNumber(
+      raw.commercialClaimLoading,
+      isPhv ? PHV_DEFAULTS.defaultCommercialLoading : 0
+    ),
+    0,
+    100
+  );
+  const dailyDowntimeCost = clamp(
+    parseNumber(
+      raw.dailyDowntimeCost,
+      isPhv ? PHV_DEFAULTS.defaultDailyDowntimeCost : 0
+    ),
+    0,
+    5000
+  );
+  const claimDowntimeDays = clamp(
+    parseNumber(
+      raw.claimDowntimeDays,
+      isPhv ? PHV_DEFAULTS.defaultClaimDowntimeDays : 0
+    ),
+    0,
+    60
+  );
+  const selfPayDowntimeDays = clamp(
+    parseNumber(
+      raw.selfPayDowntimeDays,
+      isPhv ? PHV_DEFAULTS.defaultSelfPayDowntimeDays : 0
+    ),
+    0,
+    60
+  );
 
   return {
     insurer,
@@ -51,6 +94,11 @@ export function normalizeInputs(raw = {}) {
     workshopType,
     youngDriverInvolved,
     repairType,
+    vehicleUsage,
+    commercialClaimLoading,
+    dailyDowntimeCost,
+    claimDowntimeDays,
+    selfPayDowntimeDays,
   };
 }
 
@@ -122,12 +170,13 @@ export function computeEffectiveExcess(inputs) {
   };
 }
 
-function premiumAtNcd(basePremium, ncd, growthRate, year) {
+function premiumAtNcd(basePremium, ncd, growthRate, year, commercialLoading = 0) {
   const growthMultiplier = (1 + growthRate / 100) ** year;
-  return basePremium * (1 - ncd / 100) * growthMultiplier;
+  const loadingMultiplier = 1 + commercialLoading / 100;
+  return basePremium * (1 - ncd / 100) * growthMultiplier * loadingMultiplier;
 }
 
-function buildPath(inputs, startingNcd, growthRate, discountRate) {
+function buildPath(inputs, startingNcd, growthRate, discountRate, commercialLoading = 0) {
   const basePremium = inputs.currentNcd < 100
     ? inputs.currentPremium / (1 - inputs.currentNcd / 100)
     : inputs.currentPremium;
@@ -136,7 +185,7 @@ function buildPath(inputs, startingNcd, growthRate, discountRate) {
 
   for (let year = 1; year <= inputs.horizonYears; year += 1) {
     const renewalNcd = clamp(ncd, 0, 50);
-    const nominal = premiumAtNcd(basePremium, renewalNcd, growthRate, year);
+    const nominal = premiumAtNcd(basePremium, renewalNcd, growthRate, year, commercialLoading);
     const discountFactor = (1 + discountRate / 100) ** year;
     const discounted = nominal / discountFactor;
 
@@ -145,6 +194,7 @@ function buildPath(inputs, startingNcd, growthRate, discountRate) {
       ncd: renewalNcd,
       premium: roundMoney(nominal),
       discountedPremium: roundMoney(discounted),
+      commercialLoading: roundMoney(commercialLoading),
     });
     ncd = nextNcd(renewalNcd);
   }
@@ -162,8 +212,34 @@ function buildScenario(inputs, growthRate, effectiveExcess) {
   const selfPayStartingNcd = ncdAfterSelfPay(inputs);
   const claimStartingNcd = ncdAfterClaim(inputs);
 
-  const selfPayYears = buildPath(inputs, selfPayStartingNcd, growthRate, inputs.discountRate);
-  const claimYears = buildPath(inputs, claimStartingNcd, growthRate, inputs.discountRate);
+  // If third-party claims against insured and liability is at_fault or partial_fault,
+  // the insurer settles the claim and records a loss, incurring commercial loading on renewal.
+  const selfPayCommercialLoading = (inputs.thirdPartyClaim && inputs.liability !== "non_fault")
+    ? inputs.commercialClaimLoading
+    : 0;
+  // An own-damage claim incurs commercial loading unless 100% non-fault (subrogated).
+  const claimCommercialLoading = inputs.liability === "non_fault"
+    ? 0
+    : inputs.commercialClaimLoading;
+
+  const selfPayYears = buildPath(
+    inputs,
+    selfPayStartingNcd,
+    growthRate,
+    inputs.discountRate,
+    selfPayCommercialLoading
+  );
+  const claimYears = buildPath(
+    inputs,
+    claimStartingNcd,
+    growthRate,
+    inputs.discountRate,
+    claimCommercialLoading
+  );
+
+  const selfPayDowntimeCost = roundMoney(inputs.dailyDowntimeCost * inputs.selfPayDowntimeDays);
+  const claimDowntimeCost = roundMoney(inputs.dailyDowntimeCost * inputs.claimDowntimeDays);
+  const netDowntimeCost = roundMoney(claimDowntimeCost - selfPayDowntimeCost);
 
   // Present Value (Discounted) totals per Formula (1) in Preliminary.pdf
   const selfPayFutureDiscounted = sumYears(selfPayYears, true);
@@ -174,13 +250,21 @@ function buildScenario(inputs, growthRate, effectiveExcess) {
   const claimFuturePremium = sumYears(claimYears, false);
 
   const currentClaimCost = Math.min(inputs.repairCost, effectiveExcess);
-  const selfPayTotal = roundMoney(inputs.repairCost + selfPayFutureDiscounted);
-  const claimTotal = roundMoney(currentClaimCost + claimFutureDiscounted);
+
+  const selfPayDay0Cost = roundMoney(inputs.repairCost + selfPayDowntimeCost);
+  const claimDay0Cost = roundMoney(currentClaimCost + claimDowntimeCost);
+
+  const selfPayTotal = roundMoney(selfPayDay0Cost + selfPayFutureDiscounted);
+  const claimTotal = roundMoney(claimDay0Cost + claimFutureDiscounted);
   const difference = roundMoney(selfPayTotal - claimTotal);
 
-  // Formula (1): R*(S) = Eown + sum_{t=1}^T (Pt^claim - Pt^self) / (1 + r)^t
+  // Formula (1) extended for commercial vehicle loss-of-use downtime:
+  // R*(S) = max(Eown, Eown + sum_{t=1}^T (Pt^claim - Pt^self) / (1 + r)^t + (Downtime^claim - Downtime^self))
   const breakEvenRepairCost = roundMoney(
-    Math.max(0, effectiveExcess + claimFutureDiscounted - selfPayFutureDiscounted),
+    Math.max(
+      effectiveExcess,
+      effectiveExcess + (claimFutureDiscounted - selfPayFutureDiscounted) + netDowntimeCost
+    ),
   );
 
   return {
@@ -191,6 +275,11 @@ function buildScenario(inputs, growthRate, effectiveExcess) {
     claimFuturePremium,
     selfPayFutureDiscounted,
     claimFutureDiscounted,
+    selfPayDowntimeCost,
+    claimDowntimeCost,
+    netDowntimeCost,
+    selfPayDay0Cost,
+    claimDay0Cost,
     currentClaimCost: roundMoney(currentClaimCost),
     selfPayTotal,
     claimTotal,
@@ -400,6 +489,23 @@ export function generateClauseAudit(
       : `Your repair quote (${formatCurrency(inputs.repairCost)}) is at or below the break-even threshold (${formatCurrency(baseScenario.breakEvenRepairCost)}). Self-paying saves ${formatCurrency(Math.abs(baseScenario.difference))} in present value outlays over ${inputs.horizonYears} years.`,
   });
 
+  // 10. Commercial PHV (Z10/Z11) Policy Terms & Loading
+  if (inputs.vehicleUsage === "phv") {
+    audit.push({
+      id: "phv_commercial_terms",
+      category: "Vehicle Classification & Commercial Underwriting",
+      dataPoint: "PHV Commercial Terms (Class Z10/Z11)",
+      value: `+${inputs.commercialClaimLoading}% Renewal Loading · S$${inputs.dailyDowntimeCost}/day Downtime`,
+      status: "active",
+      statusLabel: "Commercial Class Z10/Z11 Active",
+      clauseRef: "Singapore LTA Private Hire Vehicle (Z10/Z11) Insurance Rules & Commercial Tariff",
+      authority: "Land Transport Authority (LTA) & GIA Commercial Underwriting",
+      statutoryBasis: "Road Traffic Act 1961 · Motor Vehicles (Third-Party Risks and Compensation) Act 1960",
+      illustrativeText: "Commercial private hire vehicles (Z10/Z11) are subject to commercial underwriting terms. At-fault claims incur commercial renewal loading and involve multi-day vehicle downtime with daily rental/loss-of-use costs.",
+      rationale: `Under commercial PHV terms, an at-fault claim adds an estimated ${inputs.commercialClaimLoading}% underwriting loading upon renewal. Vehicle downtime of ${inputs.claimDowntimeDays} claim days vs. ${inputs.selfPayDowntimeDays} self-pay days at S$${inputs.dailyDowntimeCost}/day adds S$${baseScenario.netDowntimeCost} to the claim route cost.`,
+    });
+  }
+
   return audit;
 }
 
@@ -471,6 +577,14 @@ export function calculateDecision(rawInputs) {
       type: "success",
       title: "100% Non-fault accident",
       message: "Under GIA MCF guidelines, if you are 100% not at fault, your NCD is protected even if an own-damage claim is made (subrogated against the third party).",
+    });
+  }
+
+  if (inputs.vehicleUsage === "phv") {
+    advisories.push({
+      type: "info",
+      title: "Commercial PHV (Z10/Z11) Policy Terms Applied",
+      message: `Commercial PHV coverage models a ${inputs.commercialClaimLoading}% claim loading on renewal premiums and an estimated S$${baseScenario.netDowntimeCost} net downtime/loss-of-use difference (${inputs.claimDowntimeDays} claim days vs. ${inputs.selfPayDowntimeDays} self-pay days at S$${inputs.dailyDowntimeCost}/day).`,
     });
   }
 

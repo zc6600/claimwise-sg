@@ -214,6 +214,14 @@ export default function CalculatorResults({
             </dd>
           </div>
           <div>
+            <dt>Vehicle class</dt>
+            <dd>
+              {decision.inputs.vehicleUsage === "phv"
+                ? "Commercial PHV (Z10/Z11)"
+                : "Private Passenger (P10/P11)"}
+            </dd>
+          </div>
+          <div>
             <dt>Liability &amp; riders</dt>
             <dd>
               {decision.inputs.liability === "non_fault"
@@ -237,13 +245,27 @@ export default function CalculatorResults({
         aria-live="polite"
       >
         <div className="verdict-top">
-          <span className="verdict-pill">
-            {decision.isBelowExcess
-              ? "Below effective excess — self-pay"
-              : claimIsBetter
-              ? "Claiming is more cost-effective"
-              : "Self-paying is more cost-effective"}
-          </span>
+          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+            <span className="verdict-pill">
+              {decision.isBelowExcess
+                ? "Below effective excess — self-pay"
+                : claimIsBetter
+                ? "Claiming is more cost-effective"
+                : "Self-paying is more cost-effective"}
+            </span>
+            {decision.inputs.vehicleUsage === "phv" && (
+              <span
+                className="verdict-pill"
+                style={{
+                  background: "rgba(14, 165, 233, 0.15)",
+                  color: "#0369a1",
+                  borderColor: "rgba(14, 165, 233, 0.3)",
+                }}
+              >
+                PHV Commercial (Z10/Z11)
+              </span>
+            )}
+          </div>
           <span className="verdict-horizon tabular-nums">
             {decision.inputs.horizonYears}-year present value
           </span>
@@ -318,12 +340,17 @@ export default function CalculatorResults({
         {/* Key Metrics Grid */}
         <dl className="verdict-metrics tabular-nums">
           <div>
-            <dt>Day-1 outflow</dt>
+            <dt>Day 0 outflow</dt>
             <dd>
-              {formatCurrency(decision.inputs.repairCost)} <span>vs.</span>{" "}
-              {formatCurrency(decision.effectiveExcess)}
+              {formatCurrency(baseScenario?.selfPayDay0Cost ?? decision.inputs.repairCost)}{" "}
+              <span>vs.</span>{" "}
+              {formatCurrency(baseScenario?.claimDay0Cost ?? decision.effectiveExcess)}
             </dd>
-            <small>Self-pay repair vs. claim excess</small>
+            <small>
+              {baseScenario?.netDowntimeCost > 0
+                ? "Includes vehicle downtime/rental"
+                : "Self-pay repair vs. claim excess"}
+            </small>
           </div>
 
           <div>
@@ -343,6 +370,17 @@ export default function CalculatorResults({
             <dd>{formatCurrency(breakEven)}</dd>
             <small>Minimum quote to justify claiming</small>
           </div>
+
+          {baseScenario?.netDowntimeCost > 0 && (
+            <div>
+              <dt>Net downtime penalty</dt>
+              <dd>+{formatCurrency(baseScenario.netDowntimeCost)}</dd>
+              <small>
+                {decision.inputs.claimDowntimeDays} claim days vs.{" "}
+                {decision.inputs.selfPayDowntimeDays} self-pay day
+              </small>
+            </div>
+          )}
         </dl>
       </section>
 
@@ -365,8 +403,11 @@ export default function CalculatorResults({
             />
           </div>
           <div className="comparison-sub tabular-nums">
-            {formatCurrency(decision.inputs.repairCost)} repair today +{" "}
-            {formatCurrency(baseScenario?.selfPayFutureDiscounted)} over{" "}
+            {formatCurrency(decision.inputs.repairCost)} repair
+            {baseScenario?.selfPayDowntimeCost > 0
+              ? ` + ${formatCurrency(baseScenario.selfPayDowntimeCost)} downtime`
+              : ""}{" "}
+            today + {formatCurrency(baseScenario?.selfPayFutureDiscounted)} over{" "}
             {decision.inputs.horizonYears} renewals (PV)
           </div>
         </div>
@@ -388,8 +429,11 @@ export default function CalculatorResults({
             />
           </div>
           <div className="comparison-sub tabular-nums">
-            {formatCurrency(baseScenario?.currentClaimCost)} deductible today +{" "}
-            {formatCurrency(baseScenario?.claimFutureDiscounted)} over{" "}
+            {formatCurrency(baseScenario?.currentClaimCost)} deductible
+            {baseScenario?.claimDowntimeCost > 0
+              ? ` + ${formatCurrency(baseScenario.claimDowntimeCost)} downtime`
+              : ""}{" "}
+            today + {formatCurrency(baseScenario?.claimFutureDiscounted)} over{" "}
             {decision.inputs.horizonYears} renewals (PV)
           </div>
         </div>

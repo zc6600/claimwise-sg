@@ -1,5 +1,19 @@
 export const NCD_STEPS = [0, 10, 20, 30, 40, 50];
 
+export const VEHICLE_USAGES = {
+  PRIVATE: "private",
+  PHV: "phv",
+};
+
+export const PHV_DEFAULTS = {
+  typicalPremium: 3200,
+  typicalExcess: 1500,
+  defaultCommercialLoading: 15,
+  defaultDailyDowntimeCost: 80,
+  defaultClaimDowntimeDays: 5,
+  defaultSelfPayDowntimeDays: 1,
+};
+
 export const INSURER_PROFILES = {
   income: {
     name: "Income Insurance",
