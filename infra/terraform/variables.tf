@@ -55,13 +55,13 @@ variable "resend_api_key" {
 variable "reminder_from_email" {
   description = "Verified sender address for reminder emails"
   type        = string
-  default     = ""
+  default     = "ClaimWise SG <reminders@zc6600.wiki>"
 }
 
 variable "reminder_site_url" {
-  description = "Public site URL used in reminder email links"
+  description = "Public site URL used in reminder email links; it must serve the API routes"
   type        = string
-  default     = ""
+  default     = "https://claimwise-sg-721110976915.asia-southeast1.run.app"
 }
 
 variable "reminder_token_secret" {
