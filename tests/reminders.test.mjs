@@ -335,6 +335,10 @@ test("a failed send is released and retried on the next run", async () => {
   assert.equal(failed.failed, 1);
   assert.equal(failed.sent, 0);
 
+  const sameDay = await service.dispatch();
+  assert.equal(sameDay.sent, 0, "a failed record waits for the next daily run");
+
+  clock.current = new Date("2027-01-16T02:00:00Z");
   const retry = await service.dispatch();
   assert.equal(retry.sent, 1);
   assert.equal(sent.filter((message) => /renews soon/.test(message.subject)).length, 1);

@@ -56,13 +56,13 @@ export function computeCoeRebate({ quotaPremiumPaid, unusedMonths, periodMonths 
 }
 
 /**
- * Road tax surcharge for vehicles past their tenth year. A renewal made at the COE
- * expiry falls in the "more than 10 years" band, so whole years of age map directly
- * to the published 10% to 50% steps.
+ * Road tax surcharge for a modelled year that starts at the given age. The whole year
+ * falls past that birthday, so a year starting at age 10 is in the "more than 10 years"
+ * band and the published 10% to 50% steps map directly to whole years of age.
  */
-export function roadTaxSurchargePct(ageYears) {
-  if (ageYears < 10) return 0;
-  return Math.min((Math.floor(ageYears) - 9) * 10, 50);
+export function roadTaxSurchargePct(ageAtYearStart) {
+  if (ageAtYearStart < 10) return 0;
+  return Math.min((Math.floor(ageAtYearStart) - 9) * 10, 50);
 }
 
 export function normalizeCoeRenewalInputs(raw = {}) {

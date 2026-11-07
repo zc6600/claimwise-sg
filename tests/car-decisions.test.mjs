@@ -146,6 +146,25 @@ test("PARF schedule matches each LTA registration cohort", () => {
   assert.equal(computeParfRebate({ arfPaid, ageYears, cohort: PARF_COHORTS.FROM_FEB_2026 }), 30000);
 });
 
+test("replacement versus 5-year renewal matches the cash difference over an equal term", () => {
+  const result = compareCoeOptions({
+    pqp: 80000,
+    arfPaid: 40000,
+    carAgeYears: 10,
+    scrapValue: 2000,
+    annualRoadTax: 0,
+    currentCarAnnualCost: 0,
+    replacementPrice: 120000,
+    replacementResaleValue: 0,
+    replacementYears: 5,
+    replacementAnnualCost: 0,
+    discountRate: 0,
+  });
+  const [renew5, , replace] = result.options;
+  const cashGap = replace.upfront - renew5.upfront;
+  assert.equal(replace.presentValue - renew5.presentValue, cashGap);
+});
+
 test("COE rebate is pro-rated over the 120-month period", () => {
   assert.equal(computeCoeRebate({ quotaPremiumPaid: 60000, unusedMonths: 24 }), 12000);
   assert.equal(computeCoeRebate({ quotaPremiumPaid: 60000, unusedMonths: 0 }), 0);

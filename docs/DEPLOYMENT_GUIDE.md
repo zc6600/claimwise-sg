@@ -146,7 +146,7 @@ openssl rand -hex 32 | tr -d '\n' | gcloud secrets create REMINDER_TOKEN_SECRET 
   --locations=asia-southeast1 --data-file=-
 ```
 
-Grant the Cloud Run service account `roles/secretmanager.secretAccessor` on both secrets, then deploy with the reminder settings:
+Grant the Cloud Run service account `roles/secretmanager.secretAccessor` on both secrets and `roles/datastore.user` on the project so it can store subscriptions. Unless the service sets its own account, this is `<project-number>-compute@developer.gserviceaccount.com`. Then deploy with the reminder settings:
 
 ```bash
 gcloud run deploy claimwise-sg --source . --region asia-southeast1 \
