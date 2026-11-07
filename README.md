@@ -77,7 +77,7 @@ ClaimWise SG is deployed serverless on **Google Cloud Platform (GCP)** in Singap
 ### 8. My Car & Email Reminders (`/my-car`)
 - **My Car**: Saves key dates and policy figures in the browser, or in Firestore for signed-in users, to prefill the tools. Registration numbers are not collected.
 - **Email Reminders**: Double opt-in reminders for insurance renewal (45 days), COE expiry (365 and 90 days), and loan review (30 days). Unsubscribing deletes the email address and dates.
-- **Configuration**: Reminders stay disabled until the `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, `REMINDER_SITE_URL`, and `REMINDER_TOKEN_SECRET` variables are set. Setting `REMINDER_DISPATCH_SECRET` in Terraform creates the daily 09:00 Singapore time Cloud Scheduler job. See `.env.example`.
+- **Configuration**: Reminders stay disabled until `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, `REMINDER_SITE_URL`, and `REMINDER_TOKEN_SECRET` are set. In production, `RESEND_API_KEY` and `REMINDER_TOKEN_SECRET` come from Secret Manager. Cloud Scheduler calls the dispatch endpoint daily at 09:00 Singapore time with a Google ID token. See `.env.example`.
 
 ---
 

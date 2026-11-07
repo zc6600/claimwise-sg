@@ -132,6 +132,32 @@ Expected response:
 
 ---
 
+### Email Reminders
+
+Reminders require a sending domain verified in Resend and two values in Secret Manager:
+
+```bash
+printf %s "<resend-sending-access-key>" | gcloud secrets create RESEND_API_KEY \
+  --project claimwise-sg --replication-policy=user-managed \
+  --locations=asia-southeast1 --data-file=-
+
+openssl rand -hex 32 | tr -d '\n' | gcloud secrets create REMINDER_TOKEN_SECRET \
+  --project claimwise-sg --replication-policy=user-managed \
+  --locations=asia-southeast1 --data-file=-
+```
+
+Grant the Cloud Run service account `roles/secretmanager.secretAccessor` on both secrets, then deploy with the reminder settings:
+
+```bash
+gcloud run deploy claimwise-sg --source . --region asia-southeast1 \
+  --set-secrets=RESEND_API_KEY=RESEND_API_KEY:latest,REMINDER_TOKEN_SECRET=REMINDER_TOKEN_SECRET:latest \
+  --set-env-vars="^|^REMINDER_FROM_EMAIL=ClaimWise SG <reminders@zc6600.wiki>|REMINDER_SITE_URL=<public-url>|REMINDER_SCHEDULER_EMAIL=<scheduler-service-account>"
+```
+
+Create a Cloud Scheduler job that sends `POST <public-url>/api/reminders/dispatch` daily with an OIDC token for that service account and `<public-url>/api/reminders/dispatch` as the audience. Changing the public URL requires updating `REMINDER_SITE_URL` and the job together.
+
+Rotating `REMINDER_TOKEN_SECRET` invalidates every confirmation, manage, and unsubscribe link already sent, so rotate it only after a suspected compromise.
+
 ## 4. Infrastructure as Code (Terraform)
 
 The [`infra/terraform`](../infra/terraform) directory provisions the required GCP and Firebase resources:

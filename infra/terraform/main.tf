@@ -39,6 +39,12 @@ resource "google_project_service" "firebaserules" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "secret_manager" {
+  project            = var.project_id
+  service            = "secretmanager.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_project_service" "cloud_scheduler" {
   project            = var.project_id
   service            = "cloudscheduler.googleapis.com"
@@ -158,8 +164,13 @@ resource "google_cloud_run_v2_service" "claimwise_app" {
       }
 
       env {
-        name  = "RESEND_API_KEY"
-        value = var.resend_api_key
+        name = "RESEND_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = data.google_secret_manager_secret.resend_api_key.secret_id
+            version = "latest"
+          }
+        }
       }
 
       env {
@@ -173,20 +184,27 @@ resource "google_cloud_run_v2_service" "claimwise_app" {
       }
 
       env {
-        name  = "REMINDER_TOKEN_SECRET"
-        value = var.reminder_token_secret
+        name = "REMINDER_TOKEN_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = data.google_secret_manager_secret.reminder_token_secret.secret_id
+            version = "latest"
+          }
+        }
       }
 
       env {
-        name  = "REMINDER_DISPATCH_SECRET"
-        value = var.reminder_dispatch_secret
+        name  = "REMINDER_SCHEDULER_EMAIL"
+        value = google_service_account.reminder_scheduler.email
       }
     }
   }
 
   depends_on = [
     google_project_service.cloud_run,
-    google_firestore_database.default
+    google_firestore_database.default,
+    google_secret_manager_secret_iam_member.cloud_run_resend_api_key,
+    google_secret_manager_secret_iam_member.cloud_run_reminder_token_secret
   ]
 }
 
@@ -210,9 +228,44 @@ resource "google_project_iam_member" "cloud_run_firestore" {
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
-# 10. Daily Reminder Dispatch at 09:00 Singapore Time
+# 10. Reminder Secrets
+# Secret values are added outside Terraform so they never enter state or tfvars.
+data "google_secret_manager_secret" "resend_api_key" {
+  project   = var.project_id
+  secret_id = "RESEND_API_KEY"
+
+  depends_on = [google_project_service.secret_manager]
+}
+
+data "google_secret_manager_secret" "reminder_token_secret" {
+  project   = var.project_id
+  secret_id = "REMINDER_TOKEN_SECRET"
+
+  depends_on = [google_project_service.secret_manager]
+}
+
+resource "google_secret_manager_secret_iam_member" "cloud_run_resend_api_key" {
+  project   = var.project_id
+  secret_id = data.google_secret_manager_secret.resend_api_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "cloud_run_reminder_token_secret" {
+  project   = var.project_id
+  secret_id = data.google_secret_manager_secret.reminder_token_secret.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+# 11. Daily Reminder Dispatch at 09:00 Singapore Time
+resource "google_service_account" "reminder_scheduler" {
+  project      = var.project_id
+  account_id   = "reminder-scheduler"
+  display_name = "ClaimWise reminder scheduler"
+}
+
 resource "google_cloud_scheduler_job" "reminder_dispatch" {
-  count     = var.reminder_dispatch_secret == "" ? 0 : 1
   name      = "${var.service_name}-reminder-dispatch"
   project   = var.project_id
   region    = var.region
@@ -221,9 +274,11 @@ resource "google_cloud_scheduler_job" "reminder_dispatch" {
 
   http_target {
     http_method = "POST"
-    uri         = "${google_cloud_run_v2_service.claimwise_app.uri}/api/reminders/dispatch"
-    headers = {
-      Authorization = "Bearer ${var.reminder_dispatch_secret}"
+    uri         = "${var.reminder_site_url}/api/reminders/dispatch"
+
+    oidc_token {
+      service_account_email = google_service_account.reminder_scheduler.email
+      audience              = "${var.reminder_site_url}/api/reminders/dispatch"
     }
   }
 

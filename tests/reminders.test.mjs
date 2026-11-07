@@ -12,7 +12,6 @@ import {
 import { renderReminderEmail } from "../src/reminders/email.mjs";
 import {
   TOKEN_PURPOSES,
-  secretsMatch,
   signToken,
   subscriptionIdForEmail,
   verifyToken,
@@ -21,6 +20,7 @@ import { createReminderService, isValidEmail } from "../lib/reminders/service.js
 import { createFirestoreStore, fromFirestoreValue } from "../lib/reminders/firestore-store.js";
 import { createResendMailer } from "../lib/reminders/resend-mailer.js";
 import { getReminderService, isRateLimited } from "../lib/reminders/runtime.js";
+import { isAuthorizedSchedulerToken } from "../lib/reminders/scheduler-auth.js";
 
 const SECRET = "test-secret-that-is-long-enough-for-hmac";
 
@@ -183,12 +183,40 @@ test("subscription IDs ignore case and do not contain the address", () => {
   assert.doesNotMatch(id, /driver/);
 });
 
-test("dispatch secret comparison requires an exact configured value", () => {
-  assert.equal(secretsMatch("abc", "abc"), true);
-  assert.equal(secretsMatch("abd", "abc"), false);
-  assert.equal(secretsMatch(undefined, "abc"), false);
-  assert.equal(secretsMatch("abc", undefined), false);
-  assert.equal(secretsMatch("", ""), false);
+test("scheduler authorization requires the expected Google identity and audience", async () => {
+  const audience = "https://example.test/api/reminders/dispatch";
+  const serviceAccountEmail = "scheduler@example.iam.gserviceaccount.com";
+  const claims = {
+    aud: audience,
+    email: serviceAccountEmail,
+    email_verified: "true",
+    iss: "https://accounts.google.com",
+  };
+  const check = (tokenClaims, ok = true) =>
+    isAuthorizedSchedulerToken("token", {
+      audience,
+      serviceAccountEmail,
+      fetchImpl: async () => ({ ok, json: async () => tokenClaims }),
+    });
+
+  assert.equal(await check(claims), true);
+  assert.equal(await check({ ...claims, aud: "https://other.test" }), false);
+  assert.equal(await check({ ...claims, email: "attacker@example.com" }), false);
+  assert.equal(await check({ ...claims, email_verified: "false" }), false);
+  assert.equal(await check({ ...claims, iss: "https://evil.test" }), false);
+  assert.equal(await check(claims, false), false);
+  assert.equal(await isAuthorizedSchedulerToken(undefined, { audience, serviceAccountEmail }), false);
+  assert.equal(await isAuthorizedSchedulerToken("token", { serviceAccountEmail }), false);
+  assert.equal(
+    await isAuthorizedSchedulerToken("token", {
+      audience,
+      serviceAccountEmail,
+      fetchImpl: async () => {
+        throw new Error("network down");
+      },
+    }),
+    false
+  );
 });
 
 test("sign-up validates email and consent", async () => {

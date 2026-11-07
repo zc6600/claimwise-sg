@@ -45,13 +45,6 @@ variable "authorized_domains" {
   ]
 }
 
-variable "resend_api_key" {
-  description = "Resend API key for reminder emails; reminders stay disabled when empty"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 variable "reminder_from_email" {
   description = "Verified sender address for reminder emails"
   type        = string
@@ -62,18 +55,4 @@ variable "reminder_site_url" {
   description = "Public site URL used in reminder email links; it must serve the API routes"
   type        = string
   default     = "https://claimwise-sg-721110976915.asia-southeast1.run.app"
-}
-
-variable "reminder_token_secret" {
-  description = "Secret of at least 32 characters for signing reminder links"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "reminder_dispatch_secret" {
-  description = "Bearer secret for the daily reminder dispatch; the job is created only when set"
-  type        = string
-  sensitive   = true
-  default     = ""
 }

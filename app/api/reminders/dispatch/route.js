@@ -1,11 +1,16 @@
 import { UNAVAILABLE_RESPONSE, getReminderService } from "../../../../lib/reminders/runtime.js";
-import { secretsMatch } from "../../../../lib/reminders/tokens.js";
+import { isAuthorizedSchedulerToken } from "../../../../lib/reminders/scheduler-auth.js";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request) {
-  const provided = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
-  if (!secretsMatch(provided, process.env.REMINDER_DISPATCH_SECRET)) {
+  const idToken = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const siteUrl = process.env.REMINDER_SITE_URL?.replace(/\/$/, "");
+  const authorized = await isAuthorizedSchedulerToken(idToken, {
+    audience: siteUrl ? `${siteUrl}/api/reminders/dispatch` : undefined,
+    serviceAccountEmail: process.env.REMINDER_SCHEDULER_EMAIL,
+  });
+  if (!authorized) {
     return Response.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 
