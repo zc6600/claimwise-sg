@@ -78,6 +78,7 @@ export default function RootLayout({ children }) {
                 <nav className="nav-links" aria-label="Main navigation">
                   <Link href="/">Home</Link>
                   <Link href="/calculator">Calculator</Link>
+                  <Link href="/settlement">Private settlement</Link>
                   <Link href="/how-it-works">How it works</Link>
                   <Link href="/rules">Insurer rules</Link>
                   <NavbarUser />
@@ -91,6 +92,7 @@ export default function RootLayout({ children }) {
               <nav className="mobile-nav section-pad" aria-label="Mobile navigation">
                 <Link href="/">Home</Link>
                 <Link href="/calculator">Calculator</Link>
+                <Link href="/settlement">Private settlement</Link>
                 <Link href="/how-it-works">How it works</Link>
                 <Link href="/rules">Insurer rules</Link>
                 <NavbarUser />

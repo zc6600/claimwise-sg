@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatCurrency, formatPercent } from "../src/formatters.mjs";
 import { isNcdProtectorEligible } from "../src/decision-engine.mjs";
 import PolicySourcePreview from "./PolicySourcePreview";
@@ -392,6 +393,29 @@ export default function CalculatorResults({
           </div>
         </div>
       </section>
+
+      {/* 2b. Private Settlement Agreement Callout for Self-Pay Recommendations */}
+      {!claimIsBetter && (
+        <section className="settlement-cta-card" aria-label="Private settlement action">
+          <div className="settlement-cta-header">
+            <span className="section-kicker">Recommended Next Step</span>
+            <h3>Draft a Private Settlement Agreement</h3>
+          </div>
+          <p>
+            When self-paying out-of-pocket, document the agreement in writing using a Singapore Motor Claims Framework (MCF) Private Settlement template. Note: You must still notify your insurer within 24 hours stating &ldquo;Settled Privately&rdquo;. The repair figure below is a suggested baseline to be agreed with the counterparty.
+          </p>
+          <div>
+            <Link
+              href={`/settlement?amount=${encodeURIComponent(
+                decision.inputs.repairCost
+              )}&mode=party_a_pays_party_b`}
+              className="button button-primary"
+            >
+              Draft Private Settlement Template ({formatCurrency(decision.inputs.repairCost)}) →
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* 3. Active Policy Advisories */}
       {decision.advisories?.length > 0 && (
