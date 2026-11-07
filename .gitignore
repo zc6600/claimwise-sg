@@ -2,6 +2,12 @@ node_modules/
 .next/
 dist/
 .DS_Store
+.tools/
+.venv/
+__pycache__/
+*.py[cod]
+evaluation/results/
+evaluation/private/
 
 # Environment files
 .env*.local
