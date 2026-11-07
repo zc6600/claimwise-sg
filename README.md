@@ -1,6 +1,6 @@
 # ClaimWise SG · Motor Insurance Claim Decision Support
 
-[![Tests](https://img.shields.io/badge/tests-58%2F58%20passed-success)](tests/)
+[![Tests](https://img.shields.io/badge/tests-64%2F64%20passed-success)](tests/)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-asia--southeast1-blue?logo=googlecloud)](https://claimwise-sg-721110976915.asia-southeast1.run.app)
 [![Firebase](https://img.shields.io/badge/Firebase%20Hosting-claimwise--sg.web.app-orange?logo=firebase)](https://claimwise-sg.web.app)
@@ -62,6 +62,11 @@ ClaimWise SG is deployed serverless on **Google Cloud Platform (GCP)** in Singap
 ### 7. Authentication & Cloud History
 - **Firebase Authentication**: Supports Google and email/password sign-in.
 - **Cloud & Local Persistence**: Signed-in calculations are persisted to Google Cloud Firestore in Singapore (`asia-southeast1`) under user-scoped security rules (`firestore.rules`). Guest calculations are stored in browser `localStorage`.
+
+### 8. Underground Carpark Emergency Kit & Offline PWA (`/emergency`)
+- **Offline Progressive Web App (PWA)**: Supports zero-cellular offline caching via Service Worker (`public/sw.js`) and Web App Manifest (`app/manifest.js`) for subterranean basement carparks (B2/B3/B4 at shopping malls or HDB carparks).
+- **On-Scene Protocol & Anti-Scam Guidance**: Features the statutory Road Traffic Act (Section 84) police reporting checklist, GIA 24-hour mandatory insurer reporting rule, and predatory tow-truck scam protection warnings.
+- **Emergency Directory**: Provides verified direct hotlines and operating hours for statutory services (Police 999, SCDF 995, LTA EMAS 1800-2255-582) and authorized insurer assistance centers (Income, Tiq/Etiqa, MSIG).
 
 ---
 
