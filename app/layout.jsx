@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "../components/Providers";
 import NavbarUser from "../components/NavbarUser";
+import OfflineStatusBanner from "../components/OfflineStatusBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -61,6 +62,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={inter.variable}>
       <body>
         <Providers>
+          <OfflineStatusBanner />
           <div className="site-shell">
             <header className="topbar-wrap">
               <div className="topbar section-pad">
@@ -79,6 +81,7 @@ export default function RootLayout({ children }) {
                   <Link href="/">Home</Link>
                   <Link href="/calculator">Calculator</Link>
                   <Link href="/settlement">Private settlement</Link>
+                  <Link href="/emergency">Emergency kit</Link>
                   <Link href="/how-it-works">How it works</Link>
                   <Link href="/rules">Insurer rules</Link>
                   <NavbarUser />
@@ -93,6 +96,7 @@ export default function RootLayout({ children }) {
                 <Link href="/">Home</Link>
                 <Link href="/calculator">Calculator</Link>
                 <Link href="/settlement">Private settlement</Link>
+                <Link href="/emergency">Emergency kit</Link>
                 <Link href="/how-it-works">How it works</Link>
                 <Link href="/rules">Insurer rules</Link>
                 <NavbarUser />

@@ -41,7 +41,7 @@ cd claimwise-sg
 # 2. Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
 
-# 3. Run the deterministic test suite (58 tests, 0 failures required)
+# 3. Run the deterministic test suite (64 tests, 0 failures required)
 npm test
 
 # 4. Start local development server (or npm run build && npm run start for production)
@@ -53,6 +53,8 @@ Open `http://localhost:3000` in your browser.
 ### Key Local Routes
 - **Home & Quick Estimator**: `http://localhost:3000`
 - **Full Decision Calculator**: `http://localhost:3000/calculator`
+- **GIA Private Settlement Generator**: `http://localhost:3000/settlement`
+- **Emergency Kit & Carpark Protocol**: `http://localhost:3000/emergency`
 - **Insurer Rules & NCD Schedule**: `http://localhost:3000/rules`
 - **Methodology**: `http://localhost:3000/how-it-works`
 - **Health Check**: `http://localhost:3000/api/health`
