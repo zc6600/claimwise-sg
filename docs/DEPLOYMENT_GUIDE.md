@@ -4,6 +4,22 @@ This guide covers local development setup on any machine, environment configurat
 
 ---
 
+## Production Deployment Reference
+
+ClaimWise SG is deployed in production on Google Cloud Platform and Firebase:
+
+| Component | Target URL / Resource | Configuration |
+| :--- | :--- | :--- |
+| **Live Application** | **[https://claimwise-sg-721110976915.asia-southeast1.run.app](https://claimwise-sg-721110976915.asia-southeast1.run.app)** | Google Cloud Run v2 (managed serverless container) |
+| **Firebase Web App Mirror** | **[https://claimwise-sg.web.app](https://claimwise-sg.web.app)** · [https://claimwise-sg.firebaseapp.com](https://claimwise-sg.firebaseapp.com) | Edge-cached Firebase Hosting distribution |
+| **GCP Project** | `claimwise-sg` | Google Cloud project hosting Cloud Run and Firebase |
+| **Region** | `asia-southeast1` (Singapore) | Co-located in Singapore for minimal network latency |
+| **Database** | Google Cloud Firestore | Native mode in `asia-southeast1` with user-scoped `firestore.rules` |
+| **Authentication** | Google Identity Platform / Firebase Auth | Authorized domains: `localhost:3000`, `claimwise-sg.firebaseapp.com`, `claimwise-sg.web.app`, `claimwise-sg-721110976915.asia-southeast1.run.app` |
+| **Health Check** | [`/api/health`](https://claimwise-sg-721110976915.asia-southeast1.run.app/api/health) | Uptime and service status monitor |
+
+---
+
 ## 1. Quick Setup on Any Machine (New Environment & Collaborator Setup)
 
 ClaimWise SG is engineered with a **zero local database footprint**:
@@ -25,7 +41,7 @@ cd claimwise-sg
 # 2. Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
 
-# 3. Run the deterministic test suite (26 tests, 0 failures required)
+# 3. Run the deterministic test suite (52 tests, 0 failures required)
 npm test
 
 # 4. Start local development server (or npm run build && npm run start for production)
@@ -87,6 +103,29 @@ gcloud run deploy claimwise-sg \
   --cpu 1 \
   --min-instances 0 \
   --max-instances 10
+```
+
+### Production Service Verification
+After deployment completes, Cloud Run outputs the live HTTPS endpoint:
+```text
+Service URL: https://claimwise-sg-721110976915.asia-southeast1.run.app
+```
+
+Verify service health via curl:
+```bash
+curl -s https://claimwise-sg-721110976915.asia-southeast1.run.app/api/health | jq .
+```
+Expected response:
+```json
+{
+  "ok": true,
+  "service": "claimwise-sg-api",
+  "status": "ready",
+  "framework": "nextjs",
+  "rulesStore": "versioned-code-config",
+  "persistence": "authenticated-firestore",
+  "timestamp": "2026-11-07T08:00:00.000Z"
+}
 ```
 
 ---

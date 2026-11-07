@@ -27,8 +27,8 @@ Before declaring any task or PR complete, you **must** verify that the test suit
 ```bash
 npm test
 ```
-- The test runner executes Node's native test module (`node:test`) across 44 deterministic actuarial decision engine, storage, security headers, GIA private settlement, trajectory visualizer, and benchmark test cases in `tests/*.test.mjs`.
-- All 44 tests must pass with 0 failures (`# pass 44, # fail 0`).
+- The test runner executes Node's native test module (`node:test`) across 52 deterministic actuarial decision engine, storage, security headers, GIA private settlement, trajectory visualizer, PHV commercial actuarial, and benchmark test cases in `tests/*.test.mjs`.
+- All 52 tests must pass with 0 failures (`# pass 52, # fail 0`).
 - If UI components or routes were modified, also verify compilation:
   ```bash
   npm run build

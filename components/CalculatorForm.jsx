@@ -102,6 +102,176 @@ export default function CalculatorForm({
           </div>
         </div>
 
+        {/* Vehicle Classification (Private vs Commercial PHV) */}
+        <div className="field">
+          <span className="field-label">Vehicle classification</span>
+          <div className="choice-grid two-col" role="group" aria-label="Vehicle classification">
+            <button
+              type="button"
+              className={`choice-card ${
+                (inputs.vehicleUsage || "private") === "private" ? "is-selected" : ""
+              }`}
+              onClick={() => {
+                onInputChange("vehicleUsage", "private");
+                onInputChange("commercialClaimLoading", 0);
+                onInputChange("dailyDowntimeCost", 0);
+              }}
+            >
+              <strong>Private Passenger (P10/P11)</strong>
+              <small>Standard personal motor insurance</small>
+            </button>
+            <button
+              type="button"
+              className={`choice-card ${
+                inputs.vehicleUsage === "phv" ? "is-selected" : ""
+              }`}
+              onClick={() => {
+                onInputChange("vehicleUsage", "phv");
+                onInputChange("commercialClaimLoading", 15);
+                onInputChange("dailyDowntimeCost", 80);
+                onInputChange("claimDowntimeDays", 5);
+                onInputChange("selfPayDowntimeDays", 1);
+              }}
+            >
+              <strong>Private Hire / Commercial (Z10/Z11)</strong>
+              <small>Grab / Gojek / Tada commercial policy</small>
+            </button>
+          </div>
+        </div>
+
+        {/* PHV Commercial Parameters Panel */}
+        {inputs.vehicleUsage === "phv" && (
+          <div
+            className="phv-customization-box"
+            style={{
+              background: "rgba(14, 165, 233, 0.08)",
+              border: "1px solid rgba(14, 165, 233, 0.25)",
+              borderRadius: "8px",
+              padding: "14px 16px",
+              marginBottom: "16px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginBottom: "8px",
+              }}
+            >
+              <strong style={{ fontSize: "0.9rem", color: "var(--color-primary-text, #0369a1)" }}>
+                PHV Commercial Policy &amp; Loss-of-Use Parameters
+              </strong>
+              <button
+                type="button"
+                className="reset-link"
+                style={{ fontSize: "0.78rem" }}
+                onClick={() => {
+                  onInputChange("currentPremium", 3200);
+                  onInputChange("excess", 1500);
+                  onInputChange("commercialClaimLoading", 15);
+                  onInputChange("dailyDowntimeCost", 80);
+                  onInputChange("claimDowntimeDays", 5);
+                  onInputChange("selfPayDowntimeDays", 1);
+                }}
+              >
+                Apply typical PHV baseline (S$3,200 / S$1,500)
+              </button>
+            </div>
+            <p
+              style={{
+                fontSize: "0.82rem",
+                color: "var(--color-secondary-text, #64748b)",
+                margin: "0 0 12px 0",
+              }}
+            >
+              Commercial policies incur underwriting renewal loading upon at-fault claims and workshop downtime / vehicle rental loss.
+            </p>
+            <div className="field-grid two-col" style={{ gap: "10px" }}>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label htmlFor="calc-phv-loading" style={{ fontSize: "0.8rem" }}>
+                  Renewal claim loading (%)
+                </label>
+                <div className="input-prefix">
+                  <span>%</span>
+                  <input
+                    id="calc-phv-loading"
+                    name="commercialClaimLoading"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="5"
+                    className="tabular-nums"
+                    value={inputs.commercialClaimLoading ?? 15}
+                    onChange={(e) => onInputChange("commercialClaimLoading", e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label htmlFor="calc-phv-downtime" style={{ fontSize: "0.8rem" }}>
+                  Daily rental / downtime cost (S$)
+                </label>
+                <div className="input-prefix">
+                  <span>S$</span>
+                  <input
+                    id="calc-phv-downtime"
+                    name="dailyDowntimeCost"
+                    type="number"
+                    min="0"
+                    max="5000"
+                    step="10"
+                    className="tabular-nums"
+                    value={inputs.dailyDowntimeCost ?? 80}
+                    onChange={(e) => onInputChange("dailyDowntimeCost", e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="field-grid two-col" style={{ gap: "10px", marginTop: "10px" }}>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label htmlFor="calc-phv-claim-days" style={{ fontSize: "0.8rem" }}>
+                  Insurance claim repair downtime
+                </label>
+                <div className="input-prefix">
+                  <span>Days</span>
+                  <input
+                    id="calc-phv-claim-days"
+                    name="claimDowntimeDays"
+                    type="number"
+                    min="0"
+                    max="60"
+                    step="1"
+                    className="tabular-nums"
+                    value={inputs.claimDowntimeDays ?? 5}
+                    onChange={(e) => onInputChange("claimDowntimeDays", e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label htmlFor="calc-phv-selfpay-days" style={{ fontSize: "0.8rem" }}>
+                  Private repair downtime
+                </label>
+                <div className="input-prefix">
+                  <span>Days</span>
+                  <input
+                    id="calc-phv-selfpay-days"
+                    name="selfPayDowntimeDays"
+                    type="number"
+                    min="0"
+                    max="60"
+                    step="1"
+                    className="tabular-nums"
+                    value={inputs.selfPayDowntimeDays ?? 1}
+                    onChange={(e) => onInputChange("selfPayDowntimeDays", e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Insurer Select */}
         <div className="field">
           <label htmlFor="calc-insurer">Insurer &amp; plan</label>
