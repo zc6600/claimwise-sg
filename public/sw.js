@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "claimwise-offline-";
-const CACHE_NAME = `${CACHE_PREFIX}v2`;
+const CACHE_NAME = `${CACHE_PREFIX}v3`;
 
 const PRECACHE_URLS = [
   "/",
@@ -14,6 +14,7 @@ const PRECACHE_URLS = [
   "/emergency",
   "/how-it-works",
   "/rules",
+  "/privacy",
   "/icon.svg",
   "/manifest.webmanifest",
 ];

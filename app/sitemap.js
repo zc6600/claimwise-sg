@@ -13,6 +13,7 @@ const PUBLIC_PATHS = [
   "/emergency",
   "/how-it-works",
   "/rules",
+  "/privacy",
 ];
 
 export default function sitemap() {

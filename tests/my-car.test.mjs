@@ -52,3 +52,12 @@ test("Firestore rules keep reminder subscriptions server-only", () => {
   assert.match(rules, /match \/\{document=\*\*\} \{\s*allow read, write: if false;/);
   assert.match(rules, /match \/users\/\{userId\}\/vehicles\/\{vehicleId\}/);
 });
+
+test("the privacy policy is listed and linked from the reminder consent", () => {
+  assert.match(fs.readFileSync("app/sitemap.js", "utf-8"), /"\/privacy"/);
+  assert.match(fs.readFileSync("app/layout.jsx", "utf-8"), /href="\/privacy"/);
+  assert.match(
+    fs.readFileSync("components/reminders/ReminderSignup.jsx", "utf-8"),
+    /href="\/privacy"/
+  );
+});

@@ -71,7 +71,7 @@ export default function ReminderSignup({ dates, heading = "Email me before these
         />
         <span>
           I agree to receive reminder emails from ClaimWise SG. I can unsubscribe at any time, which
-          deletes my reminder data.
+          deletes my reminder data. Read the <Link href="/privacy">privacy policy</Link>.
         </span>
       </label>
       <button

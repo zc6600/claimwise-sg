@@ -121,7 +121,9 @@ export default function RootLayout({ children }) {
                   </span>
                 </div>
                 <p>Independent motor insurance claim vs. self-pay modelling for Singapore drivers.</p>
-                <span className="footer-meta">Singapore GIA MCF baseline · 2026</span>
+                <span className="footer-meta">
+                  Singapore GIA MCF baseline · 2026 · <Link href="/privacy">Privacy</Link>
+                </span>
               </div>
             </footer>
           </div>
