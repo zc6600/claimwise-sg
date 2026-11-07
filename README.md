@@ -1,6 +1,6 @@
 # ClaimWise SG · Motor Insurance Claim Decision Support
 
-[![Tests](https://img.shields.io/badge/tests-52%2F52%20passed-success)](tests/)
+[![Tests](https://img.shields.io/badge/tests-58%2F58%20passed-success)](tests/)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-asia--southeast1-blue?logo=googlecloud)](https://claimwise-sg-721110976915.asia-southeast1.run.app)
 [![Firebase](https://img.shields.io/badge/Firebase%20Hosting-claimwise--sg.web.app-orange?logo=firebase)](https://claimwise-sg.web.app)
@@ -45,16 +45,21 @@ ClaimWise SG is deployed serverless on **Google Cloud Platform (GCP)** in Singap
 - **Visual Trajectory (`TrajectoryVisualizer`)**: Dynamic dual-mode SVG charts for cumulative present-value cash outflows and annual NCD recovery curves without external heavy charting libraries.
 - **Break-Even Crossover Detection**: Highlights the exact timeline milestone where an insurance claim becomes more expensive than self-paying.
 
-### 4. GIA Private Settlement Agreement Generator (`/settlement`)
+### 4. Consecutive Incident Stress-Testing & Resilience Buffer
+- **Multi-Collision Simulation (`StressTestSimulator`)**: Simulates the severe financial exposure if a second at-fault collision occurs within 12 months.
+- **Exhaustion vs. Preservation**: Models how filing an initial claim exhausts the NCD Protector rider and risks dropping renewal NCD to `0%` alongside standard `+25%` consecutive adverse underwriting loading, whereas self-paying Incident 1 preserves the clean record cushion and protects NCD tiers.
+- **Resilience Buffer Metric**: Calculates the explicit dollar buffer ($\Phi_{\text{resilience}}$) gained by keeping the insurance record clean.
+
+### 5. GIA Private Settlement Agreement Generator (`/settlement`)
 - Seamlessly transitions self-pay recommendations to a legally grounded Singapore Motor Claims Framework (MCF) Private Settlement Agreement generator.
 - Includes statutory prerequisites gating (no bodily injury, no government property damage), GIA 24-hour insurer reporting notices, and conditional release clauses.
 
-### 5. Policy Clause Audit & Printable Report
+### 6. Policy Clause Audit & Printable Report
 - **Interactive Clause Audit (`PolicySourcePreview`)**: Hover or click any audited rule in the calculator results to inspect its calculation rationale and contract citation.
 - **Official Insurer PDF Viewer**: Embeds self-hosted insurer policy wordings (`etiqa_tiq_motor_policy.pdf`, `income_drivo_policy.pdf`, `msig_motormax_policy.pdf`) via `/api/clause-preview` at the mapped page (`#page=N&view=FitH`), with **Official PDF** / **Clause summary** switching, **📌 Pin**, and **Full tab ↗**.
 - **Print / PDF Export**: Generates a clean A4/Letter actuarial report with a parameter summary header, auto-expanded year-by-year renewal schedule, and complete clause audit trail.
 
-### 6. Authentication & Cloud History
+### 7. Authentication & Cloud History
 - **Firebase Authentication**: Supports Google and email/password sign-in.
 - **Cloud & Local Persistence**: Signed-in calculations are persisted to Google Cloud Firestore in Singapore (`asia-southeast1`) under user-scoped security rules (`firestore.rules`). Guest calculations are stored in browser `localStorage`.
 

@@ -1,11 +1,13 @@
 import { INSURER_PROFILES, NCD_STEPS, VEHICLE_USAGES, PHV_DEFAULTS } from "./decision-data.mjs";
 import { formatCurrency, formatPercent } from "./formatters.mjs";
+import { computeConsecutiveClaimStressTest } from "../lib/stress-test-calculator.js";
 
 export {
   INSURER_PROFILES,
   NCD_STEPS,
   VEHICLE_USAGES,
   PHV_DEFAULTS,
+  computeConsecutiveClaimStressTest,
   formatCurrency,
   formatPercent,
 };
