@@ -41,7 +41,7 @@ cd claimwise-sg
 # 2. Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
 
-# 3. Run the deterministic test suite (52 tests, 0 failures required)
+# 3. Run the deterministic test suite (58 tests, 0 failures required)
 npm test
 
 # 4. Start local development server (or npm run build && npm run start for production)
