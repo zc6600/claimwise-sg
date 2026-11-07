@@ -3385,3 +3385,320 @@ td:first-child {
 }
 
 
+
+/* ==========================================================================
+   Car Decision Tools, My Car, and Reminders
+   ========================================================================== */
+.nav-links a,
+.mobile-nav a {
+  white-space: nowrap;
+}
+
+.tool-page {
+  padding-top: 40px;
+  padding-bottom: 56px;
+}
+
+.tool-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.tool-card,
+.tool-result {
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-card h2,
+.tool-result h2 {
+  font-size: 1.125rem;
+  margin-bottom: 14px;
+}
+
+.tool-result {
+  position: sticky;
+  top: 88px;
+}
+
+.tool-result h3 {
+  margin-top: 18px;
+}
+
+.tool-page .field > .field-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.tool-subheading {
+  margin-top: 24px;
+}
+
+.tool-verdict {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--surface-subtle);
+  color: var(--ink-soft);
+}
+
+.tool-verdict.is-positive {
+  background: var(--teal-soft);
+  color: var(--teal-dark);
+}
+
+.tool-verdict.is-caution {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.tool-headline {
+  margin: 12px 0 16px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.tool-rows {
+  margin: 0;
+}
+
+.tool-rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+
+.tool-rows dt {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.tool-rows dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tool-fieldset {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.tool-fieldset legend {
+  padding: 0 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.tool-quote + .tool-quote {
+  margin-top: 8px;
+}
+
+.tool-option-notes {
+  margin: 16px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.tool-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.tool-notes h2 {
+  font-size: 1.125rem;
+}
+
+.tool-notes ul {
+  padding-left: 18px;
+  color: var(--ink-soft);
+}
+
+.tool-notes a,
+.decision-list a,
+.reminder-panel a,
+.reminder-signup a {
+  color: var(--teal-dark);
+  font-weight: 600;
+}
+
+.tool-hub {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.tool-hub-card {
+  display: block;
+  padding: 22px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tool-hub-card:hover {
+  border-color: var(--teal);
+  box-shadow: var(--shadow);
+}
+
+.tool-hub-card h2 {
+  margin-top: 8px;
+  font-size: 1.125rem;
+}
+
+.tool-hub-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.tool-hub-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 22px;
+  background: var(--teal-soft);
+  border-radius: var(--r-lg);
+}
+
+.tool-hub-cta h2 {
+  font-size: 1.125rem;
+}
+
+.tool-hub-cta p {
+  margin: 0;
+}
+
+.my-car-stack {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+
+.decision-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.decision-list li {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.decision-list li.is-urgent {
+  background: var(--amber-soft);
+  border-color: var(--amber-border);
+}
+
+.decision-list h3,
+.decision-list p {
+  margin: 0 0 4px;
+}
+
+.decision-date {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.reminder-panel {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.reminder-signup {
+  display: grid;
+  gap: 12px;
+}
+
+.reminder-trap {
+  position: absolute;
+  left: -9999px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.reminder-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.8125rem;
+}
+
+.reminder-consent input {
+  margin-top: 3px;
+}
+
+.reminder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.reminder-stop {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--amber-soft);
+  border-radius: var(--r-md);
+}
+
+.reminder-success {
+  margin: 12px 0 0;
+  color: var(--teal-dark);
+  font-size: 0.875rem;
+}
+
+.reminder-error {
+  margin: 12px 0 0;
+  color: var(--amber);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 860px) {
+  .tool-layout,
+  .tool-notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tool-result {
+    position: static;
+  }
+
+  .tool-page .field-grid.two-col,
+  .tool-page .field-grid.three-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

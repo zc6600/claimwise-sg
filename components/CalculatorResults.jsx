@@ -463,6 +463,22 @@ export default function CalculatorResults({
         </section>
       )}
 
+      {/* 2c. Long-term decision prompt */}
+      <section className="settlement-cta-card" aria-label="Upcoming car decisions">
+        <div className="settlement-cta-header">
+          <span className="section-kicker">Next Decision</span>
+          <h3>Get a reminder before your insurance renews</h3>
+        </div>
+        <p>
+          Save your renewal date and we will email you in time to check the NCD Protector and compare quotes.
+        </p>
+        <div>
+          <Link href="/my-car" className="button button-secondary">
+            Set up My Car →
+          </Link>
+        </div>
+      </section>
+
       {/* 3. Active Policy Advisories */}
       {decision.advisories?.length > 0 && (
         <div className="advisory-stack">

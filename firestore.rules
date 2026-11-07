@@ -21,6 +21,18 @@ rules_version = '2';
 //       - savings: number
 //       - breakEvenCost: number
 //
+// Collection: users/{userId}/vehicles/primary
+// Fields:
+//   - userId: string (required, must match request.auth.uid)
+//   - label: string (max 40 chars)
+//   - insuranceRenewal, coeExpiry, loanReview: "YYYY-MM-DD" or empty string
+//   - currentPremium, excess: number or empty string
+//   - currentNcd: number from 0 to 50, or empty string
+//   - updatedAt: string
+//
+// Collection: reminderSubscriptions/{subscriptionId}
+// Server-only. Client access is blocked by the default deny rule.
+//
 // ===============================================================
 
 service cloud.firestore {
@@ -62,6 +74,36 @@ service cloud.firestore {
              data.results.recommendation in ['claim', 'self-pay', 'CLAIM', 'SELF_PAY', 'NEUTRAL'] &&
              data.results.savings is number &&
              data.results.breakEvenCost is number;
+    }
+
+    function isOptionalDate(value) {
+      return value is string && (value == '' || value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    function isOptionalAmount(value) {
+      return (value is string && value == '') || (value is number && value >= 0 && value <= 100000);
+    }
+
+    function isValidVehicle(data, userId) {
+      return data.keys().hasOnly(['userId', 'label', 'insuranceRenewal', 'coeExpiry', 'loanReview',
+                                  'currentPremium', 'currentNcd', 'excess', 'updatedAt']) &&
+             data.userId == userId &&
+             data.label is string && data.label.size() <= 40 &&
+             isOptionalDate(data.insuranceRenewal) &&
+             isOptionalDate(data.coeExpiry) &&
+             isOptionalDate(data.loanReview) &&
+             isOptionalAmount(data.currentPremium) &&
+             isOptionalAmount(data.excess) &&
+             ((data.currentNcd is string && data.currentNcd == '') ||
+              (data.currentNcd is number && data.currentNcd >= 0 && data.currentNcd <= 50)) &&
+             data.updatedAt is string && data.updatedAt.size() <= 40;
+    }
+
+    // Saved car details: one document per user
+    match /users/{userId}/vehicles/{vehicleId} {
+      allow read, delete: if isOwner(userId) && vehicleId == 'primary';
+      allow create, update: if isOwner(userId) && vehicleId == 'primary' &&
+                               isValidVehicle(request.resource.data, userId);
     }
 
     // User calculations subcollection

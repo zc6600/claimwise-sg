@@ -39,6 +39,12 @@ resource "google_project_service" "firebaserules" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "cloud_scheduler" {
+  project            = var.project_id
+  service            = "cloudscheduler.googleapis.com"
+  disable_on_destroy = false
+}
+
 # 2. Firestore Native Database in Singapore
 resource "google_firestore_database" "default" {
   project     = var.project_id
@@ -150,6 +156,31 @@ resource "google_cloud_run_v2_service" "claimwise_app" {
         name  = "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
         value = "${var.project_id}.firebaseapp.com"
       }
+
+      env {
+        name  = "RESEND_API_KEY"
+        value = var.resend_api_key
+      }
+
+      env {
+        name  = "REMINDER_FROM_EMAIL"
+        value = var.reminder_from_email
+      }
+
+      env {
+        name  = "REMINDER_SITE_URL"
+        value = var.reminder_site_url
+      }
+
+      env {
+        name  = "REMINDER_TOKEN_SECRET"
+        value = var.reminder_token_secret
+      }
+
+      env {
+        name  = "REMINDER_DISPATCH_SECRET"
+        value = var.reminder_dispatch_secret
+      }
     }
   }
 
@@ -166,4 +197,35 @@ resource "google_cloud_run_v2_service_iam_member" "public_access" {
   name     = google_cloud_run_v2_service.claimwise_app.name
   role     = "roles/run.invoker"
   member   = "allUsers"
+}
+
+# 9. Firestore Access for Server-Managed Reminder Subscriptions
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
+resource "google_project_iam_member" "cloud_run_firestore" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+# 10. Daily Reminder Dispatch at 09:00 Singapore Time
+resource "google_cloud_scheduler_job" "reminder_dispatch" {
+  count     = var.reminder_dispatch_secret == "" ? 0 : 1
+  name      = "${var.service_name}-reminder-dispatch"
+  project   = var.project_id
+  region    = var.region
+  schedule  = "0 9 * * *"
+  time_zone = "Asia/Singapore"
+
+  http_target {
+    http_method = "POST"
+    uri         = "${google_cloud_run_v2_service.claimwise_app.uri}/api/reminders/dispatch"
+    headers = {
+      Authorization = "Bearer ${var.reminder_dispatch_secret}"
+    }
+  }
+
+  depends_on = [google_project_service.cloud_scheduler]
 }
