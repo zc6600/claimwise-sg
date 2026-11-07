@@ -50,7 +50,8 @@ export default function ManageRemindersClient() {
     setMessage("");
     try {
       const result = await postJson("/api/reminders/manage", { token, action: "update", dates });
-      setMessage(result.ok ? "Reminder dates saved." : result.error);
+      if (result.removed) setState("removed");
+      else setMessage(result.ok ? "Reminder dates saved." : result.error);
     } catch {
       setMessage("Your changes could not be saved.");
     }

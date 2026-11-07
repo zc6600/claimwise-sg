@@ -1,6 +1,6 @@
 # ClaimWise SG · Motor Insurance Claim Decision Support
 
-[![Tests](https://img.shields.io/badge/tests-64%2F64%20passed-success)](tests/)
+[![Tests](https://img.shields.io/badge/tests-115%2F115%20passed-success)](tests/)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-asia--southeast1-blue?logo=googlecloud)](https://claimwise-sg-721110976915.asia-southeast1.run.app)
 [![Firebase](https://img.shields.io/badge/Firebase%20Hosting-claimwise--sg.web.app-orange?logo=firebase)](https://claimwise-sg.web.app)
@@ -67,6 +67,19 @@ ClaimWise SG is deployed serverless on **Google Cloud Platform (GCP)** in Singap
 - **Offline Progressive Web App (PWA)**: Supports zero-cellular offline caching via Service Worker (`public/sw.js`) and Web App Manifest (`app/manifest.js`) for subterranean basement carparks (B2/B3/B4 at shopping malls or HDB carparks).
 - **On-Scene Protocol & Anti-Scam Guidance**: Features the statutory Road Traffic Act (Section 84) police reporting checklist, GIA 24-hour mandatory insurer reporting rule, and predatory tow-truck scam protection warnings.
 - **Emergency Directory**: Provides verified direct hotlines and operating hours for statutory services (Police 999, SCDF 995, LTA EMAS 1800-2255-582) and authorized insurer assistance centers (Income, Tiq/Etiqa, MSIG).
+
+---
+
+### 7. Car Decision Tools (`/tools`)
+- **NCD Protector** (`/tools/ncd-protector`): Finds the at-fault claim probability at which the rider pays for itself.
+- **Renewal Quote Comparison** (`/tools/quote-compare`): Ranks quotes by expected cost, including excess and workshop surcharges.
+- **COE Renewal** (`/tools/coe-renewal`): Compares 5-year renewal, 10-year renewal, and replacement using LTA PARF, COE rebate, and road tax surcharge rules.
+- **Car Loan Early Settlement** (`/tools/loan-prepayment`): Estimates a Rule of 78 settlement and compares it with the return on idle cash.
+
+### 8. My Car & Email Reminders (`/my-car`)
+- **My Car**: Saves key dates and policy figures in the browser, or in Firestore for signed-in users, to prefill the tools. Registration numbers are not collected.
+- **Email Reminders**: Double opt-in reminders for insurance renewal (45 days), COE expiry (365 and 90 days), and loan review (30 days). Unsubscribing deletes the email address and dates.
+- **Configuration**: Reminders stay disabled until the `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, `REMINDER_SITE_URL`, and `REMINDER_TOKEN_SECRET` variables are set. Setting `REMINDER_DISPATCH_SECRET` in Terraform creates the daily 09:00 Singapore time Cloud Scheduler job. See `.env.example`.
 
 ---
 

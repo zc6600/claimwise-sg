@@ -12,7 +12,8 @@ import { EMPTY_CAR, hasCarDetails } from "../../src/my-car.mjs";
 
 /**
  * Loads the saved car from this browser, then reconciles it with the signed-in account.
- * Account data wins; details entered before signing in are uploaded when none exist.
+ * Account data wins. Details entered while signed out are uploaded when the account has
+ * none, but details saved by a different account are never adopted.
  */
 export function useMyCar() {
   const { user, loading: authLoading } = useAuth();
@@ -23,7 +24,7 @@ export function useMyCar() {
     if (authLoading) return undefined;
 
     let cancelled = false;
-    const local = loadLocalCar();
+    const { car: local, unowned } = loadLocalCar(user);
     setCar(local);
 
     async function reconcile() {
@@ -32,9 +33,9 @@ export function useMyCar() {
         const cloud = await loadCloudCar(user);
         if (cancelled) return;
         if (cloud) {
-          cacheCarLocally(cloud);
+          cacheCarLocally(user, cloud);
           setCar(cloud);
-        } else if (hasCarDetails(local)) {
+        } else if (unowned && hasCarDetails(local)) {
           await saveCar(user, local);
         }
       } catch (error) {

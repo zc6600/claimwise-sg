@@ -34,8 +34,9 @@ function createMemoryStore() {
     async get(id) {
       return documents.has(id) ? entry(id) : null;
     },
-    async put(id, data, { updateTime } = {}) {
-      if (updateTime && documents.get(id)?.updateTime !== updateTime) {
+    async put(id, data, { updateTime, mustNotExist } = {}) {
+      const stale = updateTime && documents.get(id)?.updateTime !== updateTime;
+      if (stale || (mustNotExist && documents.has(id))) {
         throw Object.assign(new Error("conflict"), { code: "conflict" });
       }
       version += 1;
@@ -209,7 +210,7 @@ test("double opt-in activates a subscription only after confirmation", async () 
     consent: true,
   });
 
-  const [document] = [...store.documents.values()];
+  const document = [...store.documents.entries()].find(([id]) => !id.startsWith("daily-quota"))[1];
   assert.equal(document.data.status, "pending");
   assert.equal(document.data.email, "driver@example.com");
   assert.equal(document.data.nextReminderDate, null);
@@ -217,7 +218,7 @@ test("double opt-in activates a subscription only after confirmation", async () 
 
   const result = await service.confirm(tokenFromLatestEmail(sent));
   assert.equal(result.ok, true);
-  const [confirmed] = [...store.documents.values()];
+  const confirmed = [...store.documents.entries()].find(([id]) => !id.startsWith("daily-quota"))[1];
   assert.equal(confirmed.data.status, "active");
   assert.equal(confirmed.data.nextReminderDate, "2027-01-15");
   assert.equal(confirmed.data.pendingExpiresAt, null);
@@ -241,7 +242,7 @@ test("repeat sign-ups are throttled and cannot change an active subscription", a
   });
   assert.deepEqual(result, { ok: true });
   assert.match(sent.at(-1).subject, /Manage/);
-  const [document] = [...store.documents.values()];
+  const document = [...store.documents.entries()].find(([id]) => !id.startsWith("daily-quota"))[1];
   assert.equal(document.data.dates.insuranceRenewal, "2027-03-01");
 });
 
@@ -269,10 +270,9 @@ test("manage link shows masked details, updates dates, and unsubscribes", async 
 
   const updated = await service.updateManaged(manageToken, { coeExpiry: "2029-01-01" });
   assert.equal(updated.nextReminderDate, "2028-01-02");
-  assert.equal((await service.updateManaged(manageToken, {})).ok, false);
 
   assert.equal((await service.unsubscribe(manageToken)).ok, true);
-  assert.equal(store.documents.size, 0);
+  assert.equal([...store.documents.keys()].some((id) => !id.startsWith("daily-quota")), false);
   assert.equal((await service.getManaged(manageToken)).ok, false);
   assert.equal((await service.unsubscribe("bad")).ok, false);
 });
@@ -292,7 +292,7 @@ test("dispatch sends once, adds unsubscribe headers, and advances the schedule",
 
   const second = await service.dispatch();
   assert.equal(second.sent, 0);
-  const [document] = [...store.documents.values()];
+  const document = [...store.documents.entries()].find(([id]) => !id.startsWith("daily-quota"))[1];
   assert.equal(document.data.nextReminderDate, "2028-01-16");
 });
 
@@ -312,9 +312,30 @@ test("a failed send is released and retried on the next run", async () => {
   assert.equal(sent.filter((message) => /renews soon/.test(message.subject)).length, 1);
 });
 
-test("a concurrent run that loses the claim does not send", async () => {
+test("a reminder stays due when its delivery record cannot be written", async () => {
   const harness = createHarness();
   const { service, store, sent, clock } = harness;
+  await subscribeAndConfirm(harness, { insuranceRenewal: "2027-03-01" });
+  clock.current = new Date("2027-01-15T02:00:00Z");
+
+  const originalPut = store.put;
+  store.put = async () => {
+    throw new Error("firestore down");
+  };
+  const result = await service.dispatch();
+  store.put = originalPut;
+  assert.equal(result.failed, 1);
+
+  const retry = await service.dispatch();
+  assert.equal(retry.sent, 1);
+  const deliveries = sent.filter((message) => message.idempotencyKey);
+  assert.equal(deliveries.length, 2);
+  assert.equal(deliveries[0].idempotencyKey, deliveries[1].idempotencyKey);
+});
+
+test("an overlapping run that loses the write is counted as skipped", async () => {
+  const harness = createHarness();
+  const { service, store, clock } = harness;
   await subscribeAndConfirm(harness, { insuranceRenewal: "2027-03-01" });
   clock.current = new Date("2027-01-15T02:00:00Z");
 
@@ -324,9 +345,41 @@ test("a concurrent run that loses the claim does not send", async () => {
   };
   const result = await service.dispatch();
   store.put = originalPut;
-
   assert.equal(result.skipped, 1);
-  assert.equal(sent.length, 1, "only the original confirmation email was sent");
+  assert.equal(result.sent, 0);
+});
+
+test("a failed confirmation email can be retried immediately", async () => {
+  const { service, sent, mailer } = createHarness();
+  const request = {
+    email: "a@b.co",
+    dates: { insuranceRenewal: "2027-03-01" },
+    consent: true,
+  };
+  mailer.failNext = true;
+  await assert.rejects(service.subscribe(request));
+  assert.deepEqual(await service.subscribe(request), { ok: true });
+  assert.equal(sent.length, 1);
+});
+
+test("the daily email cap applies across addresses", async () => {
+  const { service, store, sent } = createHarness();
+  const dates = { insuranceRenewal: "2027-03-01" };
+  await store.put("daily-quota-2026-11-07", { count: 200 });
+
+  const result = await service.subscribe({ email: "new@example.com", dates, consent: true });
+  assert.equal(result.ok, false);
+  assert.equal(sent.length, 0);
+});
+
+test("clearing every date from the manage page deletes the subscription", async () => {
+  const harness = createHarness();
+  const { service, store } = harness;
+  const { manageToken } = await subscribeAndConfirm(harness, { insuranceRenewal: "2027-03-01" });
+  const result = await service.updateManaged(manageToken, { insuranceRenewal: "", coeExpiry: "" });
+  assert.equal(result.removed, true);
+  assert.equal(store.documents.size, 1, "only the daily quota counter remains");
+  assert.equal((await service.getManaged(manageToken)).ok, false);
 });
 
 test("finished subscriptions and stale pending sign-ups are deleted", async () => {
@@ -338,14 +391,14 @@ test("finished subscriptions and stale pending sign-ups are deleted", async () =
     dates: { loanReview: "2026-12-07" },
     consent: true,
   });
-  assert.equal(store.documents.size, 2);
+  assert.equal(store.documents.size, 3, "two subscriptions and one daily quota counter");
 
   clock.current = new Date("2026-11-20T02:00:00Z");
   const result = await service.dispatch();
   assert.equal(result.expired, 1);
   assert.equal(result.sent, 1);
   assert.equal(result.completed, 1);
-  assert.equal(store.documents.size, 0);
+  assert.equal([...store.documents.keys()].some((id) => !id.startsWith("daily-quota")), false);
 });
 
 test("Firestore store maps documents and treats a stale update as a conflict", async () => {

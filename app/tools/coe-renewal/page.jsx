@@ -18,7 +18,9 @@ export default function Page() {
         "Cars can take a 5-year renewal only once, and must then be deregistered.",
         "PARF rebates end once a car is more than 10 years old. COE rebates are pro-rated over the unused months.",
         "Road tax surcharges rise from 10% to 50% as the car passes 10 to 14 years old.",
-        "Options last different lengths, so each cost is converted to a level yearly figure at a 3% discount rate.",
+        "Keeping the car gives up the value you could release today, so that value counts as a cost of both renewal options.",
+        "Options last different lengths, so each cost is spread evenly over its own life at a 3% discount rate. This assumes you could make a similar choice again afterwards.",
+        "The comparison covers private cars close to COE expiry and models no further renewal after the period shown.",
       ]}
       sources={[
         { label: "LTA: COE renewal", href: "https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/coe-renewal.html" },

@@ -80,6 +80,13 @@ export default function CoeRenewalTool() {
             onChange={update("scrapValue")}
           />
           <NumberField
+            id="endOfRenewalValue"
+            label="Car's value when the renewal ends"
+            prefix="S$"
+            value={inputs.endOfRenewalValue}
+            onChange={update("endOfRenewalValue")}
+          />
+          <NumberField
             id="annualRoadTax"
             label="Road tax before surcharge, per year"
             prefix="S$"
@@ -133,7 +140,7 @@ export default function CoeRenewalTool() {
       <aside className="tool-result" aria-live="polite">
         <span className="tool-verdict is-positive">{best.label}</span>
         <p className="tool-headline">
-          Lowest yearly cost at about {formatCurrency(best.annualCost)}, saving{" "}
+          Lowest yearly economic cost at about {formatCurrency(best.annualCost)}, saving{" "}
           {formatCurrency(result.annualSavingVsNextBest)} a year over the next best option.
         </p>
         <ResultRows
@@ -142,7 +149,13 @@ export default function CoeRenewalTool() {
             formatCurrency(option.annualCost),
           ])}
         />
-        <h3>Value released if you deregister</h3>
+        <ResultRows
+          rows={result.options.map((option) => [
+            `${option.label}: cash needed now`,
+            formatCurrency(option.upfront),
+          ])}
+        />
+        <h3>Value released if you deregister today</h3>
         <ResultRows
           rows={[
             ["PARF rebate", formatCurrency(result.parfRebate)],

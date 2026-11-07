@@ -159,7 +159,7 @@ test("road tax surcharge follows the published age bands", () => {
   assert.equal(roadTaxSurchargePct(19), 50);
 });
 
-test("COE comparison prices both renewals and credits rebates only to replacement", () => {
+test("COE comparison charges deregistration value to keeping the car", () => {
   const result = compareCoeOptions({
     pqp: 100001,
     parfCohort: PARF_COHORTS.BEFORE_FEB_2023,
@@ -180,12 +180,30 @@ test("COE comparison prices both renewals and credits rebates only to replacemen
   assert.equal(result.deregistrationValue, 11000);
   assert.equal(renew5.upfront, 50001, "the 5-year renewal rounds 50% of PQP up to the dollar");
   // Surcharges of 10-50% add S$1,500 to five years of S$1,000 road tax.
-  assert.equal(renew5.presentValue, 50001 + 5000 + 1500);
+  assert.equal(renew5.presentValue, 50001 + 11000 + 5000 + 1500);
   assert.equal(renew10.upfront, 100001);
-  assert.equal(renew10.presentValue, 100001 + 10000 + 1500 + 2500);
-  assert.equal(replace.presentValue, 39000);
+  assert.equal(renew10.presentValue, 100001 + 11000 + 10000 + 1500 + 2500);
+  assert.equal(replace.upfront, 89000);
+  assert.equal(replace.presentValue, 50000);
   assert.equal(result.bestOptionId, "replace");
-  assert.equal(result.annualSavingVsNextBest, 3500.2);
+  assert.equal(result.annualSavingVsNextBest, 2500.1);
+});
+
+test("COE renewal cost is net of the car's value when the renewal ends", () => {
+  const base = {
+    pqp: 50000,
+    arfPaid: 0,
+    carAgeYears: 10,
+    annualRoadTax: 0,
+    currentCarAnnualCost: 0,
+    replacementPrice: 100000,
+    replacementResaleValue: 0,
+    replacementAnnualCost: 0,
+    discountRate: 0,
+  };
+  const without = compareCoeOptions(base).options[0];
+  const withEndValue = compareCoeOptions({ ...base, endOfRenewalValue: 5000 }).options[0];
+  assert.equal(without.presentValue - withEndValue.presentValue, 5000);
 });
 
 test("equivalent annual cost reduces to a simple average at a zero discount rate", () => {

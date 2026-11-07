@@ -28,6 +28,7 @@ export const COE_RENEWAL_DEFAULTS = {
   coeQuotaPremiumPaid: 0,
   coeUnusedMonths: 0,
   scrapValue: 0,
+  endOfRenewalValue: 0,
   annualRoadTax: 750,
   currentCarAnnualCost: 4500,
   replacementPrice: 170000,
@@ -79,6 +80,7 @@ export function normalizeCoeRenewalInputs(raw = {}) {
     coeQuotaPremiumPaid: money("coeQuotaPremiumPaid", 500000),
     coeUnusedMonths: toBoundedNumber(raw.coeUnusedMonths, { min: 0, max: 120 }),
     scrapValue: money("scrapValue", 500000),
+    endOfRenewalValue: money("endOfRenewalValue", 500000),
     annualRoadTax: money("annualRoadTax", 50000),
     currentCarAnnualCost: money("currentCarAnnualCost", 100000),
     replacementPrice: money("replacementPrice", 2000000),
@@ -101,13 +103,14 @@ function presentValueOfRunningCosts(inputs, years, annualCostForYear) {
   return total;
 }
 
-function buildRenewalOption(inputs, { id, label, years, upfront, note }) {
+function buildRenewalOption(inputs, deregistrationValue, { id, label, years, upfront, note }) {
   const runningPv = presentValueOfRunningCosts(inputs, years, (year) => {
     const ageInYear = inputs.carAgeYears + year - 1;
     const surcharge = roadTaxSurchargePct(ageInYear) / 100;
     return inputs.currentCarAnnualCost + inputs.annualRoadTax * (1 + surcharge);
   });
-  const presentValue = upfront + runningPv;
+  const endValuePv = inputs.endOfRenewalValue / discountFactor(inputs.discountRate, years);
+  const presentValue = upfront + deregistrationValue + runningPv - endValuePv;
   return {
     id,
     label,
@@ -119,12 +122,12 @@ function buildRenewalOption(inputs, { id, label, years, upfront, note }) {
   };
 }
 
-function buildReplacementOption(inputs, rebateValue) {
+function buildReplacementOption(inputs, deregistrationValue) {
   const years = inputs.replacementYears;
-  const upfront = Math.max(0, inputs.replacementPrice - rebateValue);
+  const upfront = Math.max(0, inputs.replacementPrice - deregistrationValue);
   const runningPv = presentValueOfRunningCosts(inputs, years, () => inputs.replacementAnnualCost);
   const resalePv = inputs.replacementResaleValue / discountFactor(inputs.discountRate, years);
-  const presentValue = inputs.replacementPrice - rebateValue + runningPv - resalePv;
+  const presentValue = inputs.replacementPrice + runningPv - resalePv;
   return {
     id: "replace",
     label: "Deregister and replace",
@@ -132,14 +135,16 @@ function buildReplacementOption(inputs, rebateValue) {
     upfront: roundMoney(upfront),
     presentValue: roundMoney(presentValue),
     annualCost: roundMoney(equivalentAnnualCost(presentValue, inputs.discountRate, years)),
-    note: "Rebates and scrap value offset the new car; its resale value is credited at the end.",
+    note: "Rebates and scrap value reduce the cash you need; the new car's resale value is credited at the end.",
   };
 }
 
 /**
- * Compares the level annual cost of keeping the current car for five or ten more years
- * against deregistering it and buying a replacement. Deregistration value is credited
- * only to the replacement option, so it is never counted twice as a forgone benefit.
+ * Compares options with a standard replacement analysis. The value released by
+ * deregistering today is an asset the owner already holds, so keeping the car gives it
+ * up: it counts as a capital cost of both renewals and is not credited to replacement.
+ * Each option's cost is then levelled over its own life, which assumes a like-for-like
+ * choice would be available afterwards.
  */
 export function compareCoeOptions(rawInputs) {
   const inputs = normalizeCoeRenewalInputs(rawInputs);
@@ -155,14 +160,14 @@ export function compareCoeOptions(rawInputs) {
   const deregistrationValue = roundMoney(parfRebate + coeRebate + inputs.scrapValue);
 
   const options = [
-    buildRenewalOption(inputs, {
+    buildRenewalOption(inputs, deregistrationValue, {
       id: "renew-5",
       label: "Renew COE for 5 years",
       years: 5,
       upfront: Math.ceil(inputs.pqp * 0.5),
       note: "Costs 50% of the PQP. Cars can take this renewal only once and must be deregistered afterwards.",
     }),
-    buildRenewalOption(inputs, {
+    buildRenewalOption(inputs, deregistrationValue, {
       id: "renew-10",
       label: "Renew COE for 10 years",
       years: 10,
