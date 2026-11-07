@@ -2959,3 +2959,223 @@ td:first-child {
   color: var(--ink-soft);
   line-height: 1.5;
 }
+
+/* ==========================================================================
+   GIA Private Settlement Generator & Document Sheet
+   ========================================================================== */
+.settlement-page {
+  padding-top: 36px;
+  padding-bottom: 64px;
+}
+
+.settlement-cta-card {
+  background: var(--surface-subtle);
+  border: 1px solid var(--teal);
+  border-radius: var(--r-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settlement-cta-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settlement-cta-header h3 {
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.settlement-cta-card p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.settlement-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 460px) minmax(420px, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.settlement-editor .studio-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.settlement-editor .studio-card-title {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line-subtle);
+  padding-bottom: 6px;
+}
+
+.field-error {
+  color: var(--coral, #e11d48);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.settlement-sheet {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 40px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+.sheet-header {
+  text-align: center;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.sheet-title-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.sheet-header h1 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.sheet-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 600;
+}
+
+.sheet-section {
+  margin-bottom: 24px;
+}
+
+.sheet-section h2 {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0f172a;
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+}
+
+.sheet-grid-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  font-size: 0.8125rem;
+}
+
+.sheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  margin-bottom: 8px;
+}
+
+.sheet-table th,
+.sheet-table td {
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.sheet-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #334155;
+}
+
+.sheet-clause-box {
+  background: #f1f5f9;
+  border-left: 3px solid #0f172a;
+  padding: 12px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+.sheet-clause-box p {
+  margin: 0;
+}
+
+.sheet-legal-terms {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.75rem;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sheet-sig-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 36px;
+}
+
+.sig-block {
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sig-line {
+  border-bottom: 1px solid #0f172a;
+  height: 48px;
+  margin-bottom: 8px;
+}
+
+@media screen and (max-width: 900px) {
+  .settlement-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .no-print,
+  .settlement-editor,
+  .page-header {
+    display: none !important;
+  }
+
+  .settlement-grid {
+    display: block !important;
+  }
+
+  .settlement-sheet {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}
+
