@@ -93,14 +93,18 @@ export default function ToolsPage() {
           {CALCULATORS.map((item) => (
             <li key={item.href} className={item.featured ? "is-featured" : undefined}>
               <Link className={`feature-card${item.featured ? " is-featured" : ""}`} href={item.href}>
-                <span className="feature-icon-tile">
-                  <Icon name={item.icon} />
+                <span className="feature-title">
+                  <span className="feature-icon-tile">
+                    <Icon name={item.icon} />
+                  </span>
+                  <strong>{item.name}</strong>
                 </span>
-                <strong>{item.name}</strong>
                 <span className="feature-text">{item.text}</span>
-                <span className="feature-open">
-                  Open <span aria-hidden="true">→</span>
-                </span>
+                {item.featured ? (
+                  <span className="feature-open">
+                    Open the calculator <span aria-hidden="true">→</span>
+                  </span>
+                ) : null}
               </Link>
             </li>
           ))}

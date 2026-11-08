@@ -14,19 +14,19 @@ export default function ToolPageShell({ kicker, title, lead, children, method, s
       {children}
 
       <div className="tool-notes">
-        <article>
-          <h2>How this is calculated</h2>
+        <details>
+          <summary>How this is calculated</summary>
           <ul>
             {method.map((line) => (
               <li key={line}>{line}</li>
             ))}
           </ul>
-        </article>
-        <article>
-          <h2>Before you decide</h2>
+        </details>
+        <details>
+          <summary>Sources and limits</summary>
           <p>
-            This tool gives general information from the figures you enter. It is not financial
-            advice, and your policy, loan agreement, or the latest official rules take priority.
+            Your policy, loan agreement, or the latest official rules take priority over this
+            estimate.
           </p>
           {sources?.length ? (
             <ul>
@@ -42,7 +42,7 @@ export default function ToolPageShell({ kicker, title, lead, children, method, s
           <p>
             <Link href="/my-car">Save your car’s dates</Link> to get reminders before these decisions.
           </p>
-        </article>
+        </details>
       </div>
     </section>
   );

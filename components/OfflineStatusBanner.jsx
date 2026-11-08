@@ -17,18 +17,19 @@ export default function OfflineStatusBanner() {
       window.addEventListener("online", handleOnline);
       window.addEventListener("offline", handleOffline);
 
-      // Register Service Worker for offline capability
+      // The offline cache runs only in production; in development it would serve stale code,
+      // so any worker left over from an earlier session is removed.
       if ("serviceWorker" in navigator && window.location.protocol.startsWith("http")) {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((registration) => {
-            if (process.env.NODE_ENV !== "production") {
-              console.log("[ServiceWorker] Registered with scope:", registration.scope);
-            }
-          })
-          .catch((error) => {
+        if (process.env.NODE_ENV === "production") {
+          navigator.serviceWorker.register("/sw.js").catch((error) => {
             console.warn("[ServiceWorker] Registration failed:", error);
           });
+        } else {
+          navigator.serviceWorker
+            .getRegistrations()
+            .then((registrations) => registrations.forEach((registration) => registration.unregister()))
+            .catch(() => {});
+        }
       }
 
       return () => {
