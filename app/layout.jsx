@@ -21,24 +21,24 @@ export const viewport = {
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
+    default: "ClaimWise SG · Singapore Car Decision Tools",
     template: "%s · ClaimWise SG",
   },
   description:
-    "Compare the multi-year cost of paying for minor car repairs out-of-pocket versus filing an own-damage motor insurance claim in Singapore.",
+    "Independent calculators for Singapore car owners: claim or self-pay after an accident, NCD Protector, renewal quotes, COE renewal, and early car loan settlement.",
   keywords: [
-    "Singapore motor insurance",
-    "NCD calculator",
-    "car claim decision",
-    "own damage claim",
-    "GIA MCF",
-    "Singapore car insurance excess",
+    "Singapore car insurance",
+    "claim or self-pay",
+    "NCD Protector",
+    "car insurance quote comparison",
+    "COE renewal calculator",
+    "car loan early settlement",
   ],
   authors: [{ name: "ClaimWise SG" }],
   openGraph: {
-    title: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
+    title: "ClaimWise SG · Singapore Car Decision Tools",
     description:
-      "Compare the multi-year cost of paying for minor car repairs out-of-pocket versus filing an own-damage motor insurance claim in Singapore.",
+      "Independent calculators for Singapore car owners: claim or self-pay after an accident, NCD Protector, renewal quotes, COE renewal, and early car loan settlement.",
     url: "/",
     siteName: "ClaimWise SG",
     locale: "en_SG",
@@ -46,9 +46,9 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
+    title: "ClaimWise SG · Singapore Car Decision Tools",
     description:
-      "Compare the multi-year cost of paying for minor car repairs out-of-pocket versus filing an own-damage motor insurance claim in Singapore.",
+      "Independent calculators for Singapore car owners: claim or self-pay after an accident, NCD Protector, renewal quotes, COE renewal, and early car loan settlement.",
   },
   robots: {
     index: true,

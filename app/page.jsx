@@ -246,8 +246,8 @@ export default function HomePage() {
           <span className="section-kicker">My Car</span>
           <h2>Never miss the next decision</h2>
           <p>
-            Save your renewal, COE, and loan dates once. The tools prefill your figures, and we
-            email you before each date comes round.
+            Save your premium, NCD, and key dates once. The insurance tools prefill your
+            figures, and we email you before each renewal, COE, or loan date comes round.
           </p>
         </div>
         <Link className="button button-primary button-large" href="/my-car">
