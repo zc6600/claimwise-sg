@@ -1,20 +1,13 @@
-import { INSURER_PROFILES, NCD_STEPS, VEHICLE_USAGES, PHV_DEFAULTS } from "./decision-data.mjs";
+import { INSURER_PROFILES, PHV_DEFAULTS } from "./decision-data.mjs";
 import { formatCurrency, formatPercent } from "./formatters.mjs";
-import { computeConsecutiveClaimStressTest } from "../lib/stress-test-calculator.js";
-
-export {
-  INSURER_PROFILES,
-  NCD_STEPS,
-  VEHICLE_USAGES,
-  PHV_DEFAULTS,
-  computeConsecutiveClaimStressTest,
-  formatCurrency,
-  formatPercent,
-};
-
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
-const roundMoney = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+import { clamp, roundMoney } from "./numeric.mjs";
+import {
+  buildPremiumPath,
+  grossPremiumFromNet,
+  isNcdProtectorEligible,
+  ncdAfterStepDown,
+  sumPath,
+} from "./ncd/premium-path.mjs";
 
 const parseNumber = (value, fallback = 0) => {
   const parsed = Number(value);
@@ -104,24 +97,13 @@ export function normalizeInputs(raw = {}) {
   };
 }
 
-function nextNcd(ncd) {
-  return NCD_STEPS.find((step) => step > ncd) ?? 50;
-}
-
-export function isNcdProtectorEligible(inputs) {
-  const profile = INSURER_PROFILES[inputs?.insurer] || INSURER_PROFILES.other;
-  const minNcd = profile.minNcdForProtector ?? 50;
-  return Number(inputs?.currentNcd ?? 0) >= minNcd;
-}
-
 export function ncdAfterSelfPay(inputs) {
   // GIA MCF Section 1.1 / Ref [3]: If a third party claims against the user and the user is
   // at fault or partial fault, the insurer must settle the third party claim.
   // This triggers an NCD reduction regardless of whether the user self-pays their own vehicle repair!
   if (inputs.thirdPartyClaim && inputs.liability !== "non_fault") {
     if (inputs.ncdProtector && isNcdProtectorEligible(inputs)) return inputs.currentNcd;
-    const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
-    return clamp(inputs.currentNcd - profile.ncdDropPoints, 0, 50);
+    return ncdAfterStepDown(inputs.currentNcd, inputs.insurer);
   }
   return inputs.currentNcd;
 }
@@ -132,14 +114,10 @@ export function ncdAfterClaim(inputs) {
   // A third-party liability claim can affect NCD even when the insured's own damage
   // is a windscreen claim. A valid protector still preserves the tier.
   if (inputs.ncdProtector && isNcdProtectorEligible(inputs)) return inputs.currentNcd;
-  if (inputs.thirdPartyClaim) {
-    const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
-    return clamp(inputs.currentNcd - profile.ncdDropPoints, 0, 50);
-  }
+  if (inputs.thirdPartyClaim) return ncdAfterStepDown(inputs.currentNcd, inputs.insurer);
   // GIA Windscreen Clause: Windscreen repair/replacement claims do not dock NCD
   if (inputs.repairType === "windscreen") return inputs.currentNcd;
-  const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
-  return clamp(inputs.currentNcd - profile.ncdDropPoints, 0, 50);
+  return ncdAfterStepDown(inputs.currentNcd, inputs.insurer);
 }
 
 export function computeEffectiveExcess(inputs) {
@@ -172,42 +150,15 @@ export function computeEffectiveExcess(inputs) {
   };
 }
 
-function premiumAtNcd(basePremium, ncd, growthRate, year, commercialLoading = 0) {
-  const growthMultiplier = (1 + growthRate / 100) ** year;
-  const loadingMultiplier = 1 + commercialLoading / 100;
-  return basePremium * (1 - ncd / 100) * growthMultiplier * loadingMultiplier;
-}
-
 function buildPath(inputs, startingNcd, growthRate, discountRate, commercialLoading = 0) {
-  const basePremium = inputs.currentNcd < 100
-    ? inputs.currentPremium / (1 - inputs.currentNcd / 100)
-    : inputs.currentPremium;
-  let ncd = startingNcd;
-  const years = [];
-
-  for (let year = 1; year <= inputs.horizonYears; year += 1) {
-    const renewalNcd = clamp(ncd, 0, 50);
-    const nominal = premiumAtNcd(basePremium, renewalNcd, growthRate, year, commercialLoading);
-    const discountFactor = (1 + discountRate / 100) ** year;
-    const discounted = nominal / discountFactor;
-
-    years.push({
-      year,
-      ncd: renewalNcd,
-      premium: roundMoney(nominal),
-      discountedPremium: roundMoney(discounted),
-      commercialLoading: roundMoney(commercialLoading),
-    });
-    ncd = nextNcd(renewalNcd);
-  }
-
-  return years;
-}
-
-function sumYears(years, discounted = false) {
-  return roundMoney(
-    years.reduce((total, year) => total + (discounted ? year.discountedPremium : year.premium), 0),
-  );
+  return buildPremiumPath({
+    basePremium: grossPremiumFromNet(inputs.currentPremium, inputs.currentNcd),
+    startingNcd,
+    horizonYears: inputs.horizonYears,
+    growthRate,
+    discountRate,
+    commercialLoading,
+  });
 }
 
 function buildScenario(inputs, growthRate, effectiveExcess) {
@@ -244,12 +195,12 @@ function buildScenario(inputs, growthRate, effectiveExcess) {
   const netDowntimeCost = roundMoney(claimDowntimeCost - selfPayDowntimeCost);
 
   // Present Value (Discounted) totals per Formula (1) in Preliminary.pdf
-  const selfPayFutureDiscounted = sumYears(selfPayYears, true);
-  const claimFutureDiscounted = sumYears(claimYears, true);
+  const selfPayFutureDiscounted = sumPath(selfPayYears, true);
+  const claimFutureDiscounted = sumPath(claimYears, true);
 
   // Nominal undiscounted totals for reference
-  const selfPayFuturePremium = sumYears(selfPayYears, false);
-  const claimFuturePremium = sumYears(claimYears, false);
+  const selfPayFuturePremium = sumPath(selfPayYears, false);
+  const claimFuturePremium = sumPath(claimYears, false);
 
   const currentClaimCost = Math.min(inputs.repairCost, effectiveExcess);
 

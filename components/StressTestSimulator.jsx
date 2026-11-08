@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { formatCurrency, formatPercent } from "../src/formatters.mjs";
-import { computeConsecutiveClaimStressTest } from "../lib/stress-test-calculator.js";
+import { computeConsecutiveClaimStressTest } from "../src/stress-test-calculator.mjs";
 
 const SECOND_ACCIDENT_PRESETS = [1000, 1500, 2500, 4000];
 

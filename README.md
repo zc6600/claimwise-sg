@@ -56,8 +56,8 @@ To use your own Firebase project, copy `.env.example` to `.env.local`.
 | Path | Contents |
 | --- | --- |
 | `app/`, `components/` | Next.js App Router pages, route handlers (`app/api/`), and React components |
-| `src/` | Pure decision modules: claim engine, car decision tools, My Car, reminder schedule |
-| `lib/` | Firebase access, server storage, reminder service, chart and settlement helpers |
+| `src/` | Pure, side-effect-free modules: claim engine, shared NCD premium path (`src/ncd/`), car decision tools, trajectory and stress-test calculators, My Car, reminder schedule |
+| `lib/` | Firebase access, server storage, reminder service, settlement form, clause documents, and market data |
 | `data/`, `public/policies/` | Market statistics and official policy wordings |
 | `tests/` | `node:test` suites for every decision module and server component |
 | `infra/terraform/` | Google Cloud infrastructure; `.github/workflows/` runs CI and deployment |

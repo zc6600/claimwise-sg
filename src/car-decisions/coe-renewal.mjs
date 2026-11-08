@@ -3,7 +3,7 @@ import {
   equivalentAnnualCost,
   roundMoney,
   toBoundedNumber,
-} from "./shared.mjs";
+} from "../numeric.mjs";
 
 export const PARF_COHORTS = {
   BEFORE_FEB_2023: "before-feb-2023",

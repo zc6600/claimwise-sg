@@ -6,7 +6,7 @@ import {
   computeCumulativeTrajectory,
   findTrajectoryCrossover,
   computeNcdTrajectory,
-} from "../lib/trajectory-calculator.js";
+} from "../src/trajectory-calculator.mjs";
 
 export default function TrajectoryVisualizer({ baseScenario, inputs, effectiveExcess }) {
   const [activeTab, setActiveTab] = useState("outflow"); // 'outflow' | 'ncd'

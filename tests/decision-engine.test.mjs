@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateDecision, isNcdProtectorEligible } from "../src/decision-engine.mjs";
+import { calculateDecision } from "../src/decision-engine.mjs";
+import { isNcdProtectorEligible } from "../src/ncd/premium-path.mjs";
 
 const baseInputs = {
   insurer: "income",

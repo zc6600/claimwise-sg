@@ -4,7 +4,7 @@ import {
   computeCumulativeTrajectory,
   findTrajectoryCrossover,
   computeNcdTrajectory,
-} from "../lib/trajectory-calculator.js";
+} from "../src/trajectory-calculator.mjs";
 import { calculateDecision } from "../src/decision-engine.mjs";
 
 const sampleInputs = {

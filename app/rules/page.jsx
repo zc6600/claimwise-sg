@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { INSURER_PROFILES, formatCurrency } from "../../src/decision-engine.mjs";
+import { INSURER_PROFILES } from "../../src/decision-data.mjs";
+import { formatCurrency } from "../../src/formatters.mjs";
 
 export const metadata = {
   title: "Insurer Rules & NCD Schedule · ClaimWise SG",

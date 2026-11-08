@@ -1,11 +1,5 @@
-import { NCD_STEPS } from "../src/decision-data.mjs";
-
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-const roundMoney = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
-
-function nextNcd(ncd) {
-  return NCD_STEPS.find((step) => step > ncd) ?? 50;
-}
+import { clamp, roundMoney } from "./numeric.mjs";
+import { nextNcd } from "./ncd/premium-path.mjs";
 
 function premiumAtNcdWithLoadings(
   basePremium,

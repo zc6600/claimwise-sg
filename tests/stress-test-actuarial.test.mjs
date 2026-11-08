@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { calculateDecision } from "../src/decision-engine.mjs";
-import { computeConsecutiveClaimStressTest } from "../lib/stress-test-calculator.js";
+import { computeConsecutiveClaimStressTest } from "../src/stress-test-calculator.mjs";
 
 test("consecutive claim stress test models severe NCD reduction to 0% and 25% loading when Incident 1 is claimed", () => {
   const decision = calculateDecision({

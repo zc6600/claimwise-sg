@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatCurrency, formatPercent } from "../src/formatters.mjs";
-import { isNcdProtectorEligible } from "../src/decision-engine.mjs";
+import { isNcdProtectorEligible } from "../src/ncd/premium-path.mjs";
 import PolicySourcePreview from "./PolicySourcePreview";
 import TrajectoryVisualizer from "./TrajectoryVisualizer";
 import StressTestSimulator from "./StressTestSimulator";

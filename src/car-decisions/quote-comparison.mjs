@@ -1,5 +1,5 @@
-import { calculateDecision } from "../decision-engine.mjs";
-import { roundMoney, toBoundedNumber } from "./shared.mjs";
+import { claimPremiumLossPresentValue } from "../ncd/premium-path.mjs";
+import { roundMoney, toBoundedNumber } from "../numeric.mjs";
 
 export const MAX_QUOTES = 4;
 
@@ -45,23 +45,18 @@ export function normalizeQuoteComparisonInputs(raw = {}) {
 
 /**
  * Discounted renewal-premium increase caused by one at-fault own-damage claim, assuming
- * the policyholder renews at this quote's premium. It reuses the claim calculator's NCD
- * path so both tools price the same step-down identically.
+ * the policyholder renews at this quote's premium. The shared NCD path keeps this
+ * consistent with the claim calculator and the NCD Protector tool.
  */
 export function ncdLossPresentValue(premium, currentNcd) {
-  if (premium <= 0 || currentNcd <= 0) return 0;
-  const { baseScenario } = calculateDecision({
-    insurer: "other",
+  if (currentNcd <= 0) return 0;
+  return claimPremiumLossPresentValue({
     currentPremium: premium,
     currentNcd,
     horizonYears: NCD_LOSS_HORIZON_YEARS,
-    baseGrowthRate: NCD_LOSS_GROWTH_RATE_PCT,
+    growthRate: NCD_LOSS_GROWTH_RATE_PCT,
     discountRate: NCD_LOSS_DISCOUNT_RATE_PCT,
-    liability: "at_fault",
-    repairCost: 0,
-    excess: 0,
   });
-  return Math.max(0, baseScenario.claimFutureDiscounted - baseScenario.selfPayFutureDiscounted);
 }
 
 function lowestBy(items, key) {

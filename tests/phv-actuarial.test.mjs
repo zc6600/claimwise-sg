@@ -1,11 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  calculateDecision,
-  normalizeInputs,
-  PHV_DEFAULTS,
-  VEHICLE_USAGES,
-} from "../src/decision-engine.mjs";
+import { calculateDecision, normalizeInputs } from "../src/decision-engine.mjs";
+import { PHV_DEFAULTS, VEHICLE_USAGES } from "../src/decision-data.mjs";
 import { validateDecisionInputs } from "../app/api/decision/route.js";
 
 test("normalizeInputs initializes standard private vehicle defaults with zero commercial loadings", () => {

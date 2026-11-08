@@ -14,7 +14,7 @@ import {
   evaluateLoanPrepayment,
   ruleOf78UnearnedInterest,
 } from "../src/car-decisions/loan-prepayment.mjs";
-import { equivalentAnnualCost } from "../src/car-decisions/shared.mjs";
+import { equivalentAnnualCost } from "../src/numeric.mjs";
 
 test("NCD Protector break-even equals rider cost divided by avoided premium loss", () => {
   const result = evaluateNcdProtector({
