@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-export default function ReminderSignup({ dates, heading = "Email me before these dates" }) {
+export default function ReminderSignup({ dates, heading = "Email me before these dates", className = "" }) {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState("");
@@ -36,12 +36,14 @@ export default function ReminderSignup({ dates, heading = "Email me before these
   }
 
   return (
-    <form className="tool-card reminder-signup" onSubmit={handleSubmit}>
-      <h2>{heading}</h2>
-      <p className="field-hint">
-        We email a prompt before each saved date, with a link to the right check. We store your email
-        and dates only, never your registration number or policy figures.
-      </p>
+    <form className={`tool-card reminder-signup ${className}`.trim()} onSubmit={handleSubmit}>
+      <div className="reminder-intro">
+        <h2>{heading}</h2>
+        <p className="field-hint">
+          We email a prompt before each saved date, with a link to the right check. We store your
+          email and dates only, never your registration number or policy figures.
+        </p>
+      </div>
       <div className="field">
         <label htmlFor="reminder-email">Email</label>
         <input
