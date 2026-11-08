@@ -190,3 +190,14 @@ test("generateSettlementClauseText produces legally aligned wording with receipt
   assert.ok(textMutual.includes("mutually agree to bear their respective motor vehicle repair costs"));
   assert.ok(textMutual.includes("without any monetary exchange"));
 });
+
+test("generateSettlementClauseText leaves blank fields as lines to complete by hand", () => {
+  const text = generateSettlementClauseText({
+    settlementMode: "party_a_pays_party_b",
+    paymentMethod: "paynow",
+    settlementAmount: "",
+  });
+  assert.match(text, /S\$__________/);
+  assert.doesNotMatch(text, /S\$0\.00/);
+  assert.match(text, /vehicle ________/);
+});

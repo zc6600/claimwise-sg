@@ -2,13 +2,13 @@ import { Suspense } from "react";
 import SettlementFormClient from "./SettlementFormClient";
 
 export const metadata = {
-  title: "GIA Private Settlement Form Generator",
+  title: "Private Settlement Agreement",
   description:
-    "Generate an official, Singapore GIA Motor Claims Framework compliant Private Settlement Agreement for non-injury traffic accidents.",
+    "Create a printable private settlement agreement for a minor motor accident in Singapore with no injuries, for both drivers to sign.",
   openGraph: {
-    title: "GIA Private Settlement Form Generator · ClaimWise SG",
+    title: "Private Settlement Agreement · ClaimWise SG",
     description:
-      "Generate an official, Singapore GIA Motor Claims Framework compliant Private Settlement Agreement for non-injury traffic accidents.",
+      "Create a printable private settlement agreement for a minor motor accident in Singapore with no injuries, for both drivers to sign.",
   },
 };
 
