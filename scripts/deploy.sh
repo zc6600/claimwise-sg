@@ -67,16 +67,22 @@ verify() {
   require_tools curl
   local path status failed=0
   log "Smoke-testing ${SITE_URL}"
-  for path in / /calculator /tools /my-car /settlement /emergency /privacy /api/health; do
+  for path in / /calculator /tools/ncd-protector /tools/quote-compare /tools/coe-renewal \
+    /tools/loan-prepayment /my-car /settlement /emergency /privacy /api/health; do
     status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${SITE_URL}${path}")"
-    printf '  %-12s %s\n' "$path" "$status"
+    printf '  %-24s %s\n' "$path" "$status"
     [[ "$status" == 200 ]] || failed=1
   done
+
+  # The old tools hub permanently redirects to the landing page.
+  status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${SITE_URL}/tools")"
+  printf '  %-24s %s (expected 308)\n' "/tools" "$status"
+  [[ "$status" == 308 ]] || failed=1
 
   # An empty sign-up is rejected with 400 once reminders are configured, or 503 if not.
   status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -X POST \
     -H 'content-type: application/json' -d '{}' "${SITE_URL}/api/reminders")"
-  printf '  %-12s %s (expected 400)\n' "reminders" "$status"
+  printf '  %-24s %s (expected 400)\n' "reminders" "$status"
   [[ "$status" == 400 ]] || failed=1
 
   (( failed == 0 )) || fail "One or more checks failed."
