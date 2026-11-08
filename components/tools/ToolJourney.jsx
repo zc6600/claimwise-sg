@@ -79,41 +79,27 @@ export function buildToolExamples() {
 
 export const TOOL_STAGES = [
   {
-    id: "accident",
-    step: "01",
-    title: "After an accident",
-    tools: [
-      {
-        href: "/calculator",
-        example: "claim",
-        title: "Claim or self-pay?",
-        summary: "Compare the repair bill with the multi-year cost of losing your NCD.",
-        featured: true,
-      },
-    ],
-  },
-  {
     id: "renewal",
-    step: "02",
+    step: "01",
     title: "Every renewal",
     tools: [
-      {
-        href: "/tools/ncd-protector",
-        example: "protector",
-        title: "Is the NCD Protector worth it?",
-        summary: "Find the claim risk at which the rider pays for itself.",
-      },
       {
         href: "/tools/quote-compare",
         example: "quotes",
         title: "Is the cheaper quote really cheaper?",
         summary: "Weigh each premium against what an accident would really cost you.",
       },
+      {
+        href: "/tools/ncd-protector",
+        example: "protector",
+        title: "Is the NCD Protector worth it?",
+        summary: "Find the claim risk at which the rider pays for itself.",
+      },
     ],
   },
   {
     id: "loan",
-    step: "03",
+    step: "02",
     title: "During your loan",
     tools: [
       {
@@ -126,7 +112,7 @@ export const TOOL_STAGES = [
   },
   {
     id: "coe",
-    step: "04",
+    step: "03",
     title: "Before COE expiry",
     tools: [
       {
@@ -137,11 +123,24 @@ export const TOOL_STAGES = [
       },
     ],
   },
+  {
+    id: "accident",
+    step: "04",
+    title: "If you have an accident",
+    tools: [
+      {
+        href: "/calculator",
+        example: "claim",
+        title: "Claim or self-pay?",
+        summary: "Compare the repair bill with the multi-year cost of losing your NCD.",
+      },
+    ],
+  },
 ];
 
 function ToolCard({ tool, example }) {
   return (
-    <Link className={`landing-tool${tool.featured ? " is-featured" : ""}`} href={tool.href}>
+    <Link className="landing-tool" href={tool.href}>
       <h3>{tool.title}</h3>
       <p>{tool.summary}</p>
       <div className="landing-example">

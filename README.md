@@ -18,7 +18,7 @@ Car ownership rules in Singapore are split across GIA frameworks, LTA schedules,
 | During a car loan | Should I settle the loan early? | `/tools/loan-prepayment` |
 | Before COE expiry | Renew for 5 years, 10 years, or replace the car? | `/tools/coe-renewal` |
 
-The home page (`/`) walks through the tools by ownership stage with worked examples. Top navigation links **Car tools** (`/tools`, a plain list of every calculator and feature), **My car** (`/my-car`, saving key dates and policy figures once to prefill tools and send email reminders), **Emergency** (`/emergency`, an offline checklist for the accident scene), **Settlement** (`/settlement`, a GIA private settlement agreement), and **Rules** (`/rules`, insurer excesses and NCD terms). Footer links cover **How it works** (`/how-it-works`) and **Privacy** (`/privacy`).
+The home page (`/`) walks through the tools by ownership stage with worked examples. Top navigation links **Car tools** (`/tools`, a plain list of every calculator and feature), **My car** (`/my-car`, saving key dates and policy figures once to prefill tools and send email reminders), and **After an accident** (`/accident`, which leads to the offline emergency checklist, the claim calculator, and the private settlement agreement). Footer links cover **Insurer rules** (`/rules`), **How it works** (`/how-it-works`), and **Privacy** (`/privacy`).
 
 Full details and real-world Singapore cases: **[docs/motivation.md](docs/motivation.md)**
 
