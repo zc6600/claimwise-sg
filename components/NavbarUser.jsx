@@ -18,7 +18,7 @@ export default function NavbarUser() {
 
   if (!mounted || loading) {
     return (
-      <Link href="/login" className="nav-user-link" suppressHydrationWarning>
+      <Link href="/login" className="topbar-cta" suppressHydrationWarning>
         Sign in
       </Link>
     );
@@ -76,7 +76,7 @@ export default function NavbarUser() {
   }
 
   return (
-    <Link href="/login" className="nav-user-link" suppressHydrationWarning>
+    <Link href="/login" className="topbar-cta" suppressHydrationWarning>
       Sign in
     </Link>
   );

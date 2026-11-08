@@ -219,10 +219,6 @@ p {
   color: var(--ink);
 }
 
-.nav-user-link {
-  color: var(--muted);
-}
-
 .nav-user-chip {
   position: relative;
   display: inline-flex;
@@ -2161,9 +2157,21 @@ td:first-child {
   font-size: 0.8125rem;
 }
 
-.footer-meta {
-  font-size: 0.75rem;
-  color: var(--muted-light);
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 0.8125rem;
+}
+
+.footer-links a:hover {
+  color: var(--ink);
+}
+
+.topbar-account {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* Focus visibility */
@@ -3762,11 +3770,6 @@ td:first-child {
 
 .privacy-copy a,
 .reminder-consent a,
-.footer-meta a {
-  color: var(--teal-dark);
-  font-weight: 600;
-}
-
 .privacy-table-wrap {
   overflow-x: auto;
 }

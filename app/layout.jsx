@@ -78,29 +78,19 @@ export default function RootLayout({ children }) {
 
                 <nav className="nav-links" aria-label="Main navigation">
                   <Link href="/">Car tools</Link>
-                  <Link href="/calculator">Claim calculator</Link>
                   <Link href="/my-car">My car</Link>
-                  <Link href="/settlement">Settlement</Link>
                   <Link href="/emergency">Emergency</Link>
-                  <Link href="/how-it-works">How it works</Link>
-                  <Link href="/rules">Rules</Link>
-                  <NavbarUser />
                 </nav>
 
-                <Link className="topbar-cta" href="/calculator">
-                  Open calculator <span aria-hidden="true">→</span>
-                </Link>
+                <div className="topbar-account">
+                  <NavbarUser />
+                </div>
               </div>
 
               <nav className="mobile-nav section-pad" aria-label="Mobile navigation">
                 <Link href="/">Car tools</Link>
-                <Link href="/calculator">Claim calculator</Link>
                 <Link href="/my-car">My car</Link>
-                <Link href="/settlement">Settlement</Link>
                 <Link href="/emergency">Emergency</Link>
-                <Link href="/how-it-works">How it works</Link>
-                <Link href="/rules">Rules</Link>
-                <NavbarUser />
               </nav>
             </header>
 
@@ -119,9 +109,12 @@ export default function RootLayout({ children }) {
                   </span>
                 </div>
                 <p>Independent calculators for the expensive decisions in Singapore car ownership.</p>
-                <span className="footer-meta">
-                  Singapore GIA MCF baseline · 2026 · <Link href="/privacy">Privacy</Link>
-                </span>
+                <nav className="footer-links" aria-label="More pages">
+                  <Link href="/settlement">Private settlement</Link>
+                  <Link href="/how-it-works">How it works</Link>
+                  <Link href="/rules">Insurer rules</Link>
+                  <Link href="/privacy">Privacy</Link>
+                </nav>
               </div>
             </footer>
           </div>
