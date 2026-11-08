@@ -1,36 +1,32 @@
-# ClaimWise SG · Terraform Infrastructure as Code
+# ClaimWise SG · Terraform Infrastructure
 
-This directory defines the declarative **Infrastructure as Code (IaC)** configuration for ClaimWise SG using Terraform (`google` and `google-beta` providers).
+Terraform is the source of truth for ClaimWise SG infrastructure. Application code is released separately by `.github/workflows/deploy.yml`.
 
----
+## State
 
-## Provisioned Resources
+State lives in the private, versioned GCS bucket `gs://claimwise-sg-tfstate` (prefix `terraform/state`), configured in `backend.tf`. Commit `.terraform.lock.hcl` whenever provider versions change.
 
-1. **Google Cloud APIs**:
-   - `identitytoolkit.googleapis.com` (Identity Platform / Firebase Auth)
-   - `firebase.googleapis.com` (Firebase Management)
-   - `firestore.googleapis.com` (Cloud Firestore)
-   - `firebaserules.googleapis.com` (Firebase Security Rules API)
-   - `run.googleapis.com` (Cloud Run v2)
-2. **Database, Security Rules & Identity**:
-   - Native Cloud Firestore database `(default)` in `asia-southeast1` (Singapore).
-   - Declarative deployment of `firestore.rules` via `google_firebaserules_ruleset` and `google_firebaserules_release`.
-   - Firebase Project binding and Web App registration (`ClaimWiseWeb`).
-   - Identity Platform authorized domains and Google OAuth 2.0 Sign-In provider.
-3. **Serverless Application Runtime**:
-   - `google_cloud_run_v2_service.claimwise_app` (`asia-southeast1`, `0–10` auto-scaling instances, `1 vCPU`, `1 GiB` memory, port `3000`).
-   - `google_cloud_run_v2_service_iam_member.public_access` (`roles/run.invoker` for `allUsers`).
+## Managed Resources
 
----
+1. **APIs**: Identity Toolkit, Firebase, Firestore, Firebase Rules, Cloud Run, Cloud Build, Artifact Registry, Secret Manager, Cloud Scheduler, IAM, IAM Credentials, and STS.
+2. **Data and identity**: Native Firestore `(default)` in `asia-southeast1`; `firestore.rules` published through a ruleset and the `cloud.firestore` release; Firebase project and `ClaimWiseWeb` web app; Identity Platform authorized domains and the Google sign-in provider.
+3. **Runtime**: Cloud Run v2 service `claimwise-sg` (0–10 instances, 1 vCPU, 1 GiB, port 3000, CPU boost at startup) with public invoker access, reminder settings, and secrets mounted from Secret Manager.
+4. **Reminders**: Firestore and secret access for the runtime account; the `reminder-scheduler` account and the daily 09:00 SGT dispatch job.
+5. **Continuous deployment**: Workload Identity pool `github`, restricted to `main` of `zc6600/claimwise-sg`, and the `github-deployer` account with source-deploy roles.
+
+## Boundaries
+
+- **Image and build metadata** are ignored, because each release builds a new image.
+- **Secret values** (`RESEND_API_KEY`, `REMINDER_TOKEN_SECRET`) are created outside Terraform; only their access bindings are managed here.
+- **Google OAuth client secret** is maintained in the Google Cloud console. `google_client_secret` is read only when the provider is first created.
 
 ## Usage
 
 ```bash
 cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars
-# Populate google_client_id, google_client_secret, and optional container_image
-
 terraform init
-terraform plan
+terraform plan    # Expect "No changes" when production matches the code
 terraform apply
 ```
+
+All variables default to production values. Override them with `-var` or a local `terraform.tfvars`, which is git-ignored.

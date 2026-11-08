@@ -32,10 +32,14 @@ History subscriptions and deletions use the Firebase Web SDK in the client (`com
 - **Saved Result Viewing**: Opening a historical record with a stored `decision` object displays that exact snapshot without recalculating it.
 - **Recalculation**: Clicking **Recalculate & save** sends the saved inputs to the current decision engine and saves the refreshed output as a new comparison record.
 
-## 4. Declarative Infrastructure as Code (Terraform)
+## 4. Infrastructure and Release Pipeline
 
-All core cloud infrastructure is managed declaratively under `infra/terraform`:
-- **GCP APIs**: `identitytoolkit`, `firebase`, `firestore`, `firebaserules`, and `run`.
+Infrastructure is declared in `infra/terraform`, with state in the private, versioned bucket `gs://claimwise-sg-tfstate`:
+- **GCP APIs**: Identity Toolkit, Firebase, Firestore, Firebase Rules, Cloud Run, Cloud Build, Artifact Registry, Secret Manager, Cloud Scheduler, IAM, IAM Credentials, and STS.
 - **Database & Security Rules**: Native Firestore database in `asia-southeast1` (Singapore) linked to `firestore.rules` via `google_firebaserules_ruleset` and `google_firebaserules_release`.
-- **Identity & Auth**: Google Cloud Identity Platform configuration with authorized OAuth domains and Google Sign-In IdP.
-- **Serverless Runtime**: Google Cloud Run v2 auto-scaling container service (0–10 instances) serving Next.js on port 3000.
+- **Identity & Auth**: Identity Platform authorized domains and the Google Sign-In IdP.
+- **Serverless Runtime**: Cloud Run v2 service (0–10 instances, port 3000) with reminder settings and secrets mounted from Secret Manager.
+- **Reminder Dispatch**: A Cloud Scheduler job calls `POST /api/reminders/dispatch` daily at 09:00 Singapore time with an OIDC token for the `reminder-scheduler` account.
+- **Continuous Deployment**: A Workload Identity pool lets GitHub Actions on `main` impersonate `github-deployer`, which may only build from source and roll out revisions.
+
+Terraform owns runtime configuration but ignores the container image. Each merge to `main` triggers `.github/workflows/deploy.yml`, which runs the tests, deploys the source with `gcloud run deploy`, and smoke-tests the live service.

@@ -41,7 +41,7 @@ cd claimwise-sg
 # 2. Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
 
-# 3. Run the deterministic test suite (64 tests, 0 failures required)
+# 3. Run the deterministic test suite (0 failures required)
 npm test
 
 # 4. Start local development server (or npm run build && npm run start for production)
@@ -79,62 +79,33 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
 ```
 
-### Deploying Firestore Security Rules
-Calculation history is stored in Google Cloud Firestore (`asia-southeast1`) under user-isolated security rules defined in [`firestore.rules`](../firestore.rules):
-
-```bash
-firebase deploy --only firestore:rules --project claimwise-sg
-```
+### Firestore Security Rules
+Calculation history and saved cars are protected by user-isolated rules in [`firestore.rules`](../firestore.rules). Terraform publishes them (section 4); use the Firebase CLI only against the local emulator.
 
 ---
 
-## 3. Google Cloud Run Deployment
+## 3. Releases and Infrastructure
 
-To deploy ClaimWise SG as a serverless container on Google Cloud Run in Singapore (`asia-southeast1`):
+Responsibilities are split so that no production setting is changed by hand:
+
+| Concern | Owner | How it runs |
+| --- | --- | --- |
+| APIs, IAM, secret access, Firestore rules, Identity Platform, scheduler job, Cloud Run runtime configuration | Terraform (`infra/terraform`) | `scripts/deploy.sh infra` |
+| Application code | GitHub Actions (`.github/workflows/deploy.yml`) | Every merge to `main`: tests, `gcloud run deploy --source`, smoke test |
+
+Manual equivalents:
 
 ```bash
-gcloud config set project claimwise-sg
-
-gcloud run deploy claimwise-sg \
-  --source . \
-  --region asia-southeast1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --port 3000 \
-  --memory 1Gi \
-  --cpu 1 \
-  --min-instances 0 \
-  --max-instances 10
+scripts/deploy.sh infra    # terraform init and apply (asks for confirmation)
+scripts/deploy.sh deploy   # Builds the committed HEAD from a clean checkout and rolls it out
+scripts/deploy.sh verify   # Checks public pages and that the reminder API is configured
 ```
 
-### Production Service Verification
-After deployment completes, Cloud Run outputs the live HTTPS endpoint:
-```text
-Service URL: https://claimwise-sg-721110976915.asia-southeast1.run.app
-```
-
-Verify service health via curl:
-```bash
-curl -s https://claimwise-sg-721110976915.asia-southeast1.run.app/api/health | jq .
-```
-Expected response:
-```json
-{
-  "ok": true,
-  "service": "claimwise-sg-api",
-  "status": "ready",
-  "framework": "nextjs",
-  "rulesStore": "versioned-code-config",
-  "persistence": "authenticated-firestore",
-  "timestamp": "2026-11-07T08:00:00.000Z"
-}
-```
-
----
+The deploy workflow authenticates through Workload Identity Federation as `github-deployer@claimwise-sg.iam.gserviceaccount.com`. No service account key exists, and only workflows on `main` of `zc6600/claimwise-sg` can obtain credentials.
 
 ### Email Reminders
 
-Reminders require a sending domain verified in Resend and two values in Secret Manager:
+Reminders need a sending domain verified in Resend and two Secret Manager values. Secret values are created once outside Terraform so they never enter state:
 
 ```bash
 printf %s "<resend-sending-access-key>" | gcloud secrets create RESEND_API_KEY \
@@ -146,47 +117,22 @@ openssl rand -hex 32 | tr -d '\n' | gcloud secrets create REMINDER_TOKEN_SECRET 
   --locations=asia-southeast1 --data-file=-
 ```
 
-Grant the Cloud Run service account `roles/secretmanager.secretAccessor` on both secrets and `roles/datastore.user` on the project so it can store subscriptions. Unless the service sets its own account, this is `<project-number>-compute@developer.gserviceaccount.com`. Then deploy with the reminder settings:
-
-```bash
-gcloud run deploy claimwise-sg --source . --region asia-southeast1 \
-  --set-secrets=RESEND_API_KEY=RESEND_API_KEY:latest,REMINDER_TOKEN_SECRET=REMINDER_TOKEN_SECRET:latest \
-  --set-env-vars="^|^REMINDER_FROM_EMAIL=ClaimWise SG <reminders@zc6600.wiki>|REMINDER_SITE_URL=<public-url>|REMINDER_SCHEDULER_EMAIL=<scheduler-service-account>"
-```
-
-Create a Cloud Scheduler job that sends `POST <public-url>/api/reminders/dispatch` daily with an OIDC token for that service account and `<public-url>/api/reminders/dispatch` as the audience. Changing the public URL requires updating `REMINDER_SITE_URL` and the job together.
-
-#### Scripted Setup and Deployment
-
-`scripts/deploy.sh` automates the steps above once both secrets exist:
-
-```bash
-scripts/deploy.sh setup    # One-time and idempotent: APIs, secret access, Firestore access, scheduler job
-scripts/deploy.sh deploy   # Deploys the committed HEAD and publishes firestore.rules
-scripts/deploy.sh verify   # Checks public pages and that the reminder API is configured
-scripts/deploy.sh all      # Runs setup, deploy, and verify
-```
-
-`deploy` builds from a clean checkout of `HEAD`, so uncommitted files are never uploaded. Override `PROJECT_ID`, `REGION`, `SERVICE`, `SITE_URL`, or `FROM_EMAIL` through the environment; run `setup` again after changing `SITE_URL` so the scheduler job targets the new address.
+Terraform grants the runtime account access, mounts both secrets, and creates the daily 09:00 SGT dispatch job with an OIDC token. Changing the public URL means updating `reminder_site_url` and running `scripts/deploy.sh infra`.
 
 Rotating `REMINDER_TOKEN_SECRET` invalidates every confirmation, manage, and unsubscribe link already sent, so rotate it only after a suspected compromise.
 
 ## 4. Infrastructure as Code (Terraform)
 
-The [`infra/terraform`](../infra/terraform) directory provisions the required GCP and Firebase resources:
-- Google Cloud APIs (Identity Toolkit, Cloud Firestore, Firebase, Firebase Security Rules, Cloud Run v2)
-- Native Firestore database in `asia-southeast1` (Singapore)
-- Declarative Firestore Security Rules deployment (`firestore.rules` via `google_firebaserules_ruleset` and `google_firebaserules_release`)
-- Identity Platform authentication configuration, authorized domains, and Google OAuth 2.0 provider
-- Serverless Cloud Run v2 service with auto-scaling (0–10 instances) and public HTTPS access
+State is stored in the private, versioned bucket `gs://claimwise-sg-tfstate`. All defaults match production, so no `terraform.tfvars` is required. See [`infra/terraform/README.md`](../infra/terraform/README.md) for the resource inventory.
 
 ```bash
 cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars
 terraform init
-terraform plan
+terraform plan    # Expect "No changes" when production matches the code
 terraform apply
 ```
+
+The Cloud Run image, build metadata, and revision labels are ignored by Terraform because releases change them. The Google OAuth client secret is maintained in the Google Cloud console and ignored after creation.
 
 ---
 
