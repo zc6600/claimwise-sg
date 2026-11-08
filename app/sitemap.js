@@ -1,4 +1,4 @@
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://claimwise-sg.web.app";
+import { SITE_URL } from "../lib/site-url";
 
 const PUBLIC_PATHS = [
   "/",

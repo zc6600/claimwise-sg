@@ -1,211 +1,121 @@
-# ClaimWise SG · Motor Insurance Claim Decision Support
+# ClaimWise SG · Car Ownership Decisions for Singapore
 
-[![Tests](https://img.shields.io/badge/tests-118%2F118%20passed-success)](tests/)
+[![CI](https://github.com/zc6600/claimwise-sg/actions/workflows/ci.yml/badge.svg)](https://github.com/zc6600/claimwise-sg/actions/workflows/ci.yml)
+[![Deploy](https://github.com/zc6600/claimwise-sg/actions/workflows/deploy.yml/badge.svg)](https://github.com/zc6600/claimwise-sg/actions/workflows/deploy.yml)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-asia--southeast1-blue?logo=googlecloud)](https://claimwise-sg-721110976915.asia-southeast1.run.app)
-[![Firebase](https://img.shields.io/badge/Firebase%20Hosting-claimwise--sg.web.app-orange?logo=firebase)](https://claimwise-sg.web.app)
-[![Cloud Database](https://img.shields.io/badge/Firestore-asia--southeast1-orange)](https://console.firebase.google.com/project/claimwise-sg)
 
-**ClaimWise SG** is a cloud-native decision-support web application for Singapore private car owners and commercial private hire vehicle (PHV) drivers. After a minor collision, motorists must decide whether to **pay out-of-pocket (Self-Pay)** or **file an own-damage insurance claim (Claim)**.
+**ClaimWise SG** helps Singapore private car owners and private hire (PHV) drivers make the money decisions of owning a car. Its core question: after a minor collision, is it cheaper to **pay for the repair yourself** or **file an own-damage claim**?
 
-ClaimWise SG models multi-year No-Claim Discount (NCD) step-down penalties, commercial renewal claim loadings, workshop and young-driver excess surcharges, loss-of-use downtime costs, General Insurance Association (GIA) subrogation rules, and present-value discounting to compute the exact break-even repair threshold $R^*(S)$, paired with an interactive policy clause audit and official insurer PDF previews.
+The decision engine models No-Claim Discount (NCD) step-downs, excess and workshop surcharges, commercial claim loadings, downtime, General Insurance Association (GIA) rules, and present-value discounting to find the break-even repair cost $R^*(S)$, with every rule traced to policy wording.
 
----
-
-## Live Deployment & Production Access
-
-ClaimWise SG is deployed serverless on **Google Cloud Platform (GCP)** in Singapore (`asia-southeast1`):
-
-| Environment / Service | Target URL / Identifier | Details |
-| :--- | :--- | :--- |
-| **Live Web Application (Cloud Run)** | **[https://claimwise-sg-721110976915.asia-southeast1.run.app](https://claimwise-sg-721110976915.asia-southeast1.run.app)** | Production container instance on Cloud Run v2 (managed serverless in Singapore) |
-| **Firebase Web App Mirror** | **[https://claimwise-sg.web.app](https://claimwise-sg.web.app)** · [https://claimwise-sg.firebaseapp.com](https://claimwise-sg.firebaseapp.com) | Edge-cached Firebase Hosting distribution |
-| **Cloud Region** | `asia-southeast1` (Singapore) | Co-located in Singapore for domestic motorists |
-| **Cloud Database** | Google Cloud Firestore (`claimwise-sg`) | Multi-tenant user calculation persistence with strict security rules |
-| **Authentication** | Google Identity Platform / Firebase Auth | Secures user profile & cloud calculation history; guest mode is fully accessible |
-| **Health Check Endpoint** | [`/api/health`](https://claimwise-sg-721110976915.asia-southeast1.run.app/api/health) | Live JSON health check and service status |
-| **Local Development** | `http://localhost:3000` | Zero local database footprint; runs with `npm run dev` |
+**Live site:** https://claimwise-sg-721110976915.asia-southeast1.run.app
 
 ---
 
-## Core Capabilities
+## Features
 
-### 1. Actuarial Break-Even Engine
-- Computes the multi-year Discounted Cash Flow (DCF) net present value break-even threshold:
-  $$R^*(S) = E_{\text{own}} + \sum_{t=1}^{T} \frac{P_t^{\text{claim}} - P_t^{\text{self}}}{(1 + r)^t} + (\text{Downtime}^{\text{claim}} - \text{Downtime}^{\text{self}})$$
-- Discounts future renewal cash flows across 3-year or 5-year horizons (default $r = 3.0\%$ p.a.) and evaluates sensitivity across Lower ($-5\%$), Base, and Higher ($+5\%$) premium growth bands.
+| Feature | Route | What it does |
+| --- | --- | --- |
+| Claim vs. self-pay calculator | `/`, `/calculator` | Multi-year cash-flow comparison, break-even threshold, renewal schedule, and clause audit; shareable links and printable report |
+| Trajectory and stress test | `/calculator` results | Cumulative cost and NCD recovery charts; exposure if a second at-fault claim follows within 12 months |
+| Car decision tools | `/tools` | NCD Protector break-even, renewal quote comparison, COE renewal vs. replacement, car loan early settlement |
+| My Car and reminders | `/my-car` | Saves key dates and policy figures to prefill the tools; optional email reminders before renewal, COE expiry, and loan review |
+| Private settlement | `/settlement` | GIA Motor Claims Framework settlement agreement with statutory prerequisites |
+| Emergency kit | `/emergency` | Offline on-scene checklist, reporting rules, tow-truck scam warnings, and hotlines for underground carparks |
+| Insurer rules | `/rules` | Insurer profiles (Income, Etiqa, MSIG, FWD, GIA baseline), NCD scale, and official policy PDFs at the cited page |
 
-### 2. Singapore Motor Policy & PHV Mechanics
-- **Insurer Profiles**: Pre-configured rules for **Income**, **Etiqa**, **MSIG**, **FWD**, and a standard GIA baseline.
-- **Vehicle Classification**: Supports **Private Passenger (P10/P11)** and **Private Hire / Commercial (Z10/Z11)** vehicles (Grab, Gojek, Tada). Models commercial underwriting claim loadings (default $+15\%$) and daily vehicle downtime/rental costs (default S$80/day across 5-day claim surveyor queues vs. 1-day private repairs).
-- **Effective Excess Calculation**: Combines standard policy excess with non-authorised workshop surcharges (`+S$1,000` to `+S$2,000`) and young/inexperienced driver surcharges (`+S$2,000` to `+S$2,500`).
-- **Special Claim Scenarios**: Supports GIA Windscreen Endorsement (`S$100` excess with `0%` NCD penalty), `100%` non-fault protection, NCD Protector riders, and third-party adverse claims.
+Guests can use everything. Signing in (Google or email) syncs calculation history and My Car to Firestore in Singapore.
 
-### 3. Interactive Multi-Year Trajectory Visualizer
-- **Visual Trajectory (`TrajectoryVisualizer`)**: Dynamic dual-mode SVG charts for cumulative present-value cash outflows and annual NCD recovery curves without external heavy charting libraries.
-- **Break-Even Crossover Detection**: Highlights the exact timeline milestone where an insurance claim becomes more expensive than self-paying.
+### Break-Even Model
 
-### 4. Consecutive Incident Stress-Testing & Resilience Buffer
-- **Multi-Collision Simulation (`StressTestSimulator`)**: Simulates the severe financial exposure if a second at-fault collision occurs within 12 months.
-- **Exhaustion vs. Preservation**: Models how filing an initial claim exhausts the NCD Protector rider and risks dropping renewal NCD to `0%` alongside standard `+25%` consecutive adverse underwriting loading, whereas self-paying Incident 1 preserves the clean record cushion and protects NCD tiers.
-- **Resilience Buffer Metric**: Calculates the explicit dollar buffer ($\Phi_{\text{resilience}}$) gained by keeping the insurance record clean.
+$$R^*(S) = E_{\text{own}} + \sum_{t=1}^{T} \frac{P_t^{\text{claim}} - P_t^{\text{self}}}{(1 + r)^t} + (\text{Downtime}^{\text{claim}} - \text{Downtime}^{\text{self}})$$
 
-### 5. GIA Private Settlement Agreement Generator (`/settlement`)
-- Seamlessly transitions self-pay recommendations to a legally grounded Singapore Motor Claims Framework (MCF) Private Settlement Agreement generator.
-- Includes statutory prerequisites gating (no bodily injury, no government property damage), GIA 24-hour insurer reporting notices, and conditional release clauses.
-
-### 6. Policy Clause Audit & Printable Report
-- **Interactive Clause Audit (`PolicySourcePreview`)**: Hover or click any audited rule in the calculator results to inspect its calculation rationale and contract citation.
-- **Official Insurer PDF Viewer**: Embeds self-hosted insurer policy wordings (`etiqa_tiq_motor_policy.pdf`, `income_drivo_policy.pdf`, `msig_motormax_policy.pdf`) via `/api/clause-preview` at the mapped page (`#page=N&view=FitH`), with **Official PDF** / **Clause summary** switching, **📌 Pin**, and **Full tab ↗**.
-- **Print / PDF Export**: Generates a clean A4/Letter actuarial report with a parameter summary header, auto-expanded year-by-year renewal schedule, and complete clause audit trail.
-
-### 7. Authentication & Cloud History
-- **Firebase Authentication**: Supports Google and email/password sign-in.
-- **Cloud & Local Persistence**: Signed-in calculations are persisted to Google Cloud Firestore in Singapore (`asia-southeast1`) under user-scoped security rules (`firestore.rules`). Guest calculations are stored in browser `localStorage`.
-
-### 8. Underground Carpark Emergency Kit & Offline PWA (`/emergency`)
-- **Offline Progressive Web App (PWA)**: Supports zero-cellular offline caching via Service Worker (`public/sw.js`) and Web App Manifest (`app/manifest.js`) for subterranean basement carparks (B2/B3/B4 at shopping malls or HDB carparks).
-- **On-Scene Protocol & Anti-Scam Guidance**: Features the statutory Road Traffic Act (Section 84) police reporting checklist, GIA 24-hour mandatory insurer reporting rule, and predatory tow-truck scam protection warnings.
-- **Emergency Directory**: Provides verified direct hotlines and operating hours for statutory services (Police 999, SCDF 995, LTA EMAS 1800-2255-582) and authorized insurer assistance centers (Income, Tiq/Etiqa, MSIG).
-
-### 7. Car Decision Tools (`/tools`)
-- **NCD Protector** (`/tools/ncd-protector`): Finds the at-fault claim probability at which the rider pays for itself.
-- **Renewal Quote Comparison** (`/tools/quote-compare`): Ranks quotes by expected cost, including excess and workshop surcharges.
-- **COE Renewal** (`/tools/coe-renewal`): Compares 5-year renewal, 10-year renewal, and replacement using LTA PARF, COE rebate, and road tax surcharge rules.
-- **Car Loan Early Settlement** (`/tools/loan-prepayment`): Estimates a Rule of 78 settlement and compares it with the return on idle cash.
-
-### 8. My Car & Email Reminders (`/my-car`)
-- **My Car**: Saves key dates and policy figures in the browser, or in Firestore for signed-in users, to prefill the tools. Registration numbers are not collected.
-- **Email Reminders**: Double opt-in reminders for insurance renewal (45 days), COE expiry (365 and 90 days), and loan review (30 days). Unsubscribing deletes the email address and dates.
-- **Configuration**: Reminders stay disabled until `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, `REMINDER_SITE_URL`, and `REMINDER_TOKEN_SECRET` are set. In production, `RESEND_API_KEY` and `REMINDER_TOKEN_SECRET` come from Secret Manager. Cloud Scheduler calls the dispatch endpoint daily at 09:00 Singapore time with a Google ID token. See `.env.example`.
+Renewals are projected over 3 or 5 years (default discount rate 3% p.a.) with lower, base, and higher premium-growth scenarios.
 
 ---
 
-## Tech Stack & Repository Structure
+## Quick Start
 
-| Layer | Technology / Path |
-| :--- | :--- |
-| **Frontend & Routing** | Next.js 15 App Router, React 19 (`app/`, `components/`) |
-| **Decision Engine** | Pure ESM actuarial model & insurer data (`src/decision-engine.mjs`, `src/decision-data.mjs`) |
-| **Backend API** | Next.js Route Handlers (`app/api/decision`, `app/api/clause-preview`, `app/api/rules`, `app/api/benchmarks`, `app/api/health`) |
-| **Auth & Database** | Firebase Authentication & Cloud Firestore (`lib/firebase.js`, `lib/history-service.js`, `firestore.rules`) |
-| **Testing & Evaluation** | Node.js native test runner (`tests/decision-engine.test.mjs`) & evaluation scripts (`scripts/`, `evaluation/`) |
-| **Infrastructure** | Terraform GCP & Firebase configuration (`infra/terraform/`) |
-
----
-
-## Quick Start (Running on Any Machine)
-
-### Prerequisites
-- **Node.js**: `>= 20.0.0` (Verify with `node -v`; required for Node's native test runner and React 19).
-- **Git**: To clone the repository.
-- *Zero local database installation required* (actuarial calculation runs locally in pure JavaScript; guest history uses browser storage).
-
-### 1. Local Run in 3 Minutes (Zero-Config)
-The app comes with built-in client fallbacks so anyone can clone and immediately run it without having to configure cloud credentials:
+Requires Node.js 20 or later. No database or cloud credentials are needed: the decision engine is pure JavaScript, guest data stays in the browser, and `lib/firebase-config.js` ships public project defaults.
 
 ```bash
-# Clone and enter the repository
 git clone https://github.com/zc6600/claimwise-sg.git
 cd claimwise-sg
-
-# Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
-
-# Run the deterministic test suite (64 tests)
-npm test
-
-# Start the local development server
-npm run dev
+npm test        # Node's built-in test runner; all tests must pass
+npm run dev     # http://localhost:3000
 ```
-Open **`http://localhost:3000`** in your browser.
 
-> [!TIP]
-> **Optional Custom Configuration**: To connect your own Firebase project rather than using default demo credentials, copy `.env.example` to `.env.local` and provide your project keys.
-
-### 2. Production Build & Test
-```bash
-# Run all 64 actuarial & API unit tests
-npm test
-
-# Build and start the optimized standalone production server
-npm run build
-npm run start -- -p 3000
-```
+To use your own Firebase project, copy `.env.example` to `.env.local`.
 
 ---
 
-## API Reference
+## Repository Layout
 
-All endpoints below are available on the live production deployment:
-```
-Production Base URL: https://claimwise-sg-721110976915.asia-southeast1.run.app
-Local Base URL:      http://localhost:3000
-```
+| Path | Contents |
+| --- | --- |
+| `app/`, `components/` | Next.js App Router pages, route handlers (`app/api/`), and React components |
+| `src/` | Pure decision modules: claim engine, car decision tools, My Car, reminder schedule |
+| `lib/` | Firebase access, server storage, reminder service, chart and settlement helpers |
+| `data/`, `public/policies/` | Market statistics and official policy wordings |
+| `tests/` | `node:test` suites for every decision module and server component |
+| `infra/terraform/` | Google Cloud infrastructure; `.github/workflows/` runs CI and deployment |
+| `evaluation/` | Correctness, load, and user-study tooling |
 
-### `POST /api/decision`
-Computes the actuarial comparison, break-even repair threshold, renewal schedule, and clause audit trail.
+---
 
-**Production Endpoint**: `https://claimwise-sg-721110976915.asia-southeast1.run.app/api/decision`
+## API
+
+Base URL: `https://claimwise-sg-721110976915.asia-southeast1.run.app`
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/decision` | Claim vs. self-pay comparison, break-even threshold, renewal schedule, and clause audit |
+| `GET /api/clause-preview?id=<clause>&insurer=<income\|etiqa\|msig>` | Official policy PDF at the cited page |
+| `GET /api/rules` | Insurer profiles, excesses, and the GIA NCD scale |
+| `GET /api/benchmarks` | Singapore repair and premium benchmarks |
+| `GET /api/health` | Service status |
+| `/api/reminders/*` | Reminder sign-up, confirmation, management, and daily dispatch ([details](docs/architecture.md#5-email-reminders)) |
+
+Example `POST /api/decision` body:
 
 ```json
 {
-  "insurer": "income",
-  "currentPremium": 3200,
-  "currentNcd": 50,
-  "excess": 1500,
-  "repairCost": 2500,
-  "horizonYears": 3,
-  "baseGrowthRate": 5,
-  "discountRate": 3,
-  "ncdProtector": false,
-  "liability": "at_fault",
-  "thirdPartyClaim": false,
-  "workshopType": "authorized",
-  "youngDriverInvolved": false,
-  "repairType": "general",
-  "vehicleUsage": "phv",
-  "commercialClaimLoading": 15,
-  "dailyDowntimeCost": 80,
-  "claimDowntimeDays": 5,
-  "selfPayDowntimeDays": 1
+  "insurer": "income", "currentPremium": 3200, "currentNcd": 50, "excess": 1500,
+  "repairCost": 2500, "horizonYears": 3, "baseGrowthRate": 5, "discountRate": 3,
+  "liability": "at_fault", "workshopType": "authorized", "repairType": "general",
+  "ncdProtector": false, "thirdPartyClaim": false, "youngDriverInvolved": false,
+  "vehicleUsage": "phv", "commercialClaimLoading": 15, "dailyDowntimeCost": 80,
+  "claimDowntimeDays": 5, "selfPayDowntimeDays": 1
 }
 ```
 
-### `GET /api/clause-preview?id=<clauseId>&insurer=<insurerKey>`
-Renders an HTML wrapper embedding the matching official policy wording PDF at its mapped source page (`income`, `etiqa`, `msig`) or a fallback notice when no local document is mapped.
-
-**Production Endpoint**: `https://claimwise-sg-721110976915.asia-southeast1.run.app/api/clause-preview?id=workshop_surcharge&insurer=etiqa`
-
-### Additional Endpoints
-- `GET /api/rules` — Insurer profiles, deductibles, and standard GIA NCD step-down scale (`https://claimwise-sg-721110976915.asia-southeast1.run.app/api/rules`).
-- `GET /api/benchmarks` — Singapore motor repair and premium benchmark statistics (`https://claimwise-sg-721110976915.asia-southeast1.run.app/api/benchmarks`).
-- `GET /api/health` — Service health check returning uptime and timestamp (`https://claimwise-sg-721110976915.asia-southeast1.run.app/api/health`).
-
 ---
 
-## Evaluation & Benchmarks
+## Evaluation
 
-| Evaluation | Script | Summary |
-| :--- | :--- | :--- |
-| **Decision Correctness** | `node evaluation/correctness.mjs` | 18 cases with independent renewal paths and cash-flow checks; HTTP mode adds 8 validation cases |
-| **Load & Latency** | `bash evaluation/run_performance.sh <origin> [comparison\|steady]` | Isolated page/decision requests and ordered journeys; sustained load and exact 200-unit bursts; mean/tail/max latency and errors |
-| **Cloud Run Elasticity** | `python evaluation/cloud_metrics.py --run-dir <run-directory>` | Read-only Monitoring evidence for instance counts, resource use, startup latency, and observed scaling |
-| **Participant Scenario Study** | `python evaluation/simple_user_study.py prepare` / `analyze` | Four optional background questions; two tasks per person, with/without app; balanced assignments and descriptive paired results |
-| **Illustrative TCO Model** | `python scripts/tco_calculator.py` | Assumption-based cost comparison; not measured cloud billing |
+| Evaluation | Command |
+| --- | --- |
+| Decision correctness (18 cases, plus 8 HTTP validation cases) | `node evaluation/correctness.mjs` |
+| Load and latency | `bash evaluation/run_performance.sh <origin> [comparison\|steady]` |
+| Cloud Run elasticity | `python evaluation/cloud_metrics.py --run-dir <run-directory>` |
+| Participant scenario study | `python evaluation/simple_user_study.py prepare` / `analyze` |
+| Illustrative cost model (not measured billing) | `python scripts/tco_calculator.py` |
 
-See [Evaluation Setup & Commands](evaluation/README.md) and the [User Study Protocol](evaluation/USER_STUDY_PROTOCOL.md). Fresh measurements are stored under ignored `evaluation/results/` directories. Earlier top-level evaluation tables are historical artifacts; the older user-study script uses built-in sample data and does not establish results from real participants.
+See [evaluation/README.md](evaluation/README.md) and the [user study protocol](evaluation/USER_STUDY_PROTOCOL.md).
 
 ---
 
 ## Documentation
 
-- [Deployment & Infrastructure Guide](docs/DEPLOYMENT_GUIDE.md)
-- [Advertising & Revenue Architecture](docs/ADVERTISING_AND_REVENUE_MODEL.md)
-- [Contribution Workflow](CONTRIBUTING.md) · [Agent Guidelines](AGENTS.md)
+- [Architecture](docs/architecture.md): system design, data flows, and diagrams
+- [Deployment guide](docs/DEPLOYMENT_GUIDE.md): local setup, releases, Terraform, troubleshooting
+- [Contributing](CONTRIBUTING.md) · [Agent guidelines](AGENTS.md)
+- [Advertising and revenue model](docs/ADVERTISING_AND_REVENUE_MODEL.md)
 
 ---
 
 ## Disclaimer
 
-ClaimWise SG provides actuarial modeling for informational post-accident decision support. Policyholders should verify their individual Policy Schedule, endorsements, and insurer claims guidelines before making a settlement decision.
+ClaimWise SG provides informational decision support. Check your Policy Schedule, endorsements, and insurer claims guidelines before deciding how to settle.

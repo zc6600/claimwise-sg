@@ -1,99 +1,147 @@
 # ClaimWise SG Architecture
 
-## 1. Decision Calculation and Persistence
+ClaimWise SG is a single Next.js 15 application on Cloud Run in Singapore. Pure, deterministic modules do the calculations; Firebase provides sign-in and per-user storage; a small server-side pipeline sends optional email reminders.
 
-The home estimator and calculator send inputs to `POST /api/decision`, where the deterministic decision engine calculates the multi-year actuarial comparison. The home estimator debounces input changes by 500 ms before requesting an estimate. The full calculator requests a decision when the user submits or explicitly recalculates a comparison.
+## 1. System Overview
 
-### Authentication & Token Verification
-For a signed-in user, the calculator passes the Firebase ID token in the `Authorization: Bearer <token>` header and sets `persist: true`. The server-side storage module (`lib/server-calculation-storage.js`) enforces strict pre-flight token claims verification:
-1. Validates payload length (max 8,192 bytes) and standard 3-part JWT base64url structure.
-2. Asserts token expiration (`claims.exp * 1000 > Date.now()`).
-3. Asserts audience (`claims.aud === projectId`) and issuer (`claims.iss === https://securetoken.google.com/${projectId}`).
-4. Validates user ID formatting via regex (`/^[A-Za-z0-9_-]{1,128}$/`).
+```mermaid
+flowchart LR
+  user([Browser / installed PWA])
 
-The calculation record is committed via the Google Cloud Firestore REST API scoped directly to `users/{userId}/calculations/{calcId}`. Google Cloud Firestore cryptographically validates the token signature and enforces declarative access control defined in `firestore.rules`.
+  subgraph run["Cloud Run · claimwise-sg (asia-southeast1)"]
+    pages["Pages and client tools<br/>app/, components/"]
+    api["Route handlers<br/>app/api/*"]
+    engine["Decision modules<br/>src/*.mjs"]
+  end
 
-### Guest Storage & Cloud Synchronization
-- **Guests**: Users without an active session save calculation records directly to browser `localStorage` (`claimwise_local_history`, capped at 20 recent records).
-- **Offline / Cloud Fallback**: If Firestore is unavailable or offline, signed-in users seamlessly fall back to browser local storage so no calculation data is discarded.
-- **Guest-to-Cloud Auto-Sync**: When a guest subsequently logs in or registers, `syncLocalCalculationsToCloud(user)` reads pending browser history and migrates records to the user's Firestore subcollection.
+  subgraph firebase["Firebase / Google Cloud"]
+    auth["Identity Platform<br/>Google and email sign-in"]
+    fs[("Firestore<br/>users/{uid}/…<br/>reminderSubscriptions")]
+    sm["Secret Manager"]
+    sched["Cloud Scheduler<br/>09:00 SGT"]
+  end
 
-## 2. Parameter Sharing & Link Reproduction
+  resend["Resend<br/>email delivery"]
 
-The calculator supports full-fidelity state sharing via URL query parameters:
-- **Full Serialization**: All 14 decision parameters (`insurer`, `repairCost`, `currentPremium`, `currentNcd`, `excess`, `horizonYears`, `liability`, `workshopType`, `repairType`, `ncdProtector`, `youngDriverInvolved`, `thirdPartyClaim`, `baseGrowthRate`, `discountRate`) are encoded into the URL.
-- **Dirty State Resolution**: When users modify inputs without submitting, the share action automatically captures the active form state (`isDirty ? inputs : (submittedInputs || inputs)`).
-- **Auto-Calculation on Load**: When receiving a shared URL, parameters are validated and loaded once auth loading settles, immediately executing the comparison to reproduce identical recommendations and metrics for the receiver.
+  user --> pages
+  user -- "ID token" --> auth
+  user -- "Web SDK: history, My Car" --> fs
+  pages --> api
+  api --> engine
+  pages --> engine
+  api -- "REST with user token" --> fs
+  api -- "REST with service account" --> fs
+  sm -.->|mounted secrets| api
+  sched -- "OIDC POST /api/reminders/dispatch" --> api
+  api --> resend
+```
 
-## 3. History Access and Result Semantics
-
-History subscriptions and deletions use the Firebase Web SDK in the client (`components/CalculationHistory.jsx`). The history badge reflects realtime snapshot metadata, including initial cache state, pending writes, confirmed server state, and browser fallback.
-
-- **Saved Result Viewing**: Opening a historical record with a stored `decision` object displays that exact snapshot without recalculating it.
-- **Recalculation**: Clicking **Recalculate & save** sends the saved inputs to the current decision engine and saves the refreshed output as a new comparison record.
-
-## 4. Infrastructure and Release Pipeline
-
-Infrastructure is declared in `infra/terraform`, with state in the private, versioned bucket `gs://claimwise-sg-tfstate`:
-- **GCP APIs**: Identity Toolkit, Firebase, Firestore, Firebase Rules, Cloud Run, Cloud Build, Artifact Registry, Secret Manager, Cloud Scheduler, IAM, IAM Credentials, and STS.
-- **Database & Security Rules**: Native Firestore database in `asia-southeast1` (Singapore) linked to `firestore.rules` via `google_firebaserules_ruleset` and `google_firebaserules_release`.
-- **Identity & Auth**: Identity Platform authorized domains and the Google Sign-In IdP.
-- **Serverless Runtime**: Cloud Run v2 service (0–10 instances, port 3000) with reminder settings and secrets mounted from Secret Manager.
-- **Reminder Dispatch**: A Cloud Scheduler job calls `POST /api/reminders/dispatch` daily at 09:00 Singapore time with an OIDC token for the `reminder-scheduler` account.
-- **Continuous Deployment**: A Workload Identity pool lets GitHub Actions on `main` impersonate `github-deployer`, which may only build from source and roll out revisions.
-
-Terraform owns runtime configuration but ignores the container image. Each merge to `main` triggers `.github/workflows/deploy.yml`, which runs the tests, deploys the source with `gcloud run deploy`, and smoke-tests the live service.
-
-## 5. Car Decision Tools
-
-The four tools under `/tools` are client components (`components/tools/`) that call pure, deterministic functions in `src/car-decisions/`. They make no API requests and store nothing on the server.
-
-| Tool | Module | Decision rule |
+| Area | Routes | Where the logic runs |
 | --- | --- | --- |
-| NCD Protector (`/tools/ncd-protector`) | `ncd-protector.mjs` | Reuses `calculateDecision` to price the five-year renewal-premium loss of one at-fault claim with and without the rider. Break-even probability = rider cost ÷ loss avoided; a 0.25-point band around it is reported as neutral. |
-| Quote comparison (`/tools/quote-compare`) | `quote-comparison.mjs` | Ranks 2–4 quotes by premium + claim probability × min(repair cost, excess + workshop surcharge). NCD effects are excluded because a claim affects every quote equally. |
-| COE renewal (`/tools/coe-renewal`) | `coe-renewal.mjs` | Compares 5-year renewal, 10-year renewal, and replacement by equivalent annual cost. The deregistration value (PARF by registration cohort, pro-rated COE rebate, scrap value) is an opportunity cost of both renewals. Road tax gains 10% per year of age past 10, up to 50%. |
-| Loan settlement (`/tools/loan-prepayment`) | `loan-prepayment.mjs` | Settlement = remaining instalments − Rule of 78 rebate + rebate fee + penalty + admin fee, compared with the present value of continuing at the alternative return; a bisection search reports the break-even return. |
+| Claim vs. self-pay decision | `/`, `/calculator` | Server: `POST /api/decision` → `src/decision-engine.mjs` |
+| Trajectory chart, stress test | `/calculator` results | Browser: `lib/trajectory-calculator.js`, `lib/stress-test-calculator.js` |
+| Car decision tools | `/tools/*` | Browser: `src/car-decisions/*.mjs` |
+| My Car | `/my-car` | Browser + Firestore Web SDK: `src/my-car.mjs`, `lib/my-car-service.js` |
+| Email reminders | `/my-car`, `/reminders/*` | Server: `app/api/reminders/*` → `lib/reminders/*` |
+| Private settlement | `/settlement` | Browser: `lib/settlement-form.js` |
+| Emergency kit (offline) | `/emergency` | Browser + service worker: `lib/emergency-data.js`, `public/sw.js` |
+| Policy clauses, rules, benchmarks | `/rules`, `/api/clause-preview`, `/api/rules`, `/api/benchmarks` | Server: `lib/clause-documents.js`, `lib/market-benchmarks.js` |
 
-Shared helpers in `shared.mjs` bound every input, so malformed values fall back to safe defaults instead of producing `NaN`.
+## 2. Decision Calculation and History
 
-## 6. My Car
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser
+  participant A as POST /api/decision
+  participant E as decision-engine.mjs
+  participant F as Firestore (REST)
+  B->>A: inputs, persist, Authorization: Bearer ID token
+  A->>A: validate inputs
+  A->>E: calculateDecision(inputs)
+  E-->>A: comparison, break-even, renewal schedule, clause audit
+  opt signed in and persist = true
+    A->>A: pre-check token (size, JWT shape, exp, aud, iss, uid)
+    A->>F: write users/{uid}/calculations/{id} as the user
+    Note over F: Firestore verifies the signature and enforces firestore.rules
+  end
+  A-->>B: decision and storage status
+```
 
-`/my-car` stores one car per viewer: a label, insurance renewal, COE expiry, and loan review dates, plus premium, NCD, and excess. Registration numbers are not collected. `src/my-car.mjs` normalises records and ranks upcoming decisions by urgency.
+- **Requests**: The home estimator debounces input by 500 ms; the full calculator requests a decision only on submit or recalculation.
+- **Guests**: Records go to `localStorage` (`claimwise_local_history`, newest 20). Signed-in users fall back to it when Firestore is unreachable.
+- **Sign-in sync**: `syncLocalCalculationsToCloud(user)` moves pending browser records into the user's Firestore subcollection.
+- **History**: `components/CalculationHistory.jsx` subscribes through the Web SDK and shows cache, pending-write, server, or browser-fallback state. Opening a record shows the stored `decision` unchanged; **Recalculate & save** runs the current engine and saves a new record.
+- **Sharing**: All 19 calculator inputs, including PHV downtime and loading fields, are encoded in the URL. Sharing captures unsubmitted edits, and a shared link recalculates once auth has settled.
 
-- **Storage**: Every save writes a browser copy (`claimwise_my_car`) tagged with the owner's UID. Signed-in users also write `users/{uid}/vehicles/primary` through the Firebase Web SDK. `firestore.rules` permits only the `primary` document, only for its owner, and only with whitelisted, range-checked fields.
-- **Reconciliation** (`components/my-car/useMyCar.js`): After sign-in, the account copy wins. Details entered while signed out are uploaded only when the account has none. A copy saved by another account is never shown or adopted, so shared browsers do not mix data.
+## 3. Car Decision Tools
+
+The four tools under `/tools` call pure functions in `src/car-decisions/`. They make no API requests and store nothing on the server. Shared helpers bound every input, so malformed values fall back to safe defaults instead of `NaN`.
+
+| Tool | Decision rule |
+| --- | --- |
+| NCD Protector | Prices the five-year renewal-premium loss of one at-fault claim with and without the rider using `calculateDecision`. Break-even probability = rider cost ÷ loss avoided; within 0.25 points is neutral. |
+| Quote comparison | Ranks 2–4 quotes by premium + claim probability × min(repair cost, excess + workshop surcharge). NCD effects are excluded because a claim affects every quote equally. |
+| COE renewal | Compares 5-year renewal, 10-year renewal, and replacement by equivalent annual cost. Deregistration value (PARF by cohort, pro-rated COE rebate, scrap) is an opportunity cost of renewing. Road tax rises 10% per year past age 10, up to 50%. |
+| Loan settlement | Settlement = remaining instalments − Rule of 78 rebate + fees and penalty, compared with continuing at the alternative return; bisection finds the break-even return. |
+
+## 4. My Car
+
+`/my-car` keeps one car per viewer: a label, renewal, COE expiry and loan review dates, premium, NCD, and excess. Registration numbers are not collected.
+
+- **Storage**: Each save writes a browser copy (`claimwise_my_car`) tagged with the owner's UID. Signed-in users also write `users/{uid}/vehicles/primary`; `firestore.rules` allows only that document, only for its owner, and only whitelisted, range-checked fields.
+- **Reconciliation** (`useMyCar.js`): The account copy wins after sign-in. Signed-out details are uploaded only when the account has none, and another account's copy is never shown or adopted.
 - **Prefill**: The NCD Protector and quote comparison tools read the saved premium, NCD, and excess.
 
-## 7. Email Reminders
+## 5. Email Reminders
 
-Reminders are optional, double opt-in emails sent before insurance renewal (45 days), COE expiry (365 and 90 days), and loan review (30 days). Each email links to the matching tool.
+Optional, double opt-in emails before insurance renewal (45 days), COE expiry (365 and 90 days), and loan review (30 days), each linking to the matching tool.
 
-### Request Flow
+```mermaid
+stateDiagram-v2
+  [*] --> pending: POST /api/reminders<br/>confirmation email sent
+  pending --> active: POST /api/reminders/confirm
+  pending --> [*]: expired after 7 days<br/>(removed by dispatch)
+  active --> active: daily dispatch sends due reminders<br/>manage link edits dates
+  active --> [*]: unsubscribe, all dates cleared,<br/>or final reminder sent
+```
 
 | Route | Purpose |
 | --- | --- |
-| `POST /api/reminders` | Starts sign-up and sends a confirmation email |
+| `POST /api/reminders` | Sign-up; sends a confirmation email |
 | `POST /api/reminders/confirm` | Activates a subscription from a confirmation token |
-| `POST /api/reminders/manage` | Reads or updates dates from a manage token; clearing all dates deletes the subscription |
+| `POST /api/reminders/manage` | Reads or updates dates from a manage token |
 | `POST /api/reminders/unsubscribe` | Deletes the subscription; also serves one-click `List-Unsubscribe` |
 | `GET /api/reminders/unsubscribe` | Redirects to the manage page, because mail scanners prefetch links |
-| `POST /api/reminders/dispatch` | Daily delivery; accepts only a Google ID token for the scheduler account and dispatch audience |
+| `POST /api/reminders/dispatch` | Daily delivery; accepts only the scheduler's Google ID token for this audience |
 
-`lib/reminders/runtime.js` returns no service until `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, `REMINDER_SITE_URL`, and a `REMINDER_TOKEN_SECRET` of at least 32 characters are set; the routes then respond with 503.
+The routes return 503 until `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, `REMINDER_SITE_URL`, and a `REMINDER_TOKEN_SECRET` of at least 32 characters are set.
 
-### Privacy and Abuse Controls
+**Privacy and abuse controls**
+- The document ID is an HMAC of the normalised email, so addresses never appear in paths. Tokens are HMAC-signed and compared in constant time.
+- Responses never reveal whether an address is subscribed; an active subscriber receives a manage link instead.
+- Limits: 10 sign-ups per client per hour per instance, a 24-hour resend cooldown per address, and a shared cap of 200 sign-up emails per day. A hidden form field discards bot submissions.
+- `reminderSubscriptions` is written only by the server with the Cloud Run service account; client access is denied by rules. Deleting a subscription removes the address.
 
-- **Identifiers**: The subscription ID is an HMAC of the normalised email, so addresses never appear in document paths. Confirmation tokens (valid for about seven days) and manage tokens are HMAC-signed and compared in constant time.
-- **No enumeration**: Sign-up responses never reveal whether an address is subscribed. An existing active subscriber receives a manage link instead of a new confirmation.
-- **Rate limits**: Ten sign-ups per client per hour per instance, a 24-hour resend cooldown per address, and a shared daily cap of 200 sign-up emails stored in Firestore. A hidden form field silently discards automated submissions.
-- **Storage**: `reminderSubscriptions` is written only by the server through the Firestore REST API with the Cloud Run service account; client access is denied by the default rule. Unsubscribing, clearing all dates, or receiving the final reminder deletes the record, including the address.
+**Dispatch guarantees**
+1. A reminder is recorded only after Resend accepts it; idempotency keys (`{id}:{reminderKey}`) suppress duplicates from overlapping runs.
+2. Writes use the document's `updateTime` precondition, so concurrent updates skip instead of overwriting.
+3. A failed delivery moves `nextReminderDate` to tomorrow so failures cannot crowd out other due records.
+4. Insurance renewal repeats yearly; the 12 most recent reminder keys prevent repeats.
 
-### Dispatch
+## 6. Infrastructure and Releases
 
-Cloud Scheduler calls the dispatch route at 09:00 Singapore time. Each run deletes unconfirmed subscriptions past expiry and yesterday's quota record, then processes up to 200 due subscriptions ordered by `nextReminderDate`:
+```mermaid
+flowchart LR
+  dev([Branch]) --> pr["Pull request"]
+  pr --> checks["CI: tests, docs guard<br/>PR Agent review"]
+  checks -- "pass: auto squash-merge" --> main["main"]
+  main --> gha["deploy.yml<br/>tests → gcloud run deploy --source → smoke test"]
+  gha -- "Workload Identity<br/>github-deployer" --> cr["Cloud Run revision"]
+  tf["infra/terraform<br/>state: gs://claimwise-sg-tfstate"] -- "terraform apply" --> infra["APIs · IAM · secrets access<br/>Firestore rules · Identity Platform<br/>scheduler · Cloud Run config"]
+  infra -.-> cr
+```
 
-1. **Send first, record after**: A reminder key is stored only after Resend accepts the email. Resend idempotency keys (`{subscriptionId}:{reminderKey}`) suppress duplicates from overlapping runs or failed writes.
-2. **Optimistic concurrency**: Writes use the document's `updateTime` precondition; a conflict skips the record without data loss.
-3. **Failure isolation**: A failed delivery moves `nextReminderDate` to tomorrow so repeated failures cannot crowd out other due records.
-4. **Yearly renewals**: Insurance renewal repeats each year; the 12 most recent reminder keys are kept to prevent repeats.
+- **Terraform owns infrastructure**: APIs, IAM, secret access, Firestore rules, Identity Platform domains and Google sign-in, the reminder scheduler, and Cloud Run runtime settings. It ignores the container image because each release builds a new one. Secret values and the OAuth client secret are maintained outside Terraform.
+- **GitHub Actions owns releases**: Every merge to `main` runs the tests, deploys the source, and smoke-tests the live service. Only workflows on `main` of this repository can obtain deploy credentials, and no service account key exists.
+- **Offline support**: `public/sw.js` precaches the public pages so the emergency kit and tools open without a signal; bump its cache version when that list changes.

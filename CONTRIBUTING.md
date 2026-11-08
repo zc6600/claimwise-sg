@@ -18,6 +18,7 @@ feat/xxx or fix/xxx (Isolated working branch)
 - **`main` is production-ready**: Every commit on `main` must compile, build, and pass all actuarial regression tests.
 - **Short-lived feature branches**: Create a dedicated branch for every feature, bug fix, or documentation update.
 - **Automated AI Review & Auto-Merge**: Every Pull Request automatically triggers our built-in **PR Agent**, eliminating manual merge bottlenecks for safe, validated changes.
+- **Merging deploys**: Every merge to `main` is released to production by `.github/workflows/deploy.yml`. Treat a merge as a release.
 
 ---
 
@@ -35,7 +36,7 @@ When you open or synchronize a Pull Request against `main`, the CI workflow (`.g
    - Decides whether the change is safe: issues a `PASS` or `BLOCK` verdict.
 3. **Deterministic Quality Gate**:
    - Executes the validation command: `npm test`.
-   - All 14 Singapore motor insurance benchmark and decision-engine test suites must pass 100% in ~150ms.
+   - Every `node:test` suite in `tests/` must pass.
 4. **Automated GitHub Squash & Merge**:
    - If the review returns `PASS` and all tests succeed, the Agent automatically enables GitHub Auto-Merge (`gh pr merge --auto --squash`), merging the branch cleanly into `main` and archiving the feature branch.
 
@@ -112,7 +113,7 @@ git push -u origin feat/xxx
 # Create a PR via GitHub CLI
 gh pr create --title "feat: brief summary" --body "Detailed rationale and scope of changes."
 ```
-Once opened, watch the **PR Agent** automatically review and merge your PR.
+Once opened, watch the **PR Agent** automatically review and merge your PR. It usually merges within minutes, so do not stack one PR on another: if the base merges first, the stacked PR lands on the stale base branch instead of `main`. Branch each change from `main`.
 
 ---
 

@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "../components/Providers";
 import NavbarUser from "../components/NavbarUser";
 import OfflineStatusBanner from "../components/OfflineStatusBanner";
+import { SITE_URL } from "../lib/site-url";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,9 +19,7 @@ export const viewport = {
 };
 
 export const metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://claimwise-sg.web.app"
-  ),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
     template: "%s · ClaimWise SG",
@@ -40,7 +39,7 @@ export const metadata = {
     title: "ClaimWise SG · Motor Insurance Claim Decision Assistant",
     description:
       "Compare the multi-year cost of paying for minor car repairs out-of-pocket versus filing an own-damage motor insurance claim in Singapore.",
-    url: "https://claimwise-sg.web.app",
+    url: "/",
     siteName: "ClaimWise SG",
     locale: "en_SG",
     type: "website",
