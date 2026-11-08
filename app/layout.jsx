@@ -79,9 +79,7 @@ export default function RootLayout({ children }) {
                 <nav className="nav-links" aria-label="Main navigation">
                   <Link href="/tools">Car tools</Link>
                   <Link href="/my-car">My car</Link>
-                  <Link href="/emergency">Emergency</Link>
-                  <Link href="/settlement">Settlement</Link>
-                  <Link href="/rules">Rules</Link>
+                  <Link href="/accident">After an accident</Link>
                 </nav>
 
                 <div className="topbar-account">
@@ -92,9 +90,7 @@ export default function RootLayout({ children }) {
               <nav className="mobile-nav section-pad" aria-label="Mobile navigation">
                 <Link href="/tools">Car tools</Link>
                 <Link href="/my-car">My car</Link>
-                <Link href="/emergency">Emergency</Link>
-                <Link href="/settlement">Settlement</Link>
-                <Link href="/rules">Rules</Link>
+                <Link href="/accident">After an accident</Link>
               </nav>
             </header>
 
@@ -114,6 +110,7 @@ export default function RootLayout({ children }) {
                 </div>
                 <p>Independent and free. General information, not financial advice.</p>
                 <nav className="footer-links" aria-label="More pages">
+                  <Link href="/rules">Insurer rules</Link>
                   <Link href="/how-it-works">How it works</Link>
                   <Link href="/privacy">Privacy</Link>
                 </nav>

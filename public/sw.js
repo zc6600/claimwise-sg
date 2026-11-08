@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "claimwise-offline-";
-const CACHE_NAME = `${CACHE_PREFIX}v6`;
+const CACHE_NAME = `${CACHE_PREFIX}v7`;
 
 // The dev server serves unhashed code at fixed URLs, so caching it would pin stale code.
 const IS_LOCAL_DEV = ["localhost", "127.0.0.1"].includes(self.location.hostname);
@@ -8,6 +8,7 @@ const PRECACHE_URLS = [
   "/",
   "/calculator",
   "/tools",
+  "/accident",
   "/tools/ncd-protector",
   "/tools/quote-compare",
   "/tools/coe-renewal",

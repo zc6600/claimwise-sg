@@ -3609,6 +3609,33 @@ section + section > .features-heading {
   color: #8fd3c9;
 }
 
+.feature-grid.accident-steps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.accident-step-when {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--teal);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.accident-reporting {
+  margin-top: 20px;
+}
+
+.landing-accident-link {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.landing-accident-link a {
+  color: var(--teal-dark);
+  font-weight: 600;
+}
+
 .feature-grid.is-compact {
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 12px;
@@ -3697,13 +3724,15 @@ section + section > .features-heading {
 }
 
 @media (max-width: 960px) {
-  .feature-grid.is-calculators {
+  .feature-grid.is-calculators,
+  .feature-grid.accident-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 650px) {
-  .feature-grid.is-calculators {
+  .feature-grid.is-calculators,
+  .feature-grid.accident-steps {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -3815,11 +3844,6 @@ section + section > .features-heading {
 .landing-tool:focus-visible {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
-}
-
-.landing-tool.is-featured {
-  background: linear-gradient(135deg, var(--card) 55%, var(--teal-soft) 100%);
-  border-color: var(--line-strong);
 }
 
 .landing-tool h3 {

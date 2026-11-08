@@ -67,7 +67,7 @@ verify() {
   require_tools curl
   local path status failed=0
   log "Smoke-testing ${SITE_URL}"
-  for path in / /calculator /tools /tools/ncd-protector /tools/quote-compare /tools/coe-renewal \
+  for path in / /calculator /tools /accident /tools/ncd-protector /tools/quote-compare /tools/coe-renewal \
     /tools/loan-prepayment /my-car /settlement /emergency /privacy /api/health; do
     status="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${SITE_URL}${path}")"
     printf '  %-24s %s\n' "$path" "$status"
