@@ -109,6 +109,7 @@ p {
 /* Shared Layout Container — Single Unified Grid Width */
 .site-shell {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-x: clip;
@@ -117,6 +118,11 @@ p {
 .site-shell > main {
   flex: 1;
   min-width: 0;
+}
+
+.site-shell > main:has(> .accident-page) {
+  display: flex;
+  flex-direction: column;
 }
 
 .studio-grid > *,
@@ -2176,7 +2182,53 @@ td:first-child {
 .topbar-account {
   display: flex;
   align-items: center;
+  gap: 12px;
   flex-shrink: 0;
+}
+
+.nav-mycar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.nav-mycar-link:hover {
+  border-color: var(--teal);
+  color: var(--ink);
+}
+
+.nav-mycar-link.is-active {
+  background: var(--teal-soft);
+  border-color: var(--teal);
+  color: var(--teal-dark);
+}
+
+.nav-mycar-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  flex-shrink: 0;
+}
+
+.nav-mycar-link.is-saved .nav-mycar-dot,
+.nav-mycar-link.is-active .nav-mycar-dot {
+  background: var(--teal);
+}
+
+.nav-mycar-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Focus visibility */
@@ -2262,6 +2314,19 @@ td:first-child {
 
   .nav-links {
     display: none;
+  }
+
+  .topbar-account {
+    gap: 8px;
+  }
+
+  .nav-mycar-link {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .nav-mycar-label {
+    max-width: 96px;
   }
 
   .mobile-nav {
@@ -3633,20 +3698,82 @@ section + section > .features-heading {
   color: #8fd3c9;
 }
 
+.features-page.accident-page {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(20px, 3vh, 32px);
+  padding-top: clamp(28px, 4vh, 44px);
+  padding-bottom: clamp(28px, 4vh, 44px);
+}
+
+.features-page.accident-page .features-header {
+  margin-bottom: 0;
+}
+
 .feature-grid.accident-steps {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+.feature-grid.accident-steps > li {
+  display: flex;
+}
+
+.accident-card {
+  width: 100%;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(24px, 2.8vw, 36px);
+}
+
+.accident-card-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.accident-card .feature-icon-tile {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
 }
 
 .accident-step-when {
   display: block;
-  margin-bottom: 2px;
   color: var(--teal);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
+.accident-card-body {
+  display: grid;
+  gap: 10px;
+}
+
+.accident-card-body strong {
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.accident-card-body .feature-text {
+  max-width: 36ch;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.accident-card .feature-open {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 0.9375rem;
+}
+
 .accident-reporting {
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 .landing-accident-link {

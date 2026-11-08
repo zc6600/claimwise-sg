@@ -78,8 +78,8 @@ export default function RootLayout({ children }) {
 
                 <nav className="nav-links" aria-label="Main navigation">
                   <Link href="/tools">Car tools</Link>
-                  <Link href="/my-car">My car</Link>
                   <Link href="/accident">After an accident</Link>
+                  <Link href="/rules">Insurer rules</Link>
                 </nav>
 
                 <div className="topbar-account">
@@ -89,8 +89,8 @@ export default function RootLayout({ children }) {
 
               <nav className="mobile-nav section-pad" aria-label="Mobile navigation">
                 <Link href="/tools">Car tools</Link>
-                <Link href="/my-car">My car</Link>
                 <Link href="/accident">After an accident</Link>
+                <Link href="/rules">Insurer rules</Link>
               </nav>
             </header>
 
