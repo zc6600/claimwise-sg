@@ -93,22 +93,22 @@ export default function SettlementFormClient() {
     <div className="settlement-page section-pad">
       <div className="page-header no-print">
         <div>
-          <div className="section-kicker">Contractual Document Template</div>
-          <h1>Private Settlement Agreement (Motor Property Damage)</h1>
+          <div className="section-kicker">After an accident</div>
+          <h1>Private Settlement Agreement</h1>
         </div>
         <p>
-          Generate a standardized written agreement for minor, non-injury traffic accidents between
-          motorists in Singapore, structured around Singapore Motor Claims Framework (MCF) principles.
+          Create a written agreement for a minor accident with no injuries, so both drivers can
+          settle the vehicle damage between themselves and sign on the spot.
         </p>
       </div>
 
       <div className="settlement-notice-box no-print" style={{ marginBottom: "24px" }}>
-        <strong>Important Singapore GIA MCF Compliance Notice:</strong>
+        <strong>Before you settle privately:</strong>
         <p style={{ margin: "6px 0 0 0", fontSize: "0.8125rem", lineHeight: 1.5 }}>
           A private settlement is a binding contract between motorists for property damage. It does
           not bind licensed insurers. Under Singapore General Insurance Association (GIA) MCF rules,{" "}
           <strong>both motorists must still lodge an official accident report with their respective insurers within 24 hours (or next working day)</strong>{" "}
-          indicating &ldquo;Settled Privately&rdquo;. Private settlement is strictly prohibited if any person is injured or if government property was damaged.
+          indicating &ldquo;Settled Privately&rdquo;. An accident cannot be settled privately if anyone was injured or government property was damaged.
         </p>
       </div>
 
@@ -116,7 +116,7 @@ export default function SettlementFormClient() {
         {/* Editor Form */}
         <div className="settlement-editor no-print">
           <div className="studio-card">
-            <h2 className="studio-card-title">1. Statutory Eligibility Confirmation</h2>
+            <h2 className="studio-card-title">1. Check the accident qualifies</h2>
             <div className="field-group" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <label className="checkbox-label" style={{ display: "flex", gap: "10px", alignItems: "flex-start", cursor: "pointer" }}>
                 <input
@@ -479,16 +479,15 @@ export default function SettlementFormClient() {
         <div className="settlement-preview-pane">
           {!isPrerequisitesMet && (
             <div className="no-print" style={{ padding: "16px", background: "#fff1f2", border: "1px solid #fecdd3", borderRadius: "6px", marginBottom: "16px", color: "#9f1239", fontSize: "0.875rem" }}>
-              <strong>Prerequisite Requirement:</strong> You must check the statutory declarations confirming NO personal injury and NO government property damage before this agreement can be finalized.
+              <strong>Before you sign:</strong> confirm in step 1 that nobody was injured and no government property was damaged. If either happened, the accident cannot be settled privately.
             </div>
           )}
 
           <div className="settlement-sheet">
             <header className="sheet-header">
-              <div className="sheet-title-badge">MOTOR CLAIMS FRAMEWORK (MCF) PRIVATE SETTLEMENT TEMPLATE</div>
-              <h1>AGREEMENT FOR PRIVATE SETTLEMENT OF MOTOR ACCIDENTS</h1>
+              <h1>AGREEMENT FOR PRIVATE SETTLEMENT OF A MOTOR ACCIDENT</h1>
               <p className="sheet-subtitle">
-                (WITHOUT ADMISSION OF LEGAL LIABILITY · PHYSICAL MOTOR VEHICLE PROPERTY DAMAGE ONLY)
+                (VEHICLE PROPERTY DAMAGE ONLY · WITHOUT ADMISSION OF LIABILITY)
               </p>
             </header>
 
@@ -565,13 +564,13 @@ export default function SettlementFormClient() {
                   <strong>Full &amp; Final Satisfaction for Property Damage:</strong> Subject to the full receipt of the agreed settlement sum (where applicable), each party hereby releases and forever discharges the other party from all claims, demands, costs, and actions exclusively in respect of motor vehicle property damage arising from the accident.
                 </li>
                 <li>
-                  <strong>Personal Injury Reservation:</strong> This agreement pertains strictly to motor vehicle physical property damage. It does not affect, compromise, or extinguish any statutory rights or claims in respect of bodily injury or death.
+                  <strong>Personal Injury Reservation:</strong> This agreement covers vehicle property damage only. It does not affect any rights or claims in respect of bodily injury or death.
                 </li>
                 <li>
                   <strong>Covenant Not to Claim:</strong> The parties mutually covenant that neither party shall submit an insurance claim against the other party&apos;s motor insurance policy regarding the property damage compromised under this agreement.
                 </li>
                 <li>
-                  <strong>GIA MCF 24-Hour Notification Requirement:</strong> Both parties acknowledge that under the Singapore Motor Claims Framework (MCF), they remain obligated to file an accident report with their respective authorized insurers within 24 hours (or the next working day) stating &ldquo;Settled Privately&rdquo; for record purposes.
+                  <strong>Reporting to Insurers:</strong> Both parties acknowledge that under the Motor Claims Framework they must each report the accident to their own insurer within 24 hours (or by the next working day), stating that it was &ldquo;Settled Privately&rdquo;.
                 </li>
               </ol>
             </section>

@@ -53,14 +53,14 @@ export function isValidCalendarDate(dateStr) {
 export function validateSettlementInputs(inputs = {}) {
   const errors = {};
 
-  // Statutory prerequisites under Singapore Road Traffic Act & GIA MCF
+  // Accidents with injuries or damage to government property must be reported and cannot be settled privately.
   if (!inputs.noInjuryConfirmed) {
     errors.noInjuryConfirmed =
-      "Private settlement is strictly prohibited if any person suffered bodily injury. A police report is legally mandatory.";
+      "An accident with any injury cannot be settled privately and must be reported to the police.";
   }
   if (!inputs.noGovPropertyDamageConfirmed) {
     errors.noGovPropertyDamageConfirmed =
-      "Private settlement is not permitted if government or public property was damaged.";
+      "An accident that damaged government or public property cannot be settled privately.";
   }
 
   // Accident date validation
@@ -157,16 +157,21 @@ export function formatSettlementAmount(amount) {
 }
 
 /**
- * Generates clear, legally accurate settlement terms prose based on selected mode.
+ * Builds the settlement clause for the selected payment arrangement. Without a selection it
+ * returns a blank line for the parties to complete by hand.
  * @param {Object} inputs
  * @returns {string}
  */
 export function generateSettlementClauseText(inputs) {
   const partyA = inputs.partyAName?.trim() || "Party A";
-  const vehicleA = inputs.partyAVehicle?.trim() || "Vehicle A";
+  const vehicleA = inputs.partyAVehicle?.trim() || "vehicle ________";
   const partyB = inputs.partyBName?.trim() || "Party B";
-  const vehicleB = inputs.partyBVehicle?.trim() || "Vehicle B";
-  const formattedAmount = formatSettlementAmount(inputs.settlementAmount);
+  const vehicleB = inputs.partyBVehicle?.trim() || "vehicle ________";
+  // A blank amount prints as a line to fill in by hand rather than as S$0.00.
+  const hasAmount = Number(inputs.settlementAmount) > 0;
+  const formattedAmount = hasAmount
+    ? formatSettlementAmount(inputs.settlementAmount)
+    : "S$__________";
   const paymentMethodLabel =
     PAYMENT_METHOD_LABELS[inputs.paymentMethod] || "agreed payment method";
 
@@ -178,6 +183,6 @@ export function generateSettlementClauseText(inputs) {
     case SETTLEMENT_MODES.MUTUAL_DISCHARGE:
       return `Both ${partyA} (${vehicleA}) and ${partyB} (${vehicleB}) mutually agree to bear their respective motor vehicle repair costs without any monetary exchange between them, in full and final satisfaction of all property damage claims arising from the accident.`;
     default:
-      return "Settlement terms pending selection.";
+      return "The parties agree to settle the vehicle damage on the following terms: ____________________________________________.";
   }
 }

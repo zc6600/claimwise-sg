@@ -2829,15 +2829,6 @@ td:first-child {
   margin-bottom: 24px;
 }
 
-.sheet-title-badge {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #475569;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
 .sheet-header h1 {
   font-size: 1.25rem;
   font-weight: 800;
