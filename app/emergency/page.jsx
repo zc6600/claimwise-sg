@@ -64,7 +64,7 @@ export default function EmergencyProtocolPage() {
   const completedCount = Object.values(checkedItems).filter(Boolean).length;
 
   return (
-    <div className="section-pad" style={{ maxWidth: "880px", margin: "0 auto", paddingBottom: "64px" }}>
+    <div className="section-pad" style={{ paddingBottom: "64px" }}>
       {/* Header & Offline Banner */}
       <div style={{ marginTop: "24px", marginBottom: "28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px", flexWrap: "wrap" }}>

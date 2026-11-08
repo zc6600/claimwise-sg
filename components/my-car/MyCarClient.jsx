@@ -49,8 +49,8 @@ export default function MyCarClient() {
   }
 
   return (
-    <div className="tool-layout">
-      <div className="my-car-stack">
+    <div className="my-car-page">
+      <div className="tool-layout">
         <form className="tool-card" onSubmit={handleSave}>
           <h2>Car details</h2>
           <p className="field-hint">
@@ -111,9 +111,7 @@ export default function MyCarClient() {
           </div>
           {saveMessage ? <p className="reminder-success" role="status">{saveMessage}</p> : null}
         </form>
-      </div>
 
-      <div className="my-car-stack">
         <aside className="tool-result">
           <h2>{car.label ? `${car.label}: what’s next` : "What’s next"}</h2>
           {decisions.length === 0 ? (
@@ -122,24 +120,29 @@ export default function MyCarClient() {
             <ul className="decision-list">
               {decisions.map((decision) => (
                 <li key={decision.id} className={decision.actNow ? "is-urgent" : undefined}>
-                  <h3>{decision.title}</h3>
-                  <p className="decision-date tabular-nums">{describeDays(decision)}</p>
+                  <div className="decision-head">
+                    <h3>{decision.title}</h3>
+                    <span className="decision-date tabular-nums">{describeDays(decision)}</span>
+                  </div>
                   <p>{decision.prompt}</p>
-                  <Link href={decision.href}>{decision.actionLabel}</Link>
+                  <Link href={decision.href}>
+                    {decision.actionLabel} <span aria-hidden="true">→</span>
+                  </Link>
                 </li>
               ))}
             </ul>
           )}
         </aside>
-
-        <ReminderSignup
-          dates={{
-            insuranceRenewal: car.insuranceRenewal,
-            coeExpiry: car.coeExpiry,
-            loanReview: car.loanReview,
-          }}
-        />
       </div>
+
+      <ReminderSignup
+        className="is-wide"
+        dates={{
+          insuranceRenewal: car.insuranceRenewal,
+          coeExpiry: car.coeExpiry,
+          loanReview: car.loanReview,
+        }}
+      />
     </div>
   );
 }
