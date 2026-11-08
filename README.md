@@ -3,13 +3,13 @@
 [![CI](https://github.com/zc6600/claimwise-sg/actions/workflows/ci.yml/badge.svg)](https://github.com/zc6600/claimwise-sg/actions/workflows/ci.yml)
 [![Deploy](https://github.com/zc6600/claimwise-sg/actions/workflows/deploy.yml/badge.svg)](https://github.com/zc6600/claimwise-sg/actions/workflows/deploy.yml)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
-[![Cloud Run](https://img.shields.io/badge/Cloud%20Run-asia--southeast1-blue?logo=googlecloud)](https://claimwise-sg-721110976915.asia-southeast1.run.app)
+[![Cloud Run](https://img.shields.io/badge/Cloud%20Run-asia--southeast1-blue?logo=googlecloud)](https://claimwise.zc6600.wiki)
 
 **ClaimWise SG** helps Singapore private car owners and private hire (PHV) drivers make the money decisions of owning a car. Its core question: after a minor collision, is it cheaper to **pay for the repair yourself** or **file an own-damage claim**?
 
 The decision engine models No-Claim Discount (NCD) step-downs, excess and workshop surcharges, commercial claim loadings, downtime, General Insurance Association (GIA) rules, and present-value discounting to find the break-even repair cost $R^*(S)$, with every rule traced to policy wording.
 
-**Live site:** https://claimwise-sg-721110976915.asia-southeast1.run.app
+**Live site:** https://claimwise.zc6600.wiki
 
 ---
 
@@ -67,7 +67,7 @@ To use your own Firebase project, copy `.env.example` to `.env.local`.
 
 ## API
 
-Base URL: `https://claimwise-sg-721110976915.asia-southeast1.run.app`
+Base URL: `https://claimwise.zc6600.wiki`
 
 | Endpoint | Purpose |
 | --- | --- |

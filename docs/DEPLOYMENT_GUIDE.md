@@ -6,11 +6,11 @@ How to run ClaimWise SG locally, how releases reach production, and how the Goog
 
 | Item | Value |
 | --- | --- |
-| Live site | https://claimwise-sg-721110976915.asia-southeast1.run.app |
+| Live site | https://claimwise.zc6600.wiki (Cloudflare Worker proxy to Cloud Run: https://claimwise-sg-721110976915.asia-southeast1.run.app) |
 | GCP project / region | `claimwise-sg` / `asia-southeast1` (Singapore) |
 | Runtime | Cloud Run v2 service `claimwise-sg` (0–10 instances, 1 vCPU, 1 GiB) |
 | Data and auth | Firestore (native mode) and Identity Platform; rules in `firestore.rules` |
-| Health check | [`/api/health`](https://claimwise-sg-721110976915.asia-southeast1.run.app/api/health) |
+| Health check | [`/api/health`](https://claimwise.zc6600.wiki/api/health) |
 | Infrastructure | Terraform, state in `gs://claimwise-sg-tfstate` |
 | Releases | `.github/workflows/deploy.yml` on every merge to `main` |
 
@@ -38,7 +38,7 @@ Main routes: `/`, `/calculator`, `/tools`, `/my-car`, `/settlement`, `/emergency
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_FIREBASE_*` | Another Firebase project (inlined at build time) |
-| `NEXT_PUBLIC_SITE_URL` | Canonical origin for metadata, sitemap, and robots.txt (inlined at build time; defaults to the Cloud Run URL in `lib/site-url.js`) |
+| `NEXT_PUBLIC_SITE_URL` | Canonical origin for metadata, sitemap, and robots.txt (inlined at build time; defaults to `https://claimwise.zc6600.wiki` in `lib/site-url.js`) |
 | `RESEND_API_KEY`, `REMINDER_FROM_EMAIL`, `REMINDER_SITE_URL`, `REMINDER_TOKEN_SECRET`, `REMINDER_SCHEDULER_EMAIL` | Email reminders; the reminder API returns 503 until the first four are set |
 
 Never commit `.env.local`.
@@ -93,10 +93,15 @@ openssl rand -hex 32 | tr -d '\n' | gcloud secrets create REMINDER_TOKEN_SECRET 
 
 The sending domain must be verified in Resend. Rotating `REMINDER_TOKEN_SECRET` invalidates every confirmation, manage, and unsubscribe link already sent.
 
-### Changing the Public Domain
+### Public Domain
+
+`claimwise.zc6600.wiki` is served by the Cloudflare Worker in `infra/cloudflare`, which proxies every request to the Cloud Run URL. The Worker is deployed with `npx wrangler deploy` from that directory and only needs redeploying if the Cloud Run URL changes.
+
+To change the public domain:
 
 1. Change the fallback origin in `lib/site-url.js`, or set `NEXT_PUBLIC_SITE_URL` at build time.
 2. Update `reminder_site_url` and add the host to `authorized_domains` in `infra/terraform/variables.tf`, then run `scripts/deploy.sh infra`.
+3. Update the custom domain route in `infra/cloudflare/wrangler.toml` and redeploy the Worker.
 
 ---
 

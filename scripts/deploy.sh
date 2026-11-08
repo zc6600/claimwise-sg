@@ -19,7 +19,7 @@ set -euo pipefail
 PROJECT_ID="${PROJECT_ID:-claimwise-sg}"
 REGION="${REGION:-asia-southeast1}"
 SERVICE="${SERVICE:-claimwise-sg}"
-SITE_URL="${SITE_URL:-https://claimwise-sg-721110976915.asia-southeast1.run.app}"
+SITE_URL="${SITE_URL:-https://claimwise.zc6600.wiki}"
 SITE_URL="${SITE_URL%/}"
 REPO_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 worktree=""
