@@ -2,6 +2,9 @@
 .git
 .gitignore
 node_modules/
+.tools/
+.venv/
+__pycache__/
 .next/
 dist/
 .DS_Store

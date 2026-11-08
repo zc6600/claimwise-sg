@@ -1,0 +1,188 @@
+[
+  {
+    "id": "CASE-001",
+    "effectiveExcess": 600,
+    "selfPayNcd": [
+      50,
+      50,
+      50
+    ],
+    "claimNcd": [
+      20,
+      30,
+      40
+    ]
+  },
+  {
+    "id": "CASE-002",
+    "effectiveExcess": 600,
+    "selfPayNcd": [
+      50,
+      50,
+      50
+    ],
+    "claimNcd": [
+      50,
+      50,
+      50
+    ]
+  },
+  {
+    "id": "CASE-003",
+    "effectiveExcess": 750,
+    "selfPayNcd": [
+      40,
+      50,
+      50
+    ],
+    "claimNcd": [
+      10,
+      20,
+      30
+    ]
+  },
+  {
+    "id": "CASE-004",
+    "effectiveExcess": 600,
+    "selfPayNcd": [
+      30,
+      40,
+      50
+    ],
+    "claimNcd": [
+      0,
+      10,
+      20
+    ]
+  },
+  {
+    "id": "CASE-005",
+    "effectiveExcess": 500,
+    "selfPayNcd": [
+      50,
+      50,
+      50
+    ],
+    "claimNcd": [
+      50,
+      50,
+      50
+    ]
+  },
+  {
+    "id": "CASE-006",
+    "effectiveExcess": 600,
+    "selfPayNcd": [
+      20,
+      30,
+      40
+    ],
+    "claimNcd": [
+      20,
+      30,
+      40
+    ]
+  },
+  {
+    "id": "CASE-007",
+    "effectiveExcess": 1000,
+    "selfPayNcd": [
+      0,
+      10,
+      20
+    ],
+    "claimNcd": [
+      0,
+      10,
+      20
+    ]
+  },
+  {
+    "id": "CASE-008",
+    "effectiveExcess": 2500,
+    "selfPayNcd": [
+      50,
+      50,
+      50,
+      50,
+      50
+    ],
+    "claimNcd": [
+      20,
+      30,
+      40,
+      50,
+      50
+    ]
+  },
+  {
+    "id": "CASE-009",
+    "effectiveExcess": 600,
+    "selfPayNcd": [
+      40,
+      50,
+      50
+    ],
+    "claimNcd": [
+      10,
+      20,
+      30
+    ]
+  },
+  {
+    "id": "CASE-010",
+    "effectiveExcess": 800,
+    "selfPayNcd": [
+      20,
+      30,
+      40
+    ],
+    "claimNcd": [
+      20,
+      30,
+      40
+    ]
+  },
+  {
+    "id": "CASE-011",
+    "effectiveExcess": 100,
+    "selfPayNcd": [
+      50,
+      50,
+      50
+    ],
+    "claimNcd": [
+      50,
+      50,
+      50
+    ]
+  },
+  {
+    "id": "CASE-012",
+    "effectiveExcess": 2600,
+    "selfPayNcd": [
+      50,
+      50,
+      50
+    ],
+    "claimNcd": [
+      20,
+      30,
+      40
+    ]
+  },
+  {
+    "id": "CASE-013",
+    "effectiveExcess": 3100,
+    "selfPayNcd": [
+      50,
+      50,
+      50
+    ],
+    "claimNcd": [
+      20,
+      30,
+      40
+    ]
+  }
+]
