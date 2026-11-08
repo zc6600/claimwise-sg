@@ -1,13 +1,20 @@
 const CACHE_PREFIX = "claimwise-offline-";
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3`;
 
 const PRECACHE_URLS = [
   "/",
   "/calculator",
+  "/tools",
+  "/tools/ncd-protector",
+  "/tools/quote-compare",
+  "/tools/coe-renewal",
+  "/tools/loan-prepayment",
+  "/my-car",
   "/settlement",
   "/emergency",
   "/how-it-works",
   "/rules",
+  "/privacy",
   "/icon.svg",
   "/manifest.webmanifest",
 ];

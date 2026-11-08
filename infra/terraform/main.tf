@@ -39,6 +39,18 @@ resource "google_project_service" "firebaserules" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "secret_manager" {
+  project            = var.project_id
+  service            = "secretmanager.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "cloud_scheduler" {
+  project            = var.project_id
+  service            = "cloudscheduler.googleapis.com"
+  disable_on_destroy = false
+}
+
 # 2. Firestore Native Database in Singapore
 resource "google_firestore_database" "default" {
   project     = var.project_id
@@ -150,12 +162,49 @@ resource "google_cloud_run_v2_service" "claimwise_app" {
         name  = "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
         value = "${var.project_id}.firebaseapp.com"
       }
+
+      env {
+        name = "RESEND_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = data.google_secret_manager_secret.resend_api_key.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name  = "REMINDER_FROM_EMAIL"
+        value = var.reminder_from_email
+      }
+
+      env {
+        name  = "REMINDER_SITE_URL"
+        value = var.reminder_site_url
+      }
+
+      env {
+        name = "REMINDER_TOKEN_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = data.google_secret_manager_secret.reminder_token_secret.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name  = "REMINDER_SCHEDULER_EMAIL"
+        value = google_service_account.reminder_scheduler.email
+      }
     }
   }
 
   depends_on = [
     google_project_service.cloud_run,
-    google_firestore_database.default
+    google_firestore_database.default,
+    google_secret_manager_secret_iam_member.cloud_run_resend_api_key,
+    google_secret_manager_secret_iam_member.cloud_run_reminder_token_secret
   ]
 }
 
@@ -166,4 +215,72 @@ resource "google_cloud_run_v2_service_iam_member" "public_access" {
   name     = google_cloud_run_v2_service.claimwise_app.name
   role     = "roles/run.invoker"
   member   = "allUsers"
+}
+
+# 9. Firestore Access for Server-Managed Reminder Subscriptions
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
+resource "google_project_iam_member" "cloud_run_firestore" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+# 10. Reminder Secrets
+# Secret values are added outside Terraform so they never enter state or tfvars.
+data "google_secret_manager_secret" "resend_api_key" {
+  project   = var.project_id
+  secret_id = "RESEND_API_KEY"
+
+  depends_on = [google_project_service.secret_manager]
+}
+
+data "google_secret_manager_secret" "reminder_token_secret" {
+  project   = var.project_id
+  secret_id = "REMINDER_TOKEN_SECRET"
+
+  depends_on = [google_project_service.secret_manager]
+}
+
+resource "google_secret_manager_secret_iam_member" "cloud_run_resend_api_key" {
+  project   = var.project_id
+  secret_id = data.google_secret_manager_secret.resend_api_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "cloud_run_reminder_token_secret" {
+  project   = var.project_id
+  secret_id = data.google_secret_manager_secret.reminder_token_secret.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+# 11. Daily Reminder Dispatch at 09:00 Singapore Time
+resource "google_service_account" "reminder_scheduler" {
+  project      = var.project_id
+  account_id   = "reminder-scheduler"
+  display_name = "ClaimWise reminder scheduler"
+}
+
+resource "google_cloud_scheduler_job" "reminder_dispatch" {
+  name      = "${var.service_name}-reminder-dispatch"
+  project   = var.project_id
+  region    = var.region
+  schedule  = "0 9 * * *"
+  time_zone = "Asia/Singapore"
+
+  http_target {
+    http_method = "POST"
+    uri         = "${var.reminder_site_url}/api/reminders/dispatch"
+
+    oidc_token {
+      service_account_email = google_service_account.reminder_scheduler.email
+      audience              = "${var.reminder_site_url}/api/reminders/dispatch"
+    }
+  }
+
+  depends_on = [google_project_service.cloud_scheduler]
 }

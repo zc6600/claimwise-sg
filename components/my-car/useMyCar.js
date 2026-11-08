@@ -1,0 +1,72 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../AuthProvider";
+import {
+  cacheCarLocally,
+  loadCloudCar,
+  loadLocalCar,
+  saveCar,
+} from "../../lib/my-car-service";
+import { EMPTY_CAR, hasCarDetails } from "../../src/my-car.mjs";
+
+/**
+ * Loads the saved car from this browser, then reconciles it with the signed-in account.
+ * Account data wins. Details entered while signed out are uploaded when the account has
+ * none, but details saved by a different account are never adopted.
+ */
+export function useMyCar() {
+  const { user, loading: authLoading } = useAuth();
+  const [stored, setStored] = useState({ ownerUid: null, car: EMPTY_CAR });
+  const [ready, setReady] = useState(false);
+  const viewerUid = user?.uid ?? null;
+
+  // State from a previous account is never exposed, even for the render before the effect runs.
+  const car = stored.ownerUid === viewerUid ? stored.car : EMPTY_CAR;
+
+  const setCar = useCallback(
+    (update) =>
+      setStored((current) => {
+        const base = current.ownerUid === viewerUid ? current.car : EMPTY_CAR;
+        return {
+          ownerUid: viewerUid,
+          car: typeof update === "function" ? update(base) : update,
+        };
+      }),
+    [viewerUid]
+  );
+
+  useEffect(() => {
+    if (authLoading) return undefined;
+
+    let cancelled = false;
+    const { car: local, unowned } = loadLocalCar(user);
+    setCar(local);
+
+    async function reconcile() {
+      if (!user) return;
+      try {
+        const cloud = await loadCloudCar(user);
+        if (cancelled) return;
+        if (cloud) {
+          cacheCarLocally(user, cloud);
+          setCar(cloud);
+        } else if (unowned && hasCarDetails(local)) {
+          await saveCar(user, local);
+        }
+      } catch (error) {
+        console.warn("Saved car could not be loaded from the account:", error?.message || error);
+      }
+    }
+
+    reconcile().finally(() => {
+      if (!cancelled) setReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading, setCar]);
+
+  return { car, setCar, ready, user };
+}

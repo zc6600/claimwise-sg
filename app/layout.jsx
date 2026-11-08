@@ -78,12 +78,13 @@ export default function RootLayout({ children }) {
                 </Link>
 
                 <nav className="nav-links" aria-label="Main navigation">
-                  <Link href="/">Home</Link>
                   <Link href="/calculator">Calculator</Link>
-                  <Link href="/settlement">Private settlement</Link>
-                  <Link href="/emergency">Emergency kit</Link>
+                  <Link href="/tools">Car tools</Link>
+                  <Link href="/my-car">My car</Link>
+                  <Link href="/settlement">Settlement</Link>
+                  <Link href="/emergency">Emergency</Link>
                   <Link href="/how-it-works">How it works</Link>
-                  <Link href="/rules">Insurer rules</Link>
+                  <Link href="/rules">Rules</Link>
                   <NavbarUser />
                 </nav>
 
@@ -95,10 +96,12 @@ export default function RootLayout({ children }) {
               <nav className="mobile-nav section-pad" aria-label="Mobile navigation">
                 <Link href="/">Home</Link>
                 <Link href="/calculator">Calculator</Link>
-                <Link href="/settlement">Private settlement</Link>
-                <Link href="/emergency">Emergency kit</Link>
+                <Link href="/tools">Car tools</Link>
+                <Link href="/my-car">My car</Link>
+                <Link href="/settlement">Settlement</Link>
+                <Link href="/emergency">Emergency</Link>
                 <Link href="/how-it-works">How it works</Link>
-                <Link href="/rules">Insurer rules</Link>
+                <Link href="/rules">Rules</Link>
                 <NavbarUser />
               </nav>
             </header>
@@ -118,7 +121,9 @@ export default function RootLayout({ children }) {
                   </span>
                 </div>
                 <p>Independent motor insurance claim vs. self-pay modelling for Singapore drivers.</p>
-                <span className="footer-meta">Singapore GIA MCF baseline · 2026</span>
+                <span className="footer-meta">
+                  Singapore GIA MCF baseline · 2026 · <Link href="/privacy">Privacy</Link>
+                </span>
               </div>
             </footer>
           </div>
