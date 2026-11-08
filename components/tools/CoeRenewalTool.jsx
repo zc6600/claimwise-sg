@@ -15,6 +15,12 @@ const COHORT_OPTIONS = [
   { value: PARF_COHORTS.FROM_FEB_2026, label: "COE from the 2nd bidding of Feb 2026 onwards" },
 ];
 
+const SHORT_LABELS = {
+  "renew-5": "Renew 5 years",
+  "renew-10": "Renew 10 years",
+  replace: "Replace the car",
+};
+
 export default function CoeRenewalTool() {
   const [inputs, setInputs] = useState(COE_RENEWAL_DEFAULTS);
   const update = (field) => (value) => setInputs((current) => ({ ...current, [field]: value }));
@@ -25,21 +31,21 @@ export default function CoeRenewalTool() {
     <div className="tool-layout">
       <form className="tool-card" onSubmit={(event) => event.preventDefault()}>
         <h2>Your current car</h2>
-        <div className="field-grid two-col">
+        <div className="field-grid three-col">
           <NumberField
             id="pqp"
-            label="Current PQP for your category"
+            label="Current PQP"
             prefix="S$"
-            hint="Check the latest PQP on OneMotoring. The default is only an example."
+            hint="Latest PQP is on OneMotoring."
             value={inputs.pqp}
             onChange={update("pqp")}
           />
           <NumberField
             id="carAgeYears"
-            label="Car age at decision"
+            label="Car age"
             suffix="years"
             max={30}
-            hint="This comparison is designed for a car close to its COE expiry."
+            hint="Best for cars near COE expiry."
             value={inputs.carAgeYears}
             onChange={update("carAgeYears")}
           />
@@ -47,7 +53,7 @@ export default function CoeRenewalTool() {
             id="arfPaid"
             label="ARF paid"
             prefix="S$"
-            hint="Shown in your LTA vehicle records."
+            hint="In your LTA vehicle records."
             value={inputs.arfPaid}
             onChange={update("arfPaid")}
           />
@@ -81,40 +87,40 @@ export default function CoeRenewalTool() {
           />
           <NumberField
             id="endOfRenewalValue"
-            label="Car's value when the renewal ends"
+            label="Value when renewal ends"
             prefix="S$"
             value={inputs.endOfRenewalValue}
             onChange={update("endOfRenewalValue")}
           />
           <NumberField
             id="annualRoadTax"
-            label="Road tax before surcharge, per year"
+            label="Road tax per year"
             prefix="S$"
             value={inputs.annualRoadTax}
             onChange={update("annualRoadTax")}
           />
           <NumberField
             id="currentCarAnnualCost"
-            label="Repairs, insurance and inspection, per year"
+            label="Other running costs per year"
             prefix="S$"
-            hint="Estimate for this car as it gets older."
+            hint="Repairs, insurance, inspection."
             value={inputs.currentCarAnnualCost}
             onChange={update("currentCarAnnualCost")}
           />
         </div>
 
         <h2 className="tool-subheading">The replacement car</h2>
-        <div className="field-grid two-col">
+        <div className="field-grid four-col">
           <NumberField
             id="replacementPrice"
-            label="Price including COE"
+            label="Price with COE"
             prefix="S$"
             value={inputs.replacementPrice}
             onChange={update("replacementPrice")}
           />
           <NumberField
             id="replacementYears"
-            label="Years you would keep it"
+            label="Years kept"
             min={1}
             max={10}
             value={inputs.replacementYears}
@@ -122,14 +128,14 @@ export default function CoeRenewalTool() {
           />
           <NumberField
             id="replacementResaleValue"
-            label="Expected resale value then"
+            label="Resale value then"
             prefix="S$"
             value={inputs.replacementResaleValue}
             onChange={update("replacementResaleValue")}
           />
           <NumberField
             id="replacementAnnualCost"
-            label="Road tax, repairs and insurance, per year"
+            label="Running costs per year"
             prefix="S$"
             value={inputs.replacementAnnualCost}
             onChange={update("replacementAnnualCost")}
@@ -143,18 +149,24 @@ export default function CoeRenewalTool() {
           Lowest yearly economic cost at about {formatCurrency(best.annualCost)}, saving{" "}
           {formatCurrency(result.annualSavingVsNextBest)} a year over the next best option.
         </p>
-        <ResultRows
-          rows={result.options.map((option) => [
-            `${option.label}: yearly cost`,
-            formatCurrency(option.annualCost),
-          ])}
-        />
-        <ResultRows
-          rows={result.options.map((option) => [
-            `${option.label}: cash needed now`,
-            formatCurrency(option.upfront),
-          ])}
-        />
+        <table className="tool-table tabular-nums">
+          <thead>
+            <tr>
+              <th scope="col">Option</th>
+              <th scope="col">Per year</th>
+              <th scope="col">Cash now</th>
+            </tr>
+          </thead>
+          <tbody>
+            {result.options.map((option) => (
+              <tr key={option.id} className={option.id === result.bestOptionId ? "is-best" : undefined}>
+                <th scope="row">{SHORT_LABELS[option.id]}</th>
+                <td>{formatCurrency(option.annualCost)}</td>
+                <td>{formatCurrency(option.upfront)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
         <h3>Value released if you deregister today</h3>
         <ResultRows
           rows={[
@@ -163,11 +175,6 @@ export default function CoeRenewalTool() {
             ["Total with scrap value", formatCurrency(result.deregistrationValue)],
           ]}
         />
-        <ul className="tool-option-notes">
-          {result.options.map((option) => (
-            <li key={option.id}>{option.note}</li>
-          ))}
-        </ul>
       </aside>
     </div>
   );

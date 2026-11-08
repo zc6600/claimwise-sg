@@ -56,7 +56,7 @@ export default function LoanPrepaymentTool() {
             label="Fee on the interest rebate"
             suffix="%"
             max={100}
-            hint="Some lenders charge 20% of the rebate. Check your agreement."
+            hint="Often 20%. Check your agreement."
             value={inputs.rebateFeePct}
             onChange={update("rebateFeePct")}
           />

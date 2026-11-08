@@ -67,16 +67,16 @@ export default function QuoteComparisonTool() {
                 Remove
               </button>
             ) : null}
-            <div className="field">
-              <label htmlFor={`label-${index}`}>Name</label>
-              <input
-                id={`label-${index}`}
-                maxLength={60}
-                value={quote.label}
-                onChange={(event) => updateQuote(index, "label")(event.target.value)}
-              />
-            </div>
-            <div className="field-grid three-col">
+            <div className="field-grid four-col">
+              <div className="field">
+                <label htmlFor={`label-${index}`}>Name</label>
+                <input
+                  id={`label-${index}`}
+                  maxLength={60}
+                  value={quote.label}
+                  onChange={(event) => updateQuote(index, "label")(event.target.value)}
+                />
+              </div>
               <NumberField
                 id={`premium-${index}`}
                 label="Premium"
@@ -93,7 +93,7 @@ export default function QuoteComparisonTool() {
               />
               <NumberField
                 id={`surcharge-${index}`}
-                label="Extra excess outside authorised workshops"
+                label="Own-workshop extra"
                 prefix="S$"
                 value={quote.workshopSurcharge}
                 onChange={updateQuote(index, "workshopSurcharge")}
@@ -113,7 +113,7 @@ export default function QuoteComparisonTool() {
         ) : null}
 
         <h2 className="tool-subheading">Your situation</h2>
-        <div className="field-grid two-col">
+        <div className="field-grid four-col">
           <SelectField
             id="currentNcd"
             label="Current NCD"
@@ -123,10 +123,10 @@ export default function QuoteComparisonTool() {
           />
           <NumberField
             id="incidentProbabilityPct"
-            label="Chance of an at-fault accident this year"
+            label="Accident chance this year"
             suffix="%"
             max={100}
-            hint="The default is an illustration, not a statistic."
+            hint="At fault. Default is only an example."
             value={settings.incidentProbabilityPct}
             onChange={updateSetting("incidentProbabilityPct")}
           />
@@ -134,18 +134,18 @@ export default function QuoteComparisonTool() {
             id="typicalRepairCost"
             label="Typical repair bill"
             prefix="S$"
-            hint="We assume you claim only when that beats paying the workshop yourself."
+            hint="You claim only if it costs less."
             value={settings.typicalRepairCost}
             onChange={updateSetting("typicalRepairCost")}
           />
           <SelectField
             id="workshop"
-            label="Where would you repair the car?"
+            label="Repair at"
             value={settings.usesNonAuthorisedWorkshop ? "independent" : "authorised"}
             onChange={(value) => updateSetting("usesNonAuthorisedWorkshop")(value === "independent")}
             options={[
-              { value: "authorised", label: "Insurer's authorised workshop" },
-              { value: "independent", label: "My own workshop" },
+              { value: "authorised", label: "Authorised workshop" },
+              { value: "independent", label: "Own workshop" },
             ]}
           />
         </div>

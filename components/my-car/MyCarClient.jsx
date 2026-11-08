@@ -111,6 +111,26 @@ export default function MyCarClient() {
           </div>
           {saveMessage ? <p className="reminder-success" role="status">{saveMessage}</p> : null}
         </form>
+      </div>
+
+      <div className="my-car-stack">
+        <aside className="tool-result">
+          <h2>{car.label ? `${car.label}: what’s next` : "What’s next"}</h2>
+          {decisions.length === 0 ? (
+            <p className="tool-headline">Add a date to see your upcoming decisions.</p>
+          ) : (
+            <ul className="decision-list">
+              {decisions.map((decision) => (
+                <li key={decision.id} className={decision.actNow ? "is-urgent" : undefined}>
+                  <h3>{decision.title}</h3>
+                  <p className="decision-date tabular-nums">{describeDays(decision)}</p>
+                  <p>{decision.prompt}</p>
+                  <Link href={decision.href}>{decision.actionLabel}</Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
 
         <ReminderSignup
           dates={{
@@ -120,24 +140,6 @@ export default function MyCarClient() {
           }}
         />
       </div>
-
-      <aside className="tool-result">
-        <h2>{car.label ? `${car.label}: what’s next` : "What’s next"}</h2>
-        {decisions.length === 0 ? (
-          <p className="tool-headline">Add a date to see your upcoming decisions.</p>
-        ) : (
-          <ul className="decision-list">
-            {decisions.map((decision) => (
-              <li key={decision.id} className={decision.actNow ? "is-urgent" : undefined}>
-                <h3>{decision.title}</h3>
-                <p className="decision-date tabular-nums">{describeDays(decision)}</p>
-                <p>{decision.prompt}</p>
-                <Link href={decision.href}>{decision.actionLabel}</Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </aside>
     </div>
   );
 }

@@ -112,7 +112,7 @@ export default function RootLayout({ children }) {
                     ClaimWise <em>SG</em>
                   </span>
                 </div>
-                <p>Independent calculators for the expensive decisions in Singapore car ownership.</p>
+                <p>Independent and free. General information, not financial advice.</p>
                 <nav className="footer-links" aria-label="More pages">
                   <Link href="/how-it-works">How it works</Link>
                   <Link href="/privacy">Privacy</Link>

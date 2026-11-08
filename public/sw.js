@@ -1,5 +1,8 @@
 const CACHE_PREFIX = "claimwise-offline-";
-const CACHE_NAME = `${CACHE_PREFIX}v5`;
+const CACHE_NAME = `${CACHE_PREFIX}v6`;
+
+// The dev server serves unhashed code at fixed URLs, so caching it would pin stale code.
+const IS_LOCAL_DEV = ["localhost", "127.0.0.1"].includes(self.location.hostname);
 
 const PRECACHE_URLS = [
   "/",
@@ -20,6 +23,11 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener("install", (event) => {
+  if (IS_LOCAL_DEV) {
+    // Take over at once so the activate step can clear old caches and unregister.
+    event.waitUntil(self.skipWaiting());
+    return;
+  }
   event.waitUntil(
     caches
       .open(CACHE_NAME)
@@ -43,6 +51,15 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
+  if (IS_LOCAL_DEV) {
+    event.waitUntil(
+      caches
+        .keys()
+        .then((names) => Promise.all(names.filter((name) => name.startsWith(CACHE_PREFIX)).map((name) => caches.delete(name))))
+        .then(() => self.registration.unregister())
+    );
+    return;
+  }
   event.waitUntil(
     caches
       .keys()
@@ -64,8 +81,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  // Only handle HTTP/HTTPS GET requests
-  if (request.method !== "GET" || !request.url.startsWith("http")) {
+  // Only handle HTTP/HTTPS GET requests, and never intercept the local dev server
+  if (IS_LOCAL_DEV || request.method !== "GET" || !request.url.startsWith("http")) {
     return;
   }
 
@@ -79,7 +96,7 @@ self.addEventListener("fetch", (event) => {
           JSON.stringify({
             ok: false,
             offline: true,
-            error: "Device is currently offline. Actuarial calculation and settlement drafting operate locally in your browser.",
+            error: "You are offline. The claim calculator needs a connection; the emergency kit and settlement agreement still work.",
           }),
           {
             headers: { "Content-Type": "application/json" },
@@ -153,21 +170,19 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Default: cache first with network fallback
+  // Everything else, including Next.js page data for in-app navigation: network first,
+  // so a deploy is visible immediately, with the cached copy used only when offline.
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      return (
-        cachedResponse ||
-        fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            event.waitUntil(
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)).catch(() => {})
-            );
-          }
-          return networkResponse;
-        })
-      );
-    })
+    fetch(request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)).catch(() => {})
+          );
+        }
+        return networkResponse;
+      })
+      .catch(() => caches.match(request).then((cachedResponse) => cachedResponse || Response.error()))
   );
 });

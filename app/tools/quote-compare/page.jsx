@@ -11,7 +11,7 @@ export default function Page() {
   return (
     <ToolPageShell
       kicker="Renewal decision"
-      title="Is the cheaper car insurance quote really cheaper?"
+      title="Is the cheaper quote really cheaper?"
       lead="Compare renewal quotes on premium plus what an accident would really cost you, including excess, workshop surcharges, and NCD loss."
       method={[
         "Expected cost equals the premium plus your chance of an at-fault accident multiplied by what one accident would cost you.",
