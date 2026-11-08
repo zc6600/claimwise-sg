@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "scope": "Synthetic educational scenarios under frozen model assumptions; not actual claims or renewal quotations.",
+  "assumptions": {
+    "horizon_years": 3,
+    "base_growth_percent": 5,
+    "discount_percent": 3,
+    "self_pay_ncd": [50, 50, 50],
+    "claim_ncd": [20, 30, 40],
+    "coverage": "Assume covered own-vehicle bodywork damage, one at-fault accident, an authorised workshop, no NCD Protector, no third-party claim and no additional driver excess. No later accidents occur."
+  },
+  "scenarios": [
+    {
+      "id": "A",
+      "title": "Low-speed scrape with a workshop quotation",
+      "inputs": {
+        "insurer": "income", "currentPremium": 1400, "currentNcd": 50,
+        "excess": 600, "repairCost": 1900, "horizonYears": 3,
+        "baseGrowthRate": 5, "discountRate": 3, "ncdProtector": false,
+        "liability": "at_fault", "thirdPartyClaim": false,
+        "workshopType": "authorized", "youngDriverInvolved": false, "repairType": "general"
+      },
+      "expected": {"decision": "self-pay", "selfPayTotal": 6265.23, "claimTotal": 6700.14, "breakEvenRepairCost": 2334.91}
+    },
+    {
+      "id": "B",
+      "title": "Bumper damage with a workshop quotation",
+      "inputs": {
+        "insurer": "income", "currentPremium": 1500, "currentNcd": 50,
+        "excess": 600, "repairCost": 2900, "horizonYears": 3,
+        "baseGrowthRate": 5, "discountRate": 3, "ncdProtector": false,
+        "liability": "at_fault", "thirdPartyClaim": false,
+        "workshopType": "authorized", "youngDriverInvolved": false, "repairType": "general"
+      },
+      "expected": {"decision": "claim", "selfPayTotal": 7577.04, "claimTotal": 7135.85, "breakEvenRepairCost": 2458.81}
+    }
+  ]
+}

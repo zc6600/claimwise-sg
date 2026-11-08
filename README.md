@@ -112,7 +112,7 @@ cd claimwise-sg
 # Install dependencies (Next.js 15, React 19, Firebase SDK)
 npm install
 
-# Run the deterministic test suite (26 tests, completes in ~200ms)
+# Run the deterministic test suite (64 tests)
 npm test
 
 # Start the local development server
@@ -125,7 +125,7 @@ Open **`http://localhost:3000`** in your browser.
 
 ### 2. Production Build & Test
 ```bash
-# Run all 26 actuarial & API unit tests
+# Run all 64 actuarial & API unit tests
 npm test
 
 # Build and start the optimized standalone production server
@@ -188,10 +188,13 @@ Renders an HTML wrapper embedding the matching official policy wording PDF at it
 
 | Evaluation | Script | Summary |
 | :--- | :--- | :--- |
-| **Actuarial Correctness** | `python scripts/run_correctness_eval.py` | 13/13 boundary benchmark cases passed (`tests/fixtures/benchmark_cases.json`) |
-| **Load & Latency** | `python scripts/run_locust_evaluation.py` | Median latency `8.00 ms`, p95 `21.00 ms`, `0.00%` error rate |
-| **Cloud TCO Model** | `python scripts/tco_calculator.py` | 3-year serverless vs. on-premises cost comparison |
-| **Usability Analysis** | `python scripts/analyze_user_study.py` | System Usability Scale (SUS) aggregation (`89.6 / 100`) |
+| **Decision Correctness** | `node evaluation/correctness.mjs` | 18 cases with independent renewal paths and cash-flow checks; HTTP mode adds 8 validation cases |
+| **Load & Latency** | `bash evaluation/run_performance.sh <origin> [comparison\|steady]` | Isolated page/decision requests and ordered journeys; sustained load and exact 200-unit bursts; mean/tail/max latency and errors |
+| **Cloud Run Elasticity** | `python evaluation/cloud_metrics.py --run-dir <run-directory>` | Read-only Monitoring evidence for instance counts, resource use, startup latency, and observed scaling |
+| **Participant Scenario Study** | `python evaluation/simple_user_study.py prepare` / `analyze` | Four optional background questions; two tasks per person, with/without app; balanced assignments and descriptive paired results |
+| **Illustrative TCO Model** | `python scripts/tco_calculator.py` | Assumption-based cost comparison; not measured cloud billing |
+
+See [Evaluation Setup & Commands](evaluation/README.md) and the [User Study Protocol](evaluation/USER_STUDY_PROTOCOL.md). Fresh measurements are stored under ignored `evaluation/results/` directories. Earlier top-level evaluation tables are historical artifacts; the older user-study script uses built-in sample data and does not establish results from real participants.
 
 ---
 

@@ -1,0 +1,418 @@
+{
+  "schema_version": 1,
+  "evaluation_date_utc": "2026-11-07",
+  "local_workspace_base_commit": "2cd1a426f8c93ca7b891c351877180d300b7254d",
+  "deployed_revision": "not_recorded",
+  "scope": "Recorded checks use private-car baseline inputs; PHV/commercial scenarios and later application features are outside these recorded measurements.",
+  "correctness": {
+    "engine": {
+      "source_run": "correctness-2026-11-07T16-03-47.978Z-327d9fe9",
+      "source_sha256": "0496cd4fd3636a8e205b096ccfbe7b580a09c52e26ea98c61f871d5917148ee4",
+      "mode": "engine",
+      "total": 18,
+      "passed": 18,
+      "scope": "Configured-rule correctness and independent cash-flow checks; not external verification of policy terms.",
+      "checks": [
+        {
+          "id": "CASE-001",
+          "passed": true
+        },
+        {
+          "id": "CASE-002",
+          "passed": true
+        },
+        {
+          "id": "CASE-003",
+          "passed": true
+        },
+        {
+          "id": "CASE-004",
+          "passed": true
+        },
+        {
+          "id": "CASE-005",
+          "passed": true
+        },
+        {
+          "id": "CASE-006",
+          "passed": true
+        },
+        {
+          "id": "CASE-007",
+          "passed": true
+        },
+        {
+          "id": "CASE-008",
+          "passed": true
+        },
+        {
+          "id": "CASE-009",
+          "passed": true
+        },
+        {
+          "id": "CASE-010",
+          "passed": true
+        },
+        {
+          "id": "CASE-011",
+          "passed": true
+        },
+        {
+          "id": "CASE-012",
+          "passed": true
+        },
+        {
+          "id": "CASE-013",
+          "passed": true
+        },
+        {
+          "id": "ETIQA-PROTECTOR-40",
+          "passed": true
+        },
+        {
+          "id": "INCOME-PROTECTOR-INELIGIBLE",
+          "passed": true
+        },
+        {
+          "id": "WINDSCREEN-THIRD-PARTY",
+          "passed": true
+        },
+        {
+          "id": "WINDSCREEN-PROTECTED",
+          "passed": true
+        },
+        {
+          "id": "BREAK-EVEN-TIE",
+          "passed": true
+        }
+      ]
+    },
+    "local_http": {
+      "source_run": "correctness-2026-11-07T16-09-03.003Z-04542bb7",
+      "source_sha256": "a8c8a7014446878f6c2c6404bae68e5c3a4f16f9e6f5369a7b6e203f08f6a444",
+      "mode": "http",
+      "total": 26,
+      "passed": 26,
+      "scope": "Configured-rule correctness and independent cash-flow checks; not external verification of policy terms.",
+      "checks": [
+        {
+          "id": "CASE-001",
+          "passed": true
+        },
+        {
+          "id": "CASE-002",
+          "passed": true
+        },
+        {
+          "id": "CASE-003",
+          "passed": true
+        },
+        {
+          "id": "CASE-004",
+          "passed": true
+        },
+        {
+          "id": "CASE-005",
+          "passed": true
+        },
+        {
+          "id": "CASE-006",
+          "passed": true
+        },
+        {
+          "id": "CASE-007",
+          "passed": true
+        },
+        {
+          "id": "CASE-008",
+          "passed": true
+        },
+        {
+          "id": "CASE-009",
+          "passed": true
+        },
+        {
+          "id": "CASE-010",
+          "passed": true
+        },
+        {
+          "id": "CASE-011",
+          "passed": true
+        },
+        {
+          "id": "CASE-012",
+          "passed": true
+        },
+        {
+          "id": "CASE-013",
+          "passed": true
+        },
+        {
+          "id": "ETIQA-PROTECTOR-40",
+          "passed": true
+        },
+        {
+          "id": "INCOME-PROTECTOR-INELIGIBLE",
+          "passed": true
+        },
+        {
+          "id": "WINDSCREEN-THIRD-PARTY",
+          "passed": true
+        },
+        {
+          "id": "WINDSCREEN-PROTECTED",
+          "passed": true
+        },
+        {
+          "id": "BREAK-EVEN-TIE",
+          "passed": true
+        },
+        {
+          "id": "MALFORMED-JSON",
+          "passed": true
+        },
+        {
+          "id": "ARRAY-BODY",
+          "passed": true
+        },
+        {
+          "id": "ZERO-PREMIUM",
+          "passed": true
+        },
+        {
+          "id": "NEGATIVE-EXCESS",
+          "passed": true
+        },
+        {
+          "id": "INVALID-NCD",
+          "passed": true
+        },
+        {
+          "id": "INVALID-INSURER",
+          "passed": true
+        },
+        {
+          "id": "INVALID-HORIZON",
+          "passed": true
+        },
+        {
+          "id": "OVERSIZED-BODY",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "http_performance": {
+    "base_url": "https://claimwise-sg-721110976915.asia-southeast1.run.app",
+    "persist": false,
+    "sustained": [
+      {
+        "source_run": "load-comparison-page-2026-11-07T20-26-17.635293Z-e6d38bb8",
+        "source_sha256": "2653b2a21525ea778392e481ea3a5326f5ac50838f75e9d63249189db8d3b82b",
+        "workload": "page",
+        "profile": {
+          "purpose": "Short isolated-workload comparison; not a long-duration stability experiment.",
+          "phases": [
+            {
+              "name": "warmup",
+              "seconds": 10,
+              "users": 5,
+              "spawn_rate": 5
+            },
+            {
+              "name": "measurement",
+              "seconds": 60,
+              "users": 50,
+              "spawn_rate": 50
+            }
+          ]
+        },
+        "http_requests": 5718,
+        "units": 5718,
+        "request_start_span_seconds": 59.96783763199892,
+        "units_per_second": 95.3,
+        "latency_and_errors": {
+          "mean_ms": 25.91318030098311,
+          "p50_ms": 18.644914000105928,
+          "p95_ms": 65.21030100157077,
+          "p99_ms": 152.95966600024258,
+          "max_ms": 435.68634900111647,
+          "failures": 0,
+          "error_rate": 0.0
+        }
+      },
+      {
+        "source_run": "load-comparison-decision-2026-11-07T20-25-07.074942Z-2fe195a1",
+        "source_sha256": "05087a75dbf66e174b151f0d718fb4542bb57de1be63bf91dfd9247648c62361",
+        "workload": "decision",
+        "profile": {
+          "purpose": "Short isolated-workload comparison; not a long-duration stability experiment.",
+          "phases": [
+            {
+              "name": "warmup",
+              "seconds": 10,
+              "users": 5,
+              "spawn_rate": 5
+            },
+            {
+              "name": "measurement",
+              "seconds": 60,
+              "users": 50,
+              "spawn_rate": 50
+            }
+          ]
+        },
+        "http_requests": 5702,
+        "units": 5702,
+        "request_start_span_seconds": 59.98912138000014,
+        "units_per_second": 95.03333333333333,
+        "latency_and_errors": {
+          "mean_ms": 28.502110588551094,
+          "p50_ms": 19.52531499955512,
+          "p95_ms": 97.72813400013547,
+          "p99_ms": 148.4968189997744,
+          "max_ms": 566.743621000569,
+          "failures": 0,
+          "error_rate": 0.0
+        }
+      },
+      {
+        "source_run": "load-comparison-journey-2026-11-07T20-27-28.223813Z-00669e13",
+        "source_sha256": "cdb884c717ab6db2cca4e2e825e44f599f4705bea8e9d46c578c7d6e71cd9444",
+        "workload": "journey",
+        "profile": {
+          "purpose": "Short isolated-workload comparison; not a long-duration stability experiment.",
+          "phases": [
+            {
+              "name": "warmup",
+              "seconds": 10,
+              "users": 5,
+              "spawn_rate": 5
+            },
+            {
+              "name": "measurement",
+              "seconds": 60,
+              "users": 50,
+              "spawn_rate": 50
+            }
+          ]
+        },
+        "http_requests": 11014,
+        "units": 5507,
+        "request_start_span_seconds": 60.00578446600048,
+        "units_per_second": 91.78333333333333,
+        "latency_and_errors": {
+          "mean_ms": 49.46263002071991,
+          "p50_ms": 39.017437999063986,
+          "p95_ms": 120.1569280019612,
+          "p99_ms": 224.19701800026814,
+          "max_ms": 344.112678001693,
+          "failures": 0,
+          "error_rate": 0.0
+        }
+      }
+    ],
+    "latest_burst": {
+      "source_run": "load-burst-journey-2026-11-07T22-05-43.948993Z-29427738",
+      "source_sha256": "e3b02b10079eb549e0f8484dbc3aaee0de7582f6653cc292182f1bb520944d20",
+      "health_preflight": false,
+      "business_warmup_seconds": 0,
+      "minutes_since_previous_recorded_client_test": 31.915494416666668,
+      "external_traffic": "unknown",
+      "cold_start_verified": false,
+      "journeys": 200,
+      "http_requests": 400,
+      "batch_completion_seconds": 4.450711203000537,
+      "mean_step_overhead_ms": 0.24545804506487912,
+      "rows": [
+        {
+          "workload": "page",
+          "http_requests": 200,
+          "request_start_span_seconds": 0.04622215700146626,
+          "latency_and_errors": {
+            "mean_ms": 3884.4715444899884,
+            "p50_ms": 3933.6299300011888,
+            "p95_ms": 4079.065977999562,
+            "p99_ms": 4088.800783996703,
+            "max_ms": 4094.5835140009876,
+            "failures": 0,
+            "error_rate": 0.0
+          }
+        },
+        {
+          "workload": "decision",
+          "http_requests": 200,
+          "request_start_span_seconds": 1.473557940000319,
+          "latency_and_errors": {
+            "mean_ms": 303.725588869911,
+            "p50_ms": 294.35658500005957,
+            "p95_ms": 417.46701800002484,
+            "p99_ms": 1006.5535329995328,
+            "max_ms": 1009.1096869982721,
+            "failures": 0,
+            "error_rate": 0.0
+          }
+        },
+        {
+          "workload": "journey",
+          "http_requests": 400,
+          "request_start_span_seconds": 4.138652528999955,
+          "latency_and_errors": {
+            "mean_ms": 4188.442591404964,
+            "p50_ms": 4208.56966899737,
+            "p95_ms": 4391.064131999883,
+            "p99_ms": 4406.711207000626,
+            "max_ms": 4417.666129000281,
+            "failures": 0,
+            "error_rate": 0.0
+          }
+        }
+      ]
+    }
+  },
+  "questionnaire_demo": {
+    "source_run": "synthetic-study-2026-11-07T21-08-14.622675Z-962b8350",
+    "source_sha256": "5cdb3048403985fa3c33451b13e5ce3ca828c0f684f92c90b1c985a5e25cbbf3",
+    "data_origin": "synthetic",
+    "actual_participants": 0,
+    "synthetic_records": 26,
+    "synthetic_tasks": 52,
+    "seed": 5224,
+    "metrics": {
+      "accuracy_pct": {
+        "paired_n": 26,
+        "without_app_mean": 57.69230769230769,
+        "with_app_mean": 57.69230769230769,
+        "mean_paired_change": 0
+      },
+      "confidence": {
+        "paired_n": 26,
+        "without_app_mean": 2.8846153846153846,
+        "with_app_mean": 3.1923076923076925,
+        "mean_paired_change": 0.3076923076923077
+      },
+      "time_seconds": {
+        "paired_n": 26,
+        "without_app_mean": 118.0,
+        "with_app_mean": 127.11538461538461,
+        "mean_paired_change": 9.115384615384615
+      }
+    },
+    "feedback": {
+      "ease_of_use": {
+        "n": 26,
+        "mean_1_to_5": 3.3076923076923075
+      },
+      "usefulness": {
+        "n": 26,
+        "mean_1_to_5": 3.5384615384615383
+      }
+    },
+    "decision_transitions": {
+      "incorrect_to_correct": 6,
+      "correct_to_incorrect": 6
+    },
+    "limitation": "Simulation parameters are illustrative assumptions, not fitted participant behavior; no empirical user benefit is established."
+  },
+  "raw_artifacts": "Full raw runs and questionnaire records remain local under ignored results/private directories."
+}

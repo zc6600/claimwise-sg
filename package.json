@@ -8,7 +8,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "evaluate:doctor": "python evaluation/doctor.py",
+    "evaluate:correctness": "node evaluation/correctness.mjs",
+    "test:evaluation": "node --test evaluation/*.test.mjs && python -m unittest discover -s evaluation -p 'test_*.py'"
   },
   "dependencies": {
     "firebase": "^13.1.0",

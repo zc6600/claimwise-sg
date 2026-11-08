@@ -1,0 +1,46 @@
+{
+  "smoke": {
+    "minimum_requests_per_endpoint": 1,
+    "purpose": "Tooling and HTTP validation only; insufficient duration for elasticity conclusions.",
+    "phases": [
+      {"name": "warmup", "seconds": 3, "users": 2, "spawn_rate": 2},
+      {"name": "measurement", "seconds": 12, "users": 2, "spawn_rate": 2}
+    ]
+  },
+  "baseline": {
+    "purpose": "Low-load client latency baseline.",
+    "phases": [
+      {"name": "warmup", "seconds": 30, "users": 5, "spawn_rate": 5},
+      {"name": "measurement", "seconds": 180, "users": 5, "spawn_rate": 5}
+    ]
+  },
+  "steady": {
+    "purpose": "Sustained moderate concurrency.",
+    "phases": [
+      {"name": "warmup", "seconds": 30, "users": 5, "spawn_rate": 5},
+      {"name": "measurement", "seconds": 300, "users": 50, "spawn_rate": 10}
+    ]
+  },
+  "burst": {
+    "mode": "burst",
+    "purpose": "One finite batch released together; 200 units by default, with no retries or think time.",
+    "minimum_requests_per_endpoint": 20,
+    "phases": []
+  },
+  "comparison": {
+    "purpose": "Short isolated-workload comparison; not a long-duration stability experiment.",
+    "phases": [
+      {"name": "warmup", "seconds": 10, "users": 5, "spawn_rate": 5},
+      {"name": "measurement", "seconds": 60, "users": 50, "spawn_rate": 50}
+    ]
+  },
+  "elasticity": {
+    "purpose": "Observe scale-out during a burst and scale-in after traffic stops.",
+    "phases": [
+      {"name": "warmup", "seconds": 30, "users": 5, "spawn_rate": 5},
+      {"name": "baseline", "seconds": 120, "users": 5, "spawn_rate": 5},
+      {"name": "burst", "seconds": 300, "users": 200, "spawn_rate": 100},
+      {"name": "cooldown", "seconds": 960, "users": 0, "spawn_rate": 200}
+    ]
+  }
+}
