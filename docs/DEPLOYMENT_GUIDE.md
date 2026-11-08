@@ -156,6 +156,19 @@ gcloud run deploy claimwise-sg --source . --region asia-southeast1 \
 
 Create a Cloud Scheduler job that sends `POST <public-url>/api/reminders/dispatch` daily with an OIDC token for that service account and `<public-url>/api/reminders/dispatch` as the audience. Changing the public URL requires updating `REMINDER_SITE_URL` and the job together.
 
+#### Scripted Setup and Deployment
+
+`scripts/deploy.sh` automates the steps above once both secrets exist:
+
+```bash
+scripts/deploy.sh setup    # One-time and idempotent: APIs, secret access, Firestore access, scheduler job
+scripts/deploy.sh deploy   # Deploys the committed HEAD and publishes firestore.rules
+scripts/deploy.sh verify   # Checks public pages and that the reminder API is configured
+scripts/deploy.sh all      # Runs setup, deploy, and verify
+```
+
+`deploy` builds from a clean checkout of `HEAD`, so uncommitted files are never uploaded. Override `PROJECT_ID`, `REGION`, `SERVICE`, `SITE_URL`, or `FROM_EMAIL` through the environment; run `setup` again after changing `SITE_URL` so the scheduler job targets the new address.
+
 Rotating `REMINDER_TOKEN_SECRET` invalidates every confirmation, manage, and unsubscribe link already sent, so rotate it only after a suspected compromise.
 
 ## 4. Infrastructure as Code (Terraform)
