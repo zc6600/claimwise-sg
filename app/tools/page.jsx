@@ -4,17 +4,23 @@ import FeatureIcon from "../../components/tools/FeatureIcon";
 export const metadata = {
   title: "Car Decision Tools",
   description:
-    "Everything ClaimWise SG offers Singapore car owners: calculators for insurance renewals, car loans, COE expiry, and accidents, plus My Car reminders.",
+    "Everything ClaimWise SG offers Singapore car owners: the true monthly cost of a car, insurance renewals, car loans, COE expiry, accidents, and My Car reminders.",
   alternates: { canonical: "/tools" },
 };
 
 const CALCULATORS = [
   {
+    href: "/tools/ownership-cost",
+    icon: "car",
+    name: "True monthly cost",
+    text: "Before you buy, see what a car really costs each month: depreciation after COE and PARF, loan interest, road tax, insurance, fuel, and parking.",
+    featured: true,
+  },
+  {
     href: "/tools/quote-compare",
     icon: "quotes",
     name: "Quote comparison",
-    text: "At every renewal, find the quote that really costs least once excess, workshop terms, and the NCD you could lose are counted.",
-    featured: true,
+    text: "Find the renewal quote that really costs least once excess and NCD loss count.",
   },
   {
     href: "/tools/ncd-protector",
@@ -34,17 +40,11 @@ const CALCULATORS = [
     name: "COE renewal",
     text: "Weigh a 5-year or 10-year renewal against replacing the car.",
   },
-  {
-    href: "/calculator",
-    icon: "claim",
-    name: "Claim or self-pay",
-    text: "After an accident, see whether claiming or paying the workshop costs less.",
-  },
 ];
 
 const MORE = [
   { href: "/my-car", icon: "car", name: "My Car", text: "Save your figures and get reminders." },
-  { href: "/accident", icon: "emergency", name: "After an accident", text: "What to do, claim or not, and settling." },
+  { href: "/accident", icon: "emergency", name: "After an accident", text: "What to do, whether to claim, and settling." },
   { href: "/rules", icon: "rules", name: "Insurer rules", text: "Excesses, NCD terms, and policy wordings." },
   { href: "/how-it-works", icon: "settlement", name: "How it works", text: "How the claim calculator reaches its answer." },
 ];

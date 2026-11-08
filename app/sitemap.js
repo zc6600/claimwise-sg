@@ -5,6 +5,7 @@ const PUBLIC_PATHS = [
   "/calculator",
   "/tools",
   "/accident",
+  "/tools/ownership-cost",
   "/tools/ncd-protector",
   "/tools/quote-compare",
   "/tools/coe-renewal",

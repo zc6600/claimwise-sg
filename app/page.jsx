@@ -33,8 +33,9 @@ export default function HomePage() {
           <div className="section-kicker">Independent car money decisions · Singapore</div>
           <h1>Is this car cost worth paying?</h1>
           <p className="landing-lead">
-            Free calculators for the money decisions of owning a car in Singapore: insurance
-            renewals, car loans, COE expiry, and the occasional accident. No sign-up, no sales pitch.
+            Free calculators for the money decisions of owning a car in Singapore: what a car
+            really costs, insurance renewals, car loans, COE expiry, and the occasional accident.
+            No sign-up, no sales pitch.
           </p>
           <div className="landing-actions">
             <Link className="button button-primary button-large" href="/tools">
@@ -53,8 +54,8 @@ export default function HomePage() {
           <span className="landing-answers-kicker">Answers like these, in under a minute</span>
           <ul>
             {[
+              ["What will a car cost each month?", examples.ownership],
               ["NCD Protector?", examples.protector],
-              ["Settle the car loan early?", examples.loan],
               ["Renew the COE?", examples.coe],
             ].map(([question, example]) => (
               <li key={question}>

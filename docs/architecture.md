@@ -20,7 +20,7 @@ flowchart LR
 | --- | --- | --- |
 | Home and car tools hub | `/`, `/tools` | `src/decision-engine.mjs`, `src/car-decisions/*.mjs` |
 | Claim calculator, trajectory, stress test | `/calculator` | Server `POST /api/decision` (`src/decision-engine.mjs`, `src/claim-explanations.mjs`); browser (`src/trajectory-calculator.mjs`, `src/stress-test-calculator.mjs`) |
-| Renewal, loan, and COE tools | `/tools/ncd-protector`, `/tools/quote-compare`, `/tools/loan-prepayment`, `/tools/coe-renewal` | Browser: `src/car-decisions/*.mjs`, `src/ncd/premium-path.mjs` |
+| Ownership cost, renewal, loan, and COE tools | `/tools/ownership-cost`, `/tools/ncd-protector`, `/tools/quote-compare`, `/tools/loan-prepayment`, `/tools/coe-renewal` | Browser: `src/car-decisions/*.mjs`, `src/ncd/premium-path.mjs` |
 | My Car & email reminders | `/my-car`, `/reminders/*`, `/api/reminders/*` | `src/my-car.mjs`, `lib/my-car-service.js`, `src/reminders/*`, `lib/reminders/*` |
 | Emergency kit & private settlement | `/emergency`, `/settlement` | `src/emergency-data.mjs`, `public/sw.js`, `src/settlement-form.mjs` |
 | Rules, clauses, benchmarks | `/rules`, `/how-it-works`, `/api/rules`, `/api/clause-preview`, `/api/benchmarks` | `src/clause-documents.mjs`, `src/market-benchmarks.mjs` |
@@ -34,6 +34,7 @@ flowchart LR
 | --- | --- |
 | Claim vs. self-pay | Effective excess (base + workshop + young-driver) + discounted NCD premium loss + PHV downtime/loading vs. repair cost |
 | NCD Protector | Break-even claim risk = `rider cost ÷ 5-year discounted loss avoided` (neutral within 0.25 pts; claim period rounds down) |
+| True monthly cost | depreciation to the deregistration value (or a resale estimate), Rule of 78 loan interest, LTA road tax by cc or kW with age surcharge, and running costs, per month owned |
 | Quote comparison | `premium + accident probability × min(repair, excess + surcharge + 5-year NCD loss)` across 2–4 quotes |
 | COE renewal | Equivalent annual cost of 5-yr PQP, 10-yr PQP, and replacement, charging PARF/COE/scrap as opportunity cost + road tax surcharge (10%/yr past age 10, max 50%) |
 | Loan settlement | `remaining instalments − Rule of 78 rebate + fees/penalty` vs. alternative return (bisection break-even) |
