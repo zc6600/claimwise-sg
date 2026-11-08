@@ -4,6 +4,7 @@ import { formatCurrency } from "../../src/formatters.mjs";
 import { evaluateNcdProtector } from "../../src/car-decisions/ncd-protector.mjs";
 import { compareQuotes } from "../../src/car-decisions/quote-comparison.mjs";
 import { compareCoeOptions, COE_RENEWAL_DEFAULTS } from "../../src/car-decisions/coe-renewal.mjs";
+import { evaluateOwnershipCost, OWNERSHIP_COST_DEFAULTS } from "../../src/car-decisions/ownership-cost.mjs";
 import {
   evaluateLoanPrepayment,
   LOAN_PREPAYMENT_DEFAULTS,
@@ -44,8 +45,13 @@ export function buildToolExamples() {
   const coeBest = coe.options.find((option) => option.id === coe.bestOptionId);
 
   const loan = evaluateLoanPrepayment(LOAN_PREPAYMENT_DEFAULTS);
+  const ownership = evaluateOwnershipCost(OWNERSHIP_COST_DEFAULTS);
 
   return {
+    ownership: {
+      setup: "S$165,000 1.6-litre car · 60% loan · kept 10 years",
+      answer: `About ${formatCurrency(ownership.totalMonthly)} a month, all in`,
+    },
     claim: {
       setup: "S$1,650 premium · 50% NCD · S$600 excess",
       answer: `Self-pay any repair below ${formatCurrency(claim.baseScenario.breakEvenRepairCost)}`,
@@ -79,8 +85,21 @@ export function buildToolExamples() {
 
 export const TOOL_STAGES = [
   {
-    id: "renewal",
+    id: "buy",
     step: "01",
+    title: "Before you buy",
+    tools: [
+      {
+        href: "/tools/ownership-cost",
+        example: "ownership",
+        title: "What will the car really cost each month?",
+        summary: "Depreciation, loan interest, road tax, insurance, fuel, and parking in one figure.",
+      },
+    ],
+  },
+  {
+    id: "renewal",
+    step: "02",
     title: "Every renewal",
     tools: [
       {
@@ -99,7 +118,7 @@ export const TOOL_STAGES = [
   },
   {
     id: "loan",
-    step: "02",
+    step: "03",
     title: "During your loan",
     tools: [
       {
@@ -112,7 +131,7 @@ export const TOOL_STAGES = [
   },
   {
     id: "coe",
-    step: "03",
+    step: "04",
     title: "Before COE expiry",
     tools: [
       {
@@ -125,7 +144,7 @@ export const TOOL_STAGES = [
   },
   {
     id: "accident",
-    step: "04",
+    step: "05",
     title: "If you have an accident",
     tools: [
       {

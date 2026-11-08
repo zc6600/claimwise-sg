@@ -6,7 +6,7 @@ Evaluation date: 7 November 2026 (plus continuous `node:test` regressions). Full
 
 | Layer | Result | Command |
 | --- | --- | --- |
-| **Unit & actuarial suite** | **129 / 129 passing** across 12 `node:test` suites | `npm test` |
+| **Unit & actuarial suite** | **135 / 135 passing** across 13 `node:test` suites | `npm test` |
 | **Decision correctness** | **18 / 18 model cases**; **26 / 26 local HTTP checks** | `node evaluation/correctness.mjs` |
 | **Sustained HTTP load** | **91.8–95.3 req/s**, **0% errors**, P95 **65–120 ms** (50 VUs, 60s) | `bash evaluation/run_performance.sh <url> comparison` |
 | **Unprewarmed burst** | **400 / 400 succeeded (0% errors)** across 200 simultaneous journeys | `python evaluation/performance.py ...` |
@@ -14,7 +14,7 @@ Evaluation date: 7 November 2026 (plus continuous `node:test` regressions). Full
 
 ## 2. Unit & Actuarial Suite (`tests/*.test.mjs`)
 
-`npm test` runs 129 deterministic checks with zero network calls:
+`npm test` runs 135 deterministic checks with zero network calls:
 - **Actuarial & tools**: `decision-engine.test.mjs` (13 Singapore benchmarks, excesses, surcharges), `ncd-premium-path.test.mjs` (shared NCD step-down and recovery), `car-decisions.test.mjs` (NCD Protector, quote comparison, Rule of 78 loan, COE renewal), `phv-actuarial.test.mjs`, `stress-test-actuarial.test.mjs`, and `trajectory-calculator.test.mjs`.
 - **Platform & safety**: `my-car.test.mjs`, `reminders.test.mjs` (double opt-in, HMAC tokens, rate limits, idempotent dispatch), `settlement-form.test.mjs`, `claim-share-link.test.mjs`, `pwa-emergency.test.mjs`, and `server-calculation-storage.test.mjs`.
 
