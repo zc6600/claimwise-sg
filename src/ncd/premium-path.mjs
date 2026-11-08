@@ -12,14 +12,26 @@ export function nextNcd(ncd) {
   return NCD_STEPS.find((step) => step > ncd) ?? MAX_NCD;
 }
 
+/** NCD after one unprotected at-fault claim that removes the given number of points. */
+export function stepDownNcd(ncd, dropPoints) {
+  return clamp(ncd - dropPoints, 0, MAX_NCD);
+}
+
 /** NCD after one at-fault claim that the rider does not protect. */
 export function ncdAfterStepDown(currentNcd, insurer) {
-  return clamp(currentNcd - insurerProfile(insurer).ncdDropPoints, 0, MAX_NCD);
+  return stepDownNcd(currentNcd, insurerProfile(insurer).ncdDropPoints);
+}
+
+/**
+ * Whether an NCD meets a profile's minimum for the NCD Protector rider. Taking the
+ * profile itself lets saved calculations be replayed against the terms they used.
+ */
+export function meetsProtectorMinimum(ncd, profile) {
+  return Number(ncd ?? 0) >= (profile?.minNcdForProtector ?? MAX_NCD);
 }
 
 export function isNcdProtectorEligible(inputs) {
-  const minNcd = insurerProfile(inputs?.insurer).minNcdForProtector ?? MAX_NCD;
-  return Number(inputs?.currentNcd ?? 0) >= minNcd;
+  return meetsProtectorMinimum(inputs?.currentNcd, insurerProfile(inputs?.insurer));
 }
 
 /** Recovers the gross premium before NCD from the net premium the policyholder pays. */
@@ -27,10 +39,14 @@ export function grossPremiumFromNet(netPremium, ncd) {
   return netPremium / (1 - clamp(ncd, 0, MAX_NCD) / 100);
 }
 
-function premiumAtNcd(basePremium, ncd, growthRate, year, commercialLoading) {
-  const growthMultiplier = (1 + growthRate / 100) ** year;
-  const loadingMultiplier = 1 + commercialLoading / 100;
-  return basePremium * (1 - ncd / 100) * growthMultiplier * loadingMultiplier;
+/**
+ * Nominal renewal premium in a given year: the gross premium after NCD, grown at the
+ * yearly rate, then multiplied by each underwriting loading in turn.
+ */
+export function renewalPremium(basePremium, ncd, growthRate, year, loadingPcts = []) {
+  let premium = basePremium * (1 - ncd / 100) * (1 + growthRate / 100) ** year;
+  for (const loadingPct of loadingPcts) premium *= 1 + loadingPct / 100;
+  return premium;
 }
 
 /**
@@ -51,7 +67,7 @@ export function buildPremiumPath({
 
   for (let year = 1; year <= horizonYears; year += 1) {
     const renewalNcd = clamp(ncd, 0, MAX_NCD);
-    const nominal = premiumAtNcd(basePremium, renewalNcd, growthRate, year, commercialLoading);
+    const nominal = renewalPremium(basePremium, renewalNcd, growthRate, year, [commercialLoading]);
     const discounted = nominal / (1 + discountRate / 100) ** year;
 
     years.push({

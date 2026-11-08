@@ -2,6 +2,7 @@
 
 import { INSURER_PROFILES, NCD_STEPS } from "../src/decision-data.mjs";
 import { formatCurrency } from "../src/formatters.mjs";
+import { isNcdProtectorEligible } from "../src/ncd/premium-path.mjs";
 
 const QUICK_REPAIR_PRESETS = [800, 1200, 2200, 3500];
 
@@ -24,7 +25,7 @@ export default function CalculatorForm({
   onReset,
 }) {
   const ageThreshold = profile.youngDriverAgeThreshold || 25;
-  const isProtectorEligible = Number(inputs.currentNcd) >= (profile.minNcdForProtector || 50);
+  const isProtectorEligible = isNcdProtectorEligible(inputs);
 
   return (
     <form

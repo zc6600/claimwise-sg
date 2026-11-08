@@ -1,25 +1,10 @@
 import { clamp, roundMoney } from "./numeric.mjs";
-import { nextNcd } from "./ncd/premium-path.mjs";
-
-function premiumAtNcdWithLoadings(
-  basePremium,
-  ncd,
-  growthRate,
-  year,
-  commercialLoadingPct = 0,
-  consecutiveLoadingPct = 0
-) {
-  const growthMultiplier = (1 + growthRate / 100) ** year;
-  const commercialMultiplier = 1 + commercialLoadingPct / 100;
-  const consecutiveMultiplier = 1 + consecutiveLoadingPct / 100;
-  return (
-    basePremium *
-    (1 - ncd / 100) *
-    growthMultiplier *
-    commercialMultiplier *
-    consecutiveMultiplier
-  );
-}
+import {
+  meetsProtectorMinimum,
+  nextNcd,
+  renewalPremium,
+  stepDownNcd,
+} from "./ncd/premium-path.mjs";
 
 /**
  * Simulates a multi-incident consecutive claim risk scenario.
@@ -71,8 +56,7 @@ export function computeConsecutiveClaimStressTest(decision, options = {}) {
 
   // Check initial NCD protector status
   const profile = decision.profile || {};
-  const minNcdForProtector = profile.minNcdForProtector ?? 50;
-  const hasProtector = Boolean(inputs.ncdProtector && inputs.currentNcd >= minNcdForProtector);
+  const hasProtector = Boolean(inputs.ncdProtector && meetsProtectorMinimum(inputs.currentNcd, profile));
   const ncdDropPoints = profile.ncdDropPoints || 30;
 
   // Determine whether Incident 1 was at-fault (or split-fault)
@@ -91,7 +75,7 @@ export function computeConsecutiveClaimStressTest(decision, options = {}) {
 
   // When Incident 2 occurs during Year 1:
   // Protector is exhausted, so NCD drops by ncdDropPoints from Year 1 tier.
-  const claimPathYear2Ncd = clamp(claimPathYear1Ncd - ncdDropPoints, 0, 50);
+  const claimPathYear2Ncd = stepDownNcd(claimPathYear1Ncd, ncdDropPoints);
 
   // Consecutive loading applies ONLY if Incident 1 was at-fault (yielding 2 at-fault claims).
   // If Incident 1 was non-fault, Incident 2 is the driver's ONLY at-fault claim on record.
@@ -122,14 +106,10 @@ export function computeConsecutiveClaimStressTest(decision, options = {}) {
       consecutivePct = claimPathConsecutiveLoading;
     }
 
-    const nominal = premiumAtNcdWithLoadings(
-      basePremium,
-      renewalNcd,
-      growthRate,
-      year,
+    const nominal = renewalPremium(basePremium, renewalNcd, growthRate, year, [
       commercialPct,
-      consecutivePct
-    );
+      consecutivePct,
+    ]);
     const discountFactor = (1 + discountRate / 100) ** year;
     const discounted = nominal / discountFactor;
 
@@ -159,11 +139,11 @@ export function computeConsecutiveClaimStressTest(decision, options = {}) {
   // If third-party claim occurred in Incident 1, the protector was consumed by the 3rd party claim.
   // Otherwise, the protector is fully intact and shields Incident 2!
   const selfPayProtectorSurvives = hasProtector && !incident1ThirdPartyAtFault;
-  const selfPayProtectorEligible = selfPayProtectorSurvives && selfPayPathYear1Ncd >= minNcdForProtector;
+  const selfPayProtectorEligible = selfPayProtectorSurvives && meetsProtectorMinimum(selfPayPathYear1Ncd, profile);
 
   const selfPayPathYear2Ncd = selfPayProtectorEligible
     ? selfPayPathYear1Ncd
-    : clamp(selfPayPathYear1Ncd - ncdDropPoints, 0, 50);
+    : stepDownNcd(selfPayPathYear1Ncd, ncdDropPoints);
 
   // On self-pay route, Incident 2 is the ONLY at-fault claim on the loss record,
   // so consecutive adverse loading is strictly 0%.
@@ -187,14 +167,7 @@ export function computeConsecutiveClaimStressTest(decision, options = {}) {
       commercialPct = commercialLoading;
     }
 
-    const nominal = premiumAtNcdWithLoadings(
-      basePremium,
-      renewalNcd,
-      growthRate,
-      year,
-      commercialPct,
-      0
-    );
+    const nominal = renewalPremium(basePremium, renewalNcd, growthRate, year, [commercialPct]);
     const discountFactor = (1 + discountRate / 100) ** year;
     const discounted = nominal / discountFactor;
 

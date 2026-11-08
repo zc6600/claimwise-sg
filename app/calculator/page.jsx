@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { INSURER_PROFILES, NCD_STEPS } from "../../src/decision-data.mjs";
 import { formatCurrency } from "../../src/formatters.mjs";
+import { isNcdProtectorEligible } from "../../src/ncd/premium-path.mjs";
 import { useAuth } from "../../components/AuthProvider";
 import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";
@@ -305,11 +306,7 @@ export default function CalculatorPage() {
       }
     }
 
-    // Enforce protector eligibility threshold on incoming parameters
-    const parsedProfile = INSURER_PROFILES[parsed.insurer] || INSURER_PROFILES.other;
-    if (parsed.currentNcd < (parsedProfile.minNcdForProtector ?? 50)) {
-      parsed.ncdProtector = false;
-    }
+    if (!isNcdProtectorEligible(parsed)) parsed.ncdProtector = false;
 
     if (hasExplicitParams) {
       setInputs(parsed);
@@ -325,11 +322,7 @@ export default function CalculatorPage() {
   function handleInputChange(field, value) {
     setInputs((prev) => {
       const next = { ...prev, [field]: value };
-      const nextProfile = INSURER_PROFILES[next.insurer] || INSURER_PROFILES.other;
-      const minNcd = nextProfile.minNcdForProtector ?? 50;
-      if (Number(next.currentNcd) < minNcd && next.ncdProtector) {
-        next.ncdProtector = false;
-      }
+      if (next.ncdProtector && !isNcdProtectorEligible(next)) next.ncdProtector = false;
       return next;
     });
     setCalculationError("");
@@ -518,13 +511,12 @@ export default function CalculatorPage() {
   function restoreHistoricalInputs(historicalInputs) {
     if (!historicalInputs) return null;
     const insurer = historicalInputs.insurer || inputs.insurer || "income";
-    const profile = INSURER_PROFILES[insurer] || INSURER_PROFILES.other;
     const currentNcd = historicalInputs.currentNcd ?? 50;
     const rawProtector = Boolean(
       historicalInputs.ncdProtector ?? historicalInputs.hasNcdProtector ?? false
     );
     const ncdProtector = Boolean(
-      rawProtector && currentNcd >= (profile.minNcdForProtector ?? 50)
+      rawProtector && isNcdProtectorEligible({ insurer, currentNcd })
     );
 
     return {
