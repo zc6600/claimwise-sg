@@ -36,12 +36,12 @@ export default function StressTestSimulator({ decision }) {
     <section className="stress-test-card" aria-label="Consecutive claim stress test">
       <div className="stress-test-header">
         <div>
-          <span className="section-kicker">Actuarial Stress-Testing</span>
+          <span className="section-kicker">Second accident</span>
           <h3 style={{ margin: "4px 0 6px 0", fontSize: "1.15rem" }}>
-            Consecutive Incident Risk &amp; Resilience Buffer
+            What if you have another accident this year?
           </h3>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-secondary-text, #64748b)" }}>
-            What if an unfortunate second at-fault accident occurs within the next 12 months?
+            See how a second at-fault accident within 12 months would change both options.
           </p>
         </div>
         <button

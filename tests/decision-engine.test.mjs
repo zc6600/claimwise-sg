@@ -322,7 +322,7 @@ test("clauseAudit provides policy references and illustrative summaries for calc
 
   const actuarialItem = result.clauseAudit.find((i) => i.id === "actuarial_model");
   assert.ok(actuarialItem);
-  assert.ok(actuarialItem.clauseRef.includes("Equation (1)"));
+  assert.ok(actuarialItem.clauseRef.includes("break-even formula"));
 });
 
 import fs from "node:fs";

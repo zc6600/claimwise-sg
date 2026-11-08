@@ -30,7 +30,7 @@ export default function CoeRenewalTool() {
             id="pqp"
             label="Current PQP for your category"
             prefix="S$"
-            hint="Check the latest PQP on OneMotoring. The default is only a placeholder."
+            hint="Check the latest PQP on OneMotoring. The default is only an example."
             value={inputs.pqp}
             onChange={update("pqp")}
           />

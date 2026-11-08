@@ -398,12 +398,12 @@ export default function CalculatorPage() {
     <div className="calculator-studio-page section-pad">
       <div className="page-header">
         <div>
-          <div className="section-kicker">Claim decision model</div>
+          <div className="section-kicker">After an accident</div>
           <h1>Compare claim vs. self-pay costs</h1>
         </div>
         <p>
-          Configure your policy details and enter your workshop repair quotation, then run
-          the model to compare your {inputs.horizonYears}-year net cash outlay.
+          Enter your policy details and the workshop quote to compare the total cost of claiming
+          and paying yourself over the next {inputs.horizonYears} years.
         </p>
       </div>
 

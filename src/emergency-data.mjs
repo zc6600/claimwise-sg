@@ -1,6 +1,6 @@
 /**
  * Singapore Motor Claims Framework (MCF) & Road Traffic Act Emergency Data Reference
- * Standardized data for emergency assistance, statutory compliance, and insurer contacts.
+ * Emergency checklists, police reporting rules, and insurer contacts for the emergency kit.
  */
 
 export const STATUTORY_SERVICES = [
@@ -77,7 +77,7 @@ export const RTA_SECTION_84_RULES = [
     id: "injury",
     title: "Serious Injury or Fatality",
     description:
-      "A Traffic Police report is mandatory if any party is injured requiring hospitalisation or at least 3 days of outpatient medical leave (MC), or conveyed by ambulance. Call 999 for emergencies. Private settlement is legally prohibited.",
+      "A Traffic Police report is mandatory if any party is injured requiring hospitalisation or at least 3 days of outpatient medical leave (MC), or conveyed by ambulance. Call 999 for emergencies. The accident cannot be settled privately.",
     mandatoryPoliceReport: true,
   },
   {

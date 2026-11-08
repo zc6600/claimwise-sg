@@ -84,8 +84,8 @@ export default function TrajectoryVisualizer({ baseScenario, inputs, effectiveEx
     <div className="trajectory-card" aria-label="Multi-year financial trajectory visualizer">
       <div className="trajectory-header">
         <div>
-          <span className="section-kicker">Interactive Trajectory Model</span>
-          <h3 className="trajectory-title">Multi-Year Trajectory &amp; Crossover</h3>
+          <span className="section-kicker">Cost over time</span>
+          <h3 className="trajectory-title">How the two options compare year by year</h3>
         </div>
 
         <div className="chart-mode-tabs" role="tablist" aria-label="Trajectory chart modes">
