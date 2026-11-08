@@ -58,8 +58,8 @@ To use your own Firebase project, copy `.env.example` to `.env.local`.
 | Path | Contents |
 | --- | --- |
 | `app/`, `components/` | Next.js pages, API routes, and React components |
-| `src/` | Pure calculation modules: claim engine, NCD model, car tools, My Car, reminder schedule |
-| `lib/` | Code with side effects: Firebase, storage, email, policy documents |
+| `src/` | Pure modules with no side effects: claim engine, NCD model, car tools, share links, settlement form, emergency and market data |
+| `lib/` | Code with side effects: Firebase, storage, and email reminders |
 | `data/`, `public/policies/` | Market data and official policy wordings |
 | `tests/`, `evaluation/` | Unit tests; correctness, load, and user-study evaluation |
 | `infra/terraform/` | Google Cloud infrastructure |
@@ -82,7 +82,7 @@ Minimal `POST /api/decision` body; omitted fields use defaults:
 
 ## More
 
-- [Architecture](docs/architecture.md) · [Deployment](docs/DEPLOYMENT_GUIDE.md) · [Evaluation](evaluation/README.md)
+- [Architecture](docs/architecture.md) · [Deployment](docs/DEPLOYMENT_GUIDE.md) · [Evaluation](evaluation/README.md) · [Original project report](docs/research/Preliminary.pdf)
 - [Contributing](CONTRIBUTING.md) · [Agent guidelines](AGENTS.md)
 
 ## Disclaimer

@@ -7,7 +7,7 @@ import {
 } from "../app/api/decision/route.js";
 import { calculateDecision } from "../src/decision-engine.mjs";
 import { buildCalculationRecord } from "../src/calculation-record.mjs";
-import { getClausePdfInfo } from "../lib/clause-documents.js";
+import { getClausePdfInfo } from "../src/clause-documents.mjs";
 import { persistCalculationDecision } from "../lib/server-calculation-storage.js";
 
 const inputs = {

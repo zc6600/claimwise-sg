@@ -9,7 +9,7 @@ LIABILITY_OPTIONS = ["at_fault", "non_fault", "partial_fault"]
 class MotoristUser(HttpUser):
     """
     Simulates a Singapore motorist evaluating own-damage claim vs self-pay.
-    Corresponds to Section 4.3 (Performance and Elasticity) of Preliminary.pdf.
+    Corresponds to Section 4.3 (Performance and Elasticity) of docs/research/Preliminary.pdf.
     """
     wait_time = between(0.05, 0.5)
 

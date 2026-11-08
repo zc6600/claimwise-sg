@@ -10,7 +10,7 @@ import {
   validateSettlementInputs,
   formatSettlementAmount,
   generateSettlementClauseText,
-} from "../../lib/settlement-form.js";
+} from "../../src/settlement-form.mjs";
 
 function getSingaporeTodayDate() {
   try {

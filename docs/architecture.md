@@ -43,9 +43,9 @@ flowchart LR
 | Car decision tools | `/tools/*` | Browser: `src/car-decisions/*.mjs` |
 | My Car | `/my-car` | Browser + Firestore Web SDK: `src/my-car.mjs`, `lib/my-car-service.js` |
 | Email reminders | `/my-car`, `/reminders/*` | Server: `app/api/reminders/*` → `lib/reminders/*` |
-| Private settlement | `/settlement` | Browser: `lib/settlement-form.js` |
-| Emergency kit (offline) | `/emergency` | Browser + service worker: `lib/emergency-data.js`, `public/sw.js` |
-| Policy clauses, rules, benchmarks | `/rules`, `/api/clause-preview`, `/api/rules`, `/api/benchmarks` | Server: `lib/clause-documents.js`, `lib/market-benchmarks.js` |
+| Private settlement | `/settlement` | Browser: `src/settlement-form.mjs` |
+| Emergency kit (offline) | `/emergency` | Browser + service worker: `src/emergency-data.mjs`, `public/sw.js` |
+| Policy clauses, rules, benchmarks | `/rules`, `/api/clause-preview`, `/api/rules`, `/api/benchmarks` | Server: `src/clause-documents.mjs`, `src/market-benchmarks.mjs` |
 
 ## 2. Decision Calculation and History
 
@@ -72,7 +72,7 @@ sequenceDiagram
 - **Guests**: Records go to `localStorage` (`claimwise_local_history`, newest 20). Signed-in users fall back to it when Firestore is unreachable.
 - **Sign-in sync**: `syncLocalCalculationsToCloud(user)` moves pending browser records into the user's Firestore subcollection.
 - **History**: `components/CalculationHistory.jsx` subscribes through the Web SDK and shows cache, pending-write, server, or browser-fallback state. Opening a record shows the stored `decision` unchanged; **Recalculate & save** runs the current engine and saves a new record.
-- **Sharing**: All 19 calculator inputs, including PHV downtime and loading fields, are encoded in the URL. Sharing captures unsubmitted edits, and a shared link recalculates once auth has settled.
+- **Sharing**: All 19 calculator inputs, including PHV downtime and loading fields, are encoded in the URL by `src/claim-share-link.mjs`, which ignores any invalid field when a link is opened and keeps the valid ones. Sharing captures unsubmitted edits, and a shared link recalculates once auth has settled.
 
 ## 3. Car Decision Tools
 

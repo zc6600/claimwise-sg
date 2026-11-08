@@ -116,7 +116,7 @@ Official wordings are served same-origin from `public/policies/` so they can be 
 | MSIG | `msig_motormax_policy.pdf` | 20 |
 | GIA | `gia_motor_claims_framework.pdf` | 5 |
 
-Clause-to-page mappings live in `lib/clause-documents.js` (1-based pages, `#page=N&view=FitH`).
+Clause-to-page mappings live in `src/clause-documents.mjs` (1-based pages, `#page=N&view=FitH`).
 
 ---
 
