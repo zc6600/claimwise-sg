@@ -36,7 +36,7 @@ export function buildAdvisories({
     advisories.push({
       type: "amber",
       title: "Young / Inexperienced Driver Excess (+S$" + excessDetails.youngDriverSurcharge + ")",
-      message: `Because the driver involved is under ${ageThreshold} or has held a driving license for < 2 years, ${profile.name} requires an additional mandatory excess of S$${excessDetails.youngDriverSurcharge}.`,
+      message: `Because the driver involved is under ${ageThreshold} or has held a driving license for < 2 years, ${profile.name} requires an additional excess of S$${excessDetails.youngDriverSurcharge}.`,
     });
   }
 
@@ -44,7 +44,7 @@ export function buildAdvisories({
     advisories.push({
       type: "warning",
       title: "Repair cost is below or equal to your effective excess",
-      message: `Your repair quote (${formatCurrency(inputs.repairCost)}) does not exceed your effective policy excess (${formatCurrency(effectiveExcess)}). The insurer payout would be S$0, making self-paying strictly optimal.`,
+      message: `Your repair quote (${formatCurrency(inputs.repairCost)}) does not exceed your effective policy excess (${formatCurrency(effectiveExcess)}). The insurer would pay nothing, so paying the workshop yourself costs less.`,
     });
   }
 
@@ -67,8 +67,8 @@ export function buildAdvisories({
   if (inputs.vehicleUsage === "phv") {
     advisories.push({
       type: "info",
-      title: "Commercial PHV (Z10/Z11) Policy Terms Applied",
-      message: `Commercial PHV coverage models a ${inputs.commercialClaimLoading}% claim loading on renewal premiums and an estimated S$${baseScenario.netDowntimeCost} net downtime/loss-of-use difference (${inputs.claimDowntimeDays} claim days vs. ${inputs.selfPayDowntimeDays} self-pay days at S$${inputs.dailyDowntimeCost}/day).`,
+      title: "Private hire (PHV) assumptions applied",
+      message: `For a PHV, the calculation adds a ${inputs.commercialClaimLoading}% claim loading on renewal premiums and an estimated S$${baseScenario.netDowntimeCost} net downtime/loss-of-use difference (${inputs.claimDowntimeDays} claim days vs. ${inputs.selfPayDowntimeDays} self-pay days at S$${inputs.dailyDowntimeCost}/day).`,
     });
   }
 
@@ -98,10 +98,10 @@ export function generateClauseAudit(
     dataPoint: "Standard Policy Excess",
     value: formatCurrency(inputs.excess),
     status: "active",
-    statusLabel: "Governing Policy Baseline",
-    clauseRef: profile.clauses?.baseExcess?.ref || "Singapore Standard Motor Policy · Section 1 (Own Damage)",
+    statusLabel: "Applies to every claim",
+    clauseRef: profile.clauses?.baseExcess?.ref || "Your policy schedule · own damage excess",
     authority: profile.name,
-    statutoryBasis: "Insurance Act 1966 (Cap. 142) · Policy Schedule",
+    statutoryBasis: "Your policy schedule",
     illustrativeText: profile.clauses?.baseExcess?.text || "The policyholder shall bear the standard basic excess specified in the Schedule for each own-damage claim.",
     rationale: `As stipulated in your ${profile.name} schedule, the first ${formatCurrency(inputs.excess)} of own-damage repairs is borne out-of-pocket before insurance indemnification takes effect.`,
   });
@@ -115,9 +115,9 @@ export function generateClauseAudit(
     value: hasWorkshopSurcharge ? `+${formatCurrency(excessDetails.unauthorizedWorkshopSurcharge)}` : "S$0 (Waived)",
     status: hasWorkshopSurcharge ? "active" : "waived",
     statusLabel: hasWorkshopSurcharge ? "Surcharge Applied" : "Condition Met / Waived",
-    clauseRef: profile.clauses?.unauthorizedWorkshop?.ref || "GIA Authorised Workshop Scheme Schedule",
-    authority: `${profile.name} Network Scheme`,
-    statutoryBasis: "General Insurance Association of Singapore (GIA) Approved Workshop Guidelines",
+    clauseRef: profile.clauses?.unauthorizedWorkshop?.ref || "Your policy schedule · workshop conditions",
+    authority: profile.name,
+    statutoryBasis: "Your insurer's authorised workshop terms",
     illustrativeText: profile.clauses?.unauthorizedWorkshop?.text || "Repairs must be carried out at an authorised workshop. Repairs elsewhere incur additional excess.",
     rationale: hasWorkshopSurcharge
       ? `You selected an independent/unauthorised workshop. Under ${profile.name} Endorsement terms, an additional penalty of ${formatCurrency(excessDetails.unauthorizedWorkshopSurcharge)} is added to your excess.`
@@ -133,10 +133,10 @@ export function generateClauseAudit(
     dataPoint: "Young / Inexperienced Driver Surcharge",
     value: hasYoungDriver ? `+${formatCurrency(excessDetails.youngDriverSurcharge)}` : "S$0 (Exempt)",
     status: hasYoungDriver ? "active" : "not_applicable",
-    statusLabel: hasYoungDriver ? "Mandatory Surcharge Active" : "Driver Criteria Satisfied",
-    clauseRef: profile.clauses?.youngDriver?.ref || "GIA Standard Table of Additional Excesses",
-    authority: `General Insurance Association of Singapore (GIA) & ${profile.name}`,
-    statutoryBasis: "Policy Schedule & Insurer Underwriting Excess Rules",
+    statusLabel: hasYoungDriver ? "Surcharge applies" : "Does not apply",
+    clauseRef: profile.clauses?.youngDriver?.ref || "Your policy schedule · additional excesses",
+    authority: profile.name,
+    statutoryBasis: "Your policy schedule",
     illustrativeText: profile.clauses?.youngDriver?.text || "An additional excess applies if the vehicle is driven by a young or inexperienced driver as defined in the policy schedule.",
     rationale: hasYoungDriver
       ? `Because a young or inexperienced driver (under age ${ageThreshold} or holding a Singapore driving licence for under 2 years) was at the wheel, a modeled schedule excess surcharge of ${formatCurrency(excessDetails.youngDriverSurcharge)} is added.`
@@ -151,12 +151,12 @@ export function generateClauseAudit(
       dataPoint: "Windscreen & Window Glass Cover",
       value: `${formatCurrency(excessDetails.totalEffectiveExcess)} Reinstatement Excess · 0% NCD Deduction`,
       status: "active",
-      statusLabel: "Special Endorsement Applied",
-      clauseRef: profile.clauses?.windscreen?.ref || "GIA Standard Windscreen Endorsement W1",
-      authority: "General Insurance Association of Singapore (GIA)",
-      statutoryBasis: "GIA Motor Tariff Endorsement W1 (Section 1 Extension)",
+      statusLabel: "Windscreen cover applies",
+      clauseRef: profile.clauses?.windscreen?.ref || "Your policy schedule · windscreen cover",
+      authority: profile.name,
+      statutoryBasis: "Your policy's windscreen cover",
       illustrativeText: profile.clauses?.windscreen?.text || "Payment of S$100 excess applies for windscreen replacement. Replacement does not affect accrued NCD upon renewal.",
-      rationale: `Windscreen glass repairs are legally quarantined from general own-damage claims: excess is capped at ${formatCurrency(excessDetails.totalEffectiveExcess)} and renewal NCD remains 100% intact.`,
+      rationale: `Windscreen claims are handled separately from other own-damage claims: you pay only the ${formatCurrency(excessDetails.totalEffectiveExcess)} windscreen excess and your NCD is unchanged.`,
     });
   }
 
@@ -167,13 +167,13 @@ export function generateClauseAudit(
     dataPoint: "Total Effective Claim Deductible",
     value: formatCurrency(effectiveExcess),
     status: "governing",
-    statusLabel: "Net Deductible Cap",
-    clauseRef: "Consolidated Section 1 Deductible Schedule (Cumulative Contract Excess)",
-    authority: `${profile.name} Claims Department`,
-    statutoryBasis: "Contractual Cumulative Deductible Rules",
+    statusLabel: "Total you pay when claiming",
+    clauseRef: "Your policy schedule · excesses add together",
+    authority: profile.name,
+    statutoryBasis: "Your policy schedule",
     illustrativeText: "The policyholder must bear the sum total of all applicable basic and endorsement excesses before the insurer disburses indemnity for approved accident repairs.",
     rationale: isBelowExcess
-      ? `Your repair quote (${formatCurrency(inputs.repairCost)}) does not exceed your total effective excess (${formatCurrency(effectiveExcess)}). The insurer would pay S$0, making self-paying legally and financially the only logical route.`
+      ? `Your repair quote (${formatCurrency(inputs.repairCost)}) does not exceed your total effective excess (${formatCurrency(effectiveExcess)}). The insurer would pay nothing, so paying the workshop yourself costs less.`
       : `Your insurer will indemnify eligible repair costs exceeding ${formatCurrency(effectiveExcess)}. You will pay ${formatCurrency(effectiveExcess)} out-of-pocket on the claim route.`,
   });
 
@@ -196,9 +196,9 @@ export function generateClauseAudit(
       : `-${actualPenalty}% (${inputs.currentNcd}% → ${claimNcdAfter}%)`,
     status: isNcdShielded ? "protected" : "active",
     statusLabel: isNcdShielded ? "Protected from Reduction" : `${actualPenalty}-Point Penalty Active`,
-    clauseRef: "GIA Motor Claims Framework (MCF) Standard Scale of No-Claim Discount",
-    authority: "General Insurance Association of Singapore (GIA)",
-    statutoryBasis: "GIA Industry Code of Practice on Motor Claims & MAS Notice 122",
+    clauseRef: "Your insurer's NCD scale (see the GIA Motor Claims Framework consumer guide)",
+    authority: profile.name,
+    statutoryBasis: "Your insurer's NCD scale in the policy schedule",
     illustrativeText: "Under the standard GIA scale, an at-fault or unsettled claim results in a 30% reduction from the policyholder's accrued NCD upon the next renewal (e.g. 50% to 20%, 40% to 10%, 30% or below to 0%).",
     rationale: isNcdShielded
       ? `Your NCD tier of ${inputs.currentNcd}% is preserved without deduction due to ${shieldReason}.`
@@ -224,7 +224,7 @@ export function generateClauseAudit(
       protectorValue = `Ineligible (Requires ${profile.minNcdForProtector}% NCD)`;
       protectorStatus = "warning";
       protectorStatusLabel = "Eligibility Threshold Not Met";
-      protectorRationale = `NCD Protector is only available for ${profile.name} policyholders with at least ${profile.minNcdForProtector}% NCD. Because your current NCD is ${inputs.currentNcd}%, the protector is legally inactive.`;
+      protectorRationale = `NCD Protector is only available for ${profile.name} policyholders with at least ${profile.minNcdForProtector}% NCD. Because your current NCD is ${inputs.currentNcd}%, the protector does not apply.`;
     }
   }
 
@@ -237,7 +237,7 @@ export function generateClauseAudit(
     statusLabel: protectorStatusLabel,
     clauseRef: profile.clauses?.ncdProtector?.ref || "Insurer NCD Protector Endorsement",
     authority: profile.name,
-    statutoryBasis: `Insurer Specific Policy Endorsement (Eligible at ${profile.minNcdForProtector}%+ NCD)`,
+    statutoryBasis: `${profile.name} NCD Protector rider (from ${profile.minNcdForProtector}% NCD)`,
     illustrativeText: profile.clauses?.ncdProtector?.text || "Maintains current NCD tier upon the first own-damage at-fault claim within the policy period.",
     rationale: protectorRationale,
   });
@@ -247,52 +247,52 @@ export function generateClauseAudit(
     const isNonFault = inputs.liability === "non_fault";
     audit.push({
       id: "third_party_liability",
-      category: "Liability & Statutory Law",
+      category: "Liability",
       dataPoint: "Third-Party Adverse Claim Impact",
       value: isNonFault ? "Subrogated Recovery (0% NCD Deduction)" : `At-Fault Settlement (Self-Pay NCD penalized to ${selfPayNcdAfter}%)`,
       status: "active",
-      statusLabel: isNonFault ? "Non-Fault Subrogation" : "Mandatory Statutory Settlement",
-      clauseRef: "GIA Motor Claims Framework (MCF) Section 1.1 & Condition 1(c)",
-      authority: "General Insurance Association of Singapore (GIA) & Singapore Tort Law",
+      statusLabel: isNonFault ? "Recovered from the other party" : "Your insurer settles the claim",
+      clauseRef: "GIA Motor Claims Framework (MCF)",
+      authority: "General Insurance Association of Singapore (GIA)",
       statutoryBasis: "Motor Vehicles (Third-Party Risks and Compensation) Act 1960 (Cap. 189)",
       illustrativeText: "Where a third party lodges a claim against the policyholder and liability is attributed to the policyholder, the insurer may settle the third party's claims under applicable cover. This can affect NCD regardless of whether the policyholder chooses to self-pay their own vehicle repairs.",
       rationale: isNonFault
-        ? "Under GIA Knock-for-Knock protocols, being 100% non-fault allows your insurer to recover all repair outlays from the third-party insurer with zero penalty to your NCD."
-        : `Because the other party has filed a claim against you and you bear liability, your insurer is legally obliged to settle. Consequently, choosing to self-pay your own car will NOT protect your NCD (which drops to ${selfPayNcdAfter}%).`,
+        ? "If you are not at fault at all, your insurer recovers the repair cost from the other driver's insurer and your NCD is not affected."
+        : `Because the other party has filed a claim against you and you bear liability, your insurer will settle it. Consequently, choosing to self-pay your own car will NOT protect your NCD (which drops to ${selfPayNcdAfter}%).`,
     });
   }
 
-  // 9. Actuarial Present Value Discounting & Break-Even Formula (Equation 1)
+  // 9. Present-value break-even formula
   audit.push({
     id: "actuarial_model",
-    category: "Actuarial Valuation Model",
+    category: "Calculation",
     dataPoint: "Discounted Break-Even Threshold",
     value: `${formatCurrency(baseScenario.breakEvenRepairCost)} (PV Discount Rate: ${inputs.discountRate}%/yr, ${inputs.horizonYears}-Yr Horizon)`,
     status: "governing",
-    statusLabel: "Mathematical Break-Even Boundary",
-    clauseRef: "Actuarial Net Present Value Specification · Equation (1)",
-    authority: "Monetary Authority of Singapore (MAS) Actuarial Guidance",
-    statutoryBasis: "Actuarial Net Present Value (NPV): R*(S) = E_own + \\sum_{t=1}^T (P_t^{claim} - P_t^{self}) / (1 + r)^t",
+    statusLabel: "Where the two options cost the same",
+    clauseRef: "ClaimWise SG break-even formula (not a policy clause)",
+    authority: "ClaimWise SG calculation",
+    statutoryBasis: "Break-even = effective excess + present value of the extra renewal premiums after a claim",
     illustrativeText: "The break-even repair cost R*(S) is the modeled boundary where the present value of claiming equals the present value of self-paying, based on the assumptions entered.",
     rationale: inputs.repairCost > baseScenario.breakEvenRepairCost
-      ? `Your repair quote (${formatCurrency(inputs.repairCost)}) is strictly above the break-even threshold (${formatCurrency(baseScenario.breakEvenRepairCost)}). Claiming saves ${formatCurrency(Math.abs(baseScenario.difference))} in present value outlays over ${inputs.horizonYears} years.`
+      ? `Your repair quote (${formatCurrency(inputs.repairCost)}) is above the break-even threshold (${formatCurrency(baseScenario.breakEvenRepairCost)}). Claiming saves ${formatCurrency(Math.abs(baseScenario.difference))} in present value outlays over ${inputs.horizonYears} years.`
       : `Your repair quote (${formatCurrency(inputs.repairCost)}) is at or below the break-even threshold (${formatCurrency(baseScenario.breakEvenRepairCost)}). Self-paying saves ${formatCurrency(Math.abs(baseScenario.difference))} in present value outlays over ${inputs.horizonYears} years.`,
   });
 
-  // 10. Commercial PHV (Z10/Z11) Policy Terms & Loading
+  // 10. Private hire vehicle loading and downtime
   if (inputs.vehicleUsage === "phv") {
     audit.push({
       id: "phv_commercial_terms",
-      category: "Vehicle Classification & Commercial Underwriting",
-      dataPoint: "PHV Commercial Terms (Class Z10/Z11)",
+      category: "Private hire vehicles",
+      dataPoint: "Private hire (PHV) terms",
       value: `+${inputs.commercialClaimLoading}% Renewal Loading · S$${inputs.dailyDowntimeCost}/day Downtime`,
       status: "active",
-      statusLabel: "Commercial Class Z10/Z11 Active",
-      clauseRef: "Singapore LTA Private Hire Vehicle (Z10/Z11) Insurance Rules & Commercial Tariff",
-      authority: "Land Transport Authority (LTA) & GIA Commercial Underwriting",
-      statutoryBasis: "Road Traffic Act 1961 · Motor Vehicles (Third-Party Risks and Compensation) Act 1960",
-      illustrativeText: "Commercial private hire vehicles (Z10/Z11) are subject to commercial underwriting terms. At-fault claims incur commercial renewal loading and involve multi-day vehicle downtime with daily rental/loss-of-use costs.",
-      rationale: `Under commercial PHV terms, an at-fault claim adds an estimated ${inputs.commercialClaimLoading}% underwriting loading upon renewal. Vehicle downtime of ${inputs.claimDowntimeDays} claim days vs. ${inputs.selfPayDowntimeDays} self-pay days at S$${inputs.dailyDowntimeCost}/day adds S$${baseScenario.netDowntimeCost} to the claim route cost.`,
+      statusLabel: "PHV assumptions applied",
+      clauseRef: "ClaimWise SG PHV assumptions (check your PHV policy)",
+      authority: "ClaimWise SG assumption",
+      statutoryBasis: "Loading and downtime figures you entered",
+      illustrativeText: "Private hire vehicles usually face a higher renewal loading after an at-fault claim and lose income while the car is off the road. The figures are the assumptions you entered, not policy terms.",
+      rationale: `An at-fault claim is assumed to add a ${inputs.commercialClaimLoading}% loading at renewal. Vehicle downtime of ${inputs.claimDowntimeDays} claim days vs. ${inputs.selfPayDowntimeDays} self-pay days at S$${inputs.dailyDowntimeCost}/day adds S$${baseScenario.netDowntimeCost} to the claim route cost.`,
     });
   }
 

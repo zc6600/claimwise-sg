@@ -11,8 +11,8 @@ export default function HowItWorksPage() {
     <section className="how-page section-pad">
       <div className="page-header">
         <div>
-          <div className="section-kicker">Methodology & actuarial model</div>
-          <h1>How the financial model works</h1>
+          <div className="section-kicker">Claim or self-pay</div>
+          <h1>How the claim calculator works</h1>
         </div>
         <p>
           ClaimWise SG evaluates an own-damage motor claim by comparing your immediate repair
@@ -115,7 +115,7 @@ export default function HowItWorksPage() {
       {/* GIA Framework Guidelines */}
       <div className="source-panel">
         <div className="source-panel-copy">
-          <div className="section-kicker is-inverse">Regulatory compliance</div>
+          <div className="section-kicker is-inverse">Reporting rules</div>
           <h2>GIA Motor Claims Framework (MCF)</h2>
           <p>
             In Singapore, motorists are required to report all accidents to their insurer within 24

@@ -91,9 +91,8 @@ export default function EmergencyProtocolPage() {
           Accident & Underground Carpark Emergency Kit
         </h1>
         <p style={{ fontSize: "0.9375rem", color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>
-          Designed for high-stress accident situations in Singapore basements, MSCP car parks, and roads. All
-          checklists, actuarial calculations, and private settlement drafts operate completely offline in your device
-          memory.
+          What to do in the first minutes after an accident on the road or in a car park. Once you have opened
+          it, this page and the private settlement agreement keep working without mobile reception.
         </p>
       </div>
 
@@ -108,7 +107,7 @@ export default function EmergencyProtocolPage() {
         }}
       >
         <h2 style={{ fontSize: "1rem", fontWeight: "700", color: "var(--amber)", margin: "0 0 8px 0" }}>
-          Step 1: Immediate Safety & Statutory Police Reporting Check
+          Step 1: Stay safe, then check whether you must call the police
         </h2>
         <p style={{ fontSize: "0.875rem", color: "var(--ink-soft)", lineHeight: 1.5, margin: "0 0 12px 0" }}>
           Under Section 84 of the Singapore Road Traffic Act and Singapore Police Force (SPF) guidelines, a Traffic
@@ -313,7 +312,7 @@ export default function EmergencyProtocolPage() {
       >
         <div style={{ marginBottom: "16px" }}>
           <h2 style={{ fontSize: "1.125rem", fontWeight: "700", color: "var(--ink)", margin: "0 0 4px 0" }}>
-            Official Singapore Emergency & Insurer Assistance Hotlines
+            Emergency and insurer hotlines
           </h2>
           <p style={{ fontSize: "0.8125rem", color: "var(--muted)", margin: 0 }}>
             Operating hours and coverage vary by insurer. Verify assistance terms against your policy certificate.
@@ -322,7 +321,7 @@ export default function EmergencyProtocolPage() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
           <div style={{ fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase", color: "var(--muted)" }}>
-            Statutory & Road Services
+            Emergency and road services
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "10px" }}>
             {STATUTORY_SERVICES.map((s) => (
@@ -429,10 +428,10 @@ export default function EmergencyProtocolPage() {
           }}
         >
           <div style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "4px" }}>
-            Draft GIA Private Settlement Form →
+            Create a private settlement agreement →
           </div>
           <div style={{ fontSize: "0.8125rem", opacity: 0.9, lineHeight: 1.4 }}>
-            Generate a legally binding Singapore MCF settlement agreement on your phone with zero internet required.
+            If nobody was hurt, write down what you and the other driver agree, even without reception.
           </div>
         </Link>
 
@@ -450,7 +449,7 @@ export default function EmergencyProtocolPage() {
           }}
         >
           <div style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "4px" }}>
-            Run Claim vs. Self-Pay Actuarial Calculator →
+            Should you claim or pay yourself? →
           </div>
           <div style={{ fontSize: "0.8125rem", color: "var(--muted)", lineHeight: 1.4 }}>
             Evaluate NCD drop, excess thresholds, and break-even repair cost before agreeing to any settlement amount.

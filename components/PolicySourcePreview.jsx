@@ -32,21 +32,21 @@ export default function PolicySourcePreview({ clauseAudit = [], insurer = "incom
   return (
     <section
       className="policy-source-section"
-      aria-label="Official policy clause audit and PDF sources"
+      aria-label="Where each rule comes from"
       onMouseLeave={() => {
         if (!pinnedId) setHoveredId(null);
       }}
     >
       <div className="policy-source-heading">
         <div>
-          <h3>Policy clause audit &amp; official PDF sources</h3>
+          <h3>Where each rule comes from</h3>
           <p>
             Hover or click any rule below to inspect its contractual rationale and view the
             matching page in the official insurer policy wording PDF.
           </p>
         </div>
         <span className="policy-source-count tabular-nums">
-          {clauseAudit.length} clauses verified
+          {clauseAudit.length} rules
         </span>
       </div>
 
@@ -204,11 +204,11 @@ export default function PolicySourcePreview({ clauseAudit = [], insurer = "incom
                 <dd>{activeClause.authority}</dd>
               </div>
               <div>
-                <dt>Statutory / policy basis</dt>
+                <dt>Source</dt>
                 <dd>{activeClause.statutoryBasis}</dd>
               </div>
               <div>
-                <dt>Illustrative clause summary</dt>
+                <dt>Summary (not the policy wording)</dt>
                 <dd>{activeClause.illustrativeText}</dd>
               </div>
             </dl>

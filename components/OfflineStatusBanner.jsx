@@ -78,8 +78,8 @@ export default function OfflineStatusBanner() {
           ⚡ Offline Mode
         </span>
         <span>
-          Actuarial engine, private settlement generator, and emergency guide are operating locally in browser memory.
-          Cellular calls and formal insurer reporting require mobile reception.
+          The emergency kit, settlement agreement, and car tools you have opened still work. The claim
+          calculator, phone calls, and reporting to your insurer need a connection.
         </span>
       </div>
       <Link

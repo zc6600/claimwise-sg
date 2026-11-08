@@ -13,12 +13,12 @@ export default function RulesPage() {
     <section className="rules-page section-pad">
       <div className="page-header">
         <div>
-          <div className="section-kicker">Policy parameters & benchmarks</div>
+          <div className="section-kicker">Insurer rules</div>
           <h1>Singapore insurer rules & NCD schedule</h1>
         </div>
         <p>
-          Underlying policy deductibles, endorsement surcharges, and General Insurance Association
-          (GIA) step-down rules used in the ClaimWise SG decision engine.
+          The excesses, surcharges, and NCD rules our calculators use for each insurer. Your own
+          policy schedule takes priority.
         </p>
       </div>
 
@@ -26,7 +26,7 @@ export default function RulesPage() {
       <div className="table-card">
         <div className="card-heading">
           <div>
-            <h2>Configured Singapore insurer profiles</h2>
+            <h2>Insurer profiles</h2>
             <p>
               While the −30% NCD step-down is standardised across Singapore, non-authorised
               workshop penalties, young-driver surcharges, and NCD Protector eligibility differ by
@@ -142,7 +142,7 @@ export default function RulesPage() {
           </p>
           <div className="source-panel-cta">
             <Link className="button button-primary" href="/calculator">
-              Open decision calculator <span aria-hidden="true">→</span>
+              Open the claim calculator <span aria-hidden="true">→</span>
             </Link>
           </div>
         </div>

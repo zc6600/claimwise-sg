@@ -444,20 +444,17 @@ export default function CalculatorResults({
       {!claimIsBetter && (
         <section className="settlement-cta-card" aria-label="Private settlement action">
           <div className="settlement-cta-header">
-            <span className="section-kicker">Recommended Next Step</span>
-            <h3>Draft a Private Settlement Agreement</h3>
+            <span className="section-kicker">Next step</span>
+            <h3>Settling with the other driver?</h3>
           </div>
           <p>
-            When self-paying out-of-pocket, document the agreement in writing using a Singapore Motor Claims Framework (MCF) Private Settlement template. Note: You must still notify your insurer within 24 hours stating &ldquo;Settled Privately&rdquo;. The repair figure below is a suggested baseline to be agreed with the counterparty.
+            If another car was involved and you agree with the other driver to settle without
+            insurance, put what you agree in writing and both sign it. You must still tell your
+            insurer within 24 hours that the accident was &ldquo;Settled Privately&rdquo;.
           </p>
           <div>
-            <Link
-              href={`/settlement?amount=${encodeURIComponent(
-                decision.inputs.repairCost
-              )}&mode=party_a_pays_party_b`}
-              className="button button-primary"
-            >
-              Draft Private Settlement Template ({formatCurrency(decision.inputs.repairCost)}) →
+            <Link href="/settlement" className="button button-primary">
+              Create a settlement agreement →
             </Link>
           </div>
         </section>

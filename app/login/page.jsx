@@ -41,9 +41,9 @@ export default function LoginPage() {
       if (err.code === "auth/popup-closed-by-user") {
         setError("Sign-in cancelled before completion.");
       } else if (err.code === "auth/unauthorized-domain") {
-        setError("This domain is not yet authorized in Firebase Authentication.");
+        setError("Sign-in is not available on this address right now. Please try again later.");
       } else {
-        setError(err.message || "Failed to sign in with Google. Please try again.");
+        setError("Google sign-in did not work. Please try again.");
       }
     } finally {
       setGoogleLoading(false);
@@ -71,7 +71,7 @@ export default function LoginPage() {
         } else if (err.code === "auth/invalid-email") {
           setError("Please enter a valid email address.");
         } else {
-          setError(err.message || "Failed to create account. Please try again.");
+          setError("The account could not be created. Please try again.");
         }
       } else {
         if (
@@ -83,7 +83,7 @@ export default function LoginPage() {
         } else if (err.code === "auth/invalid-email") {
           setError("Please enter a valid email address.");
         } else {
-          setError(err.message || "Sign in failed. Please check your credentials.");
+          setError("Sign-in did not work. Check your email and password and try again.");
         }
       }
     } finally {
