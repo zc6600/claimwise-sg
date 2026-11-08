@@ -49,7 +49,7 @@ export default function GlobalError({ error, reset }) {
         >
           Try again
         </button>
-        <Link href="/" className="button button-secondary">
+        <Link href="/tools" className="button button-secondary">
           Browse car tools
         </Link>
       </div>

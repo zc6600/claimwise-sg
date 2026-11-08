@@ -77,7 +77,7 @@ export default function RootLayout({ children }) {
                 </Link>
 
                 <nav className="nav-links" aria-label="Main navigation">
-                  <Link href="/">Car tools</Link>
+                  <Link href="/tools">Car tools</Link>
                   <Link href="/my-car">My car</Link>
                   <Link href="/emergency">Emergency</Link>
                   <Link href="/settlement">Settlement</Link>
@@ -90,7 +90,7 @@ export default function RootLayout({ children }) {
               </div>
 
               <nav className="mobile-nav section-pad" aria-label="Mobile navigation">
-                <Link href="/">Car tools</Link>
+                <Link href="/tools">Car tools</Link>
                 <Link href="/my-car">My car</Link>
                 <Link href="/emergency">Emergency</Link>
                 <Link href="/settlement">Settlement</Link>

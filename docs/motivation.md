@@ -27,4 +27,4 @@ These public cases illustrate the real disputes behind our benchmark fixtures (`
 
 - **Independent**: No insurance or loan brokerage; `src/` contains only pure functions.
 - **Traceable**: Clause audits open the cited page of official Etiqa, Income, MSIG, and GIA PDFs (`public/policies/`).
-- **Focused navigation**: Top bar keeps **Car tools** (`/`), **My car** (`/my-car`), **Emergency** (`/emergency`, offline-cached via `public/sw.js` for basement carparks), and **Sign in**; reference pages (`/settlement`, `/how-it-works`, `/rules`, `/privacy`) stay in the footer.
+- **Focused navigation**: The home page (`/`) introduces the site; the top bar links **Car tools** (`/tools`), **My car** (`/my-car`), **Emergency** (`/emergency`, offline-cached via `public/sw.js` for basement carparks), **Settlement** (`/settlement`), **Rules** (`/rules`), and **Sign in**; **How it works** and **Privacy** stay in the footer.

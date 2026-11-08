@@ -3448,6 +3448,55 @@ td:first-child {
   color: var(--muted);
 }
 
+.landing-all-tools {
+  color: var(--teal-dark);
+  font-weight: 600;
+}
+
+.landing-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-tool-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 18px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-tool-tile:hover {
+  border-color: var(--teal);
+  box-shadow: var(--shadow);
+}
+
+.landing-tool-tile:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.landing-tile-stage {
+  color: var(--teal);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.landing-tool-tile strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
 .landing-stages {
   display: grid;
   gap: 0;
