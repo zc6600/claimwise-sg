@@ -1,42 +1,59 @@
 import Link from "next/link";
-import { TOOL_STAGES } from "../../components/tools/ToolJourney";
 
 export const metadata = {
   title: "Car Decision Tools",
   description:
-    "Five independent calculators for Singapore car owners: claim or self-pay, NCD Protector, renewal quotes, car loan settlement, and COE renewal.",
+    "Everything ClaimWise SG offers Singapore car owners: five calculators, plus My Car reminders, an accident emergency kit, a private settlement agreement, and insurer rules.",
   alternates: { canonical: "/tools" },
 };
 
-export default function ToolsPage() {
-  const tools = TOOL_STAGES.flatMap((stage) =>
-    stage.tools.map((tool) => ({ ...tool, stage: stage.title }))
-  );
+const GROUPS = [
+  {
+    title: "Calculators",
+    items: [
+      { href: "/calculator", name: "Claim or self-pay", text: "Whether to claim on insurance or pay the workshop yourself after an accident." },
+      { href: "/tools/ncd-protector", name: "NCD Protector", text: "Whether the NCD Protector rider is worth its price." },
+      { href: "/tools/quote-compare", name: "Quote comparison", text: "Which renewal quote is cheapest once excess and NCD loss count." },
+      { href: "/tools/loan-prepayment", name: "Car loan settlement", text: "Whether settling your car loan early saves money." },
+      { href: "/tools/coe-renewal", name: "COE renewal", text: "Whether to renew the COE for 5 or 10 years, or replace the car." },
+    ],
+  },
+  {
+    title: "Other features",
+    items: [
+      { href: "/my-car", name: "My Car", text: "Save your policy figures and key dates, and get email reminders." },
+      { href: "/emergency", name: "Emergency kit", text: "An offline checklist for the scene of an accident." },
+      { href: "/settlement", name: "Private settlement", text: "A printable agreement for settling a minor accident without insurance." },
+      { href: "/rules", name: "Insurer rules", text: "Excesses, NCD terms, and policy wordings by insurer." },
+    ],
+  },
+];
 
+export default function ToolsPage() {
   return (
     <div className="landing-page section-pad">
       <div className="page-header">
         <div>
           <div className="section-kicker">Car tools</div>
-          <h1>All tools</h1>
+          <h1>All features</h1>
         </div>
-        <p>Free calculators for the expensive decisions in Singapore car ownership.</p>
       </div>
 
-      <ul className="tool-list">
-        {tools.map((tool) => (
-          <li key={tool.href}>
-            <Link className="tool-list-row" href={tool.href}>
-              <span className="tool-list-stage">{tool.stage}</span>
-              <span className="tool-list-text">
-                <strong>{tool.title}</strong>
-                <span>{tool.summary}</span>
-              </span>
-              <span className="tool-list-arrow" aria-hidden="true">→</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {GROUPS.map((group, index) => (
+        <section className="tool-list-group" key={group.title} aria-labelledby={`group-${index}`}>
+          <h2 id={`group-${index}`}>{group.title}</h2>
+          <ul className="tool-list">
+            {group.items.map((item) => (
+              <li key={item.href}>
+                <Link className="tool-list-row" href={item.href}>
+                  <strong>{item.name}</strong>
+                  <span>{item.text}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }
