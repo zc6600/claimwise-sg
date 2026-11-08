@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildToolExamples, TOOL_STAGES } from "../components/tools/ToolJourney";
+import ToolJourney, { buildToolExamples } from "../components/tools/ToolJourney";
 
 export const metadata = {
   title: { absolute: "ClaimWise SG · Singapore Car Decision Tools" },
@@ -64,26 +64,12 @@ export default function HomePage() {
         </aside>
       </section>
 
-      <section className="landing-journey" aria-labelledby="tools-title">
+      <section className="landing-journey" aria-labelledby="journey-title">
         <div className="landing-section-head">
-          <h2 id="tools-title">Five decisions, one place</h2>
-          <Link className="landing-all-tools" href="/tools">
-            See every tool with a worked example <span aria-hidden="true">→</span>
-          </Link>
+          <h2 id="journey-title">Pick the moment you are in</h2>
+          <p>Each tool shows a worked example. Open it to run the same sums on your own car.</p>
         </div>
-
-        <ul className="landing-tool-grid">
-          {TOOL_STAGES.flatMap((stage) =>
-            stage.tools.map((tool) => (
-              <li key={tool.href}>
-                <Link className="landing-tool-tile" href={tool.href}>
-                  <span className="landing-tile-stage">{stage.title}</span>
-                  <strong>{tool.title}</strong>
-                </Link>
-              </li>
-            ))
-          )}
-        </ul>
+        <ToolJourney />
       </section>
 
       <section className="landing-mycar">
