@@ -89,7 +89,7 @@ export default function ReminderSignup({ dates, heading = "Email me before these
       ) : null}
       {status.state === "sent" ? (
         <p className="field-hint">
-          While you wait, try the <Link href="/">other car decision tools</Link>.
+          While you wait, try the <Link href="/tools">other car decision tools</Link>.
         </p>
       ) : null}
     </form>

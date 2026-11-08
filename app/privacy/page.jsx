@@ -119,7 +119,7 @@ export default function PrivacyPage() {
           request. If we make a material change to this policy, we will update this page and its date.
         </p>
         <p>
-          <Link href="/">Back to car tools</Link>
+          <Link href="/tools">Back to car tools</Link>
         </p>
       </div>
     </section>

@@ -18,7 +18,7 @@ flowchart LR
 
 | Area | Routes | Where logic runs |
 | --- | --- | --- |
-| Car tools hub (landing) | `/` (`/tools` $\rightarrow$ `/`) | `src/decision-engine.mjs`, `src/car-decisions/*.mjs` |
+| Home and car tools hub | `/`, `/tools` | `src/decision-engine.mjs`, `src/car-decisions/*.mjs` |
 | Claim calculator, trajectory, stress test | `/calculator` | Server `POST /api/decision` (`src/decision-engine.mjs`, `src/claim-explanations.mjs`); browser (`src/trajectory-calculator.mjs`, `src/stress-test-calculator.mjs`) |
 | Renewal, loan, and COE tools | `/tools/ncd-protector`, `/tools/quote-compare`, `/tools/loan-prepayment`, `/tools/coe-renewal` | Browser: `src/car-decisions/*.mjs`, `src/ncd/premium-path.mjs` |
 | My Car & email reminders | `/my-car`, `/reminders/*`, `/api/reminders/*` | `src/my-car.mjs`, `lib/my-car-service.js`, `src/reminders/*`, `lib/reminders/*` |

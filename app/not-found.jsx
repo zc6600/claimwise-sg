@@ -40,7 +40,7 @@ export default function NotFound() {
           flexWrap: "wrap",
         }}
       >
-        <Link href="/" className="button button-primary button-large">
+        <Link href="/tools" className="button button-primary button-large">
           Browse car tools <span aria-hidden="true">→</span>
         </Link>
         <Link href="/calculator" className="button button-secondary">
