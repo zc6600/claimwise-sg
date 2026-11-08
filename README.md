@@ -6,7 +6,9 @@ Free, independent calculators for the expensive decisions of owning a car in Sin
 
 ClaimWise does not sell insurance or loans. Every tool runs on the figures you enter, shows its method, and links to the official LTA, GIA, or insurer rules it relies on.
 
-## What it answers
+## 1. Motivation
+
+Car ownership rules in Singapore are split across GIA frameworks, LTA schedules, insurer policy wordings, and Rule of 78 loan contracts, while workshops, insurers, and brokers each have commercial incentives tied to your choice.
 
 | When | Question | Route |
 | --- | --- | --- |
@@ -16,74 +18,46 @@ ClaimWise does not sell insurance or loans. Every tool runs on the figures you e
 | During a car loan | Should I settle the loan early? | `/tools/loan-prepayment` |
 | Before COE expiry | Renew for 5 years, 10 years, or replace the car? | `/tools/coe-renewal` |
 
-The landing page (`/`) links all five. Supporting pages:
+Top navigation links **Car tools** (`/`), **My car** (`/my-car`, saving key dates and policy figures once to prefill tools and send email reminders), and **Emergency** (`/emergency`, an offline checklist for the accident scene). Footer links cover **Private settlement** (`/settlement`), **How it works** (`/how-it-works`), **Insurer rules** (`/rules`), and **Privacy** (`/privacy`).
 
-- **My Car** (`/my-car`): save your premium, NCD, excess, and renewal, COE, and loan dates. The claim calculator and renewal tools prefill from it, and you can get email reminders before each date.
-- **Emergency kit** (`/emergency`): an offline checklist for the accident scene, with reporting rules and hotlines.
-- **Private settlement** (`/settlement`): a settlement agreement under the GIA Motor Claims Framework.
-- **Insurer rules** (`/rules`): excesses, NCD scale, and the official policy PDFs at the cited page.
+Full details and real-world Singapore cases: **[docs/motivation.md](docs/motivation.md)**
 
-Everything works without an account. Signing in syncs history and My Car across devices.
+## 2. Business Model
 
-## How the numbers work
+The site currently runs with **no live ads** (`public/ads.txt` uses a placeholder ID pending AdSense onboarding, and `components/SponsoredAdUnit.jsx` is unmounted).
 
-**Claim or self-pay.** An at-fault claim cuts the No-Claim Discount (NCD) by 30 points, which then recovers 10 points per claim-free year. Claiming pays only when the repair bill exceeds the excess plus the discounted extra premiums:
+- **Revenue plan**: Apply for Google AdSense on guide and result views while keeping `src/` pure and independent of ads. Under Google's Asia-Pacific multipliers (`2.18` Autos, `5.29` Finance), reaching \$1,000/month at two page views per visit requires ~95k–229k monthly visits.
+- **Acquisition & retention**: Search pages answer incident, renewal, loan, and COE questions; **My Car** email reminders bring owners back before renewal, loan review, and COE expiry.
+- **Paid search**: Breaking even on Google Ads requires $\text{Page RPM} = 500 \times \text{CPC}$, so paid search is treated only as a bounded S\$152/month demand test.
 
-$$R^* = E_{\text{own}} + \sum_{t=1}^{T} \frac{P_t^{\text{claim}} - P_t^{\text{self}}}{(1 + r)^t} + \Delta\text{Downtime}$$
+Full analysis and competitor comparison: **[docs/business-model.md](docs/business-model.md)**
 
-The calculator also covers workshop and young-driver surcharges, windscreen claims, third-party claims, the NCD Protector, and loadings and downtime for private hire (PHV) cars.
+## 3. Architecture
 
-**NCD Protector.** The rider is worth buying when your chance of an at-fault claim this year exceeds its price divided by the premium loss it prevents.
+Single Next.js 15 app on Google Cloud Run (`asia-southeast1`) behind a Cloudflare Worker (`infra/cloudflare/`) at `claimwise.zc6600.wiki`.
 
-**Quote comparison.** Each quote's expected cost is its premium plus the accident probability times what an accident would cost under it. That cost is either the repair bill or the excess plus NCD loss, whichever is cheaper. A low excess therefore only helps when a claim would be worth making.
-
-**Loan settlement.** The interest rebate follows the Rule of 78, less your lender's fees. Settling is compared with keeping the cash invested at a return you choose.
-
-**COE renewal.** Each option is turned into an equivalent yearly cost. Keeping the car gives up today's PARF and COE rebates and scrap value. Road tax surcharges for cars over 10 years old are included.
-
-All tools share one NCD model (`src/ncd/premium-path.mjs`), so the same claim is priced the same way on every page. See [docs/architecture.md](docs/architecture.md) for details.
-
-## Run locally
-
-Requires Node.js 20 or later. No credentials are needed: the calculations are plain JavaScript and guest data stays in the browser.
+- `src/`: Pure calculation modules (`decision-engine.mjs`, `claim-explanations.mjs`, shared NCD path `src/ncd/premium-path.mjs`, `src/car-decisions/*.mjs`, calculator share links, settlement form, clause and market data, `my-car.mjs`, `src/reminders/*`).
+- `lib/`: Side effects (Firebase Auth/Firestore, Resend email, HMAC reminder tokens).
+- `infra/`: Terraform (`infra/terraform/`) and Cloudflare Worker (`infra/cloudflare/`), deployed via keyless GitHub Actions.
 
 ```bash
 npm install
+npm test        # 128 node:test checks across tests/*.test.mjs
 npm run dev     # http://localhost:3000
-npm test        # node:test suites for every calculation module
 ```
 
-To use your own Firebase project, copy `.env.example` to `.env.local`.
+Full design and deployment: **[docs/architecture.md](docs/architecture.md)** · **[docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)**
 
-| Path | Contents |
+## 4. Evaluation
+
+| Part | Evidence |
 | --- | --- |
-| `app/`, `components/` | Next.js pages, API routes, and React components |
-| `src/` | Pure modules with no side effects: claim engine, NCD model, car tools, share links, settlement form, emergency and market data |
-| `lib/` | Code with side effects: Firebase, storage, and email reminders |
-| `data/`, `public/policies/` | Market data and official policy wordings |
-| `tests/`, `evaluation/` | Unit tests; correctness, load, and user-study evaluation |
-| `infra/terraform/` | Google Cloud infrastructure |
+| Unit & actuarial suite (`npm test`) | 128/128 checks passing across 12 `node:test` files |
+| Decision correctness (`evaluation/correctness.mjs`) | 18/18 model cases; 26/26 local HTTP checks |
+| HTTP performance (`evaluation/PERFORMANCE_REPORT.md`) | Sustained (50 VUs, 60s): 91.8–95.3 req/s, P95 65–120 ms, 0% errors; Burst (200 journeys): 400/400 succeeded |
+| Questionnaire (`evaluation/simple_user_study.py`) | Crossover study protocol and 26-record synthetic pipeline demo (`0` human participants) |
 
-## API
-
-| Endpoint | Purpose |
-| --- | --- |
-| `POST /api/decision` | Claim vs. self-pay result, break-even repair cost, renewal schedule, and clause audit |
-| `GET /api/rules` | Insurer profiles, excesses, and the NCD scale |
-| `GET /api/clause-preview?id=<clause>&insurer=<insurer>` | Official policy PDF at the cited page |
-| `GET /api/benchmarks` | Singapore repair and premium benchmarks |
-| `GET /api/health` | Service status |
-
-Minimal `POST /api/decision` body; omitted fields use defaults:
-
-```json
-{ "insurer": "income", "currentPremium": 1650, "currentNcd": 50, "excess": 600, "repairCost": 2500 }
-```
-
-## More
-
-- [Architecture](docs/architecture.md) · [Deployment](docs/DEPLOYMENT_GUIDE.md) · [Evaluation](evaluation/README.md) · [Original project report](docs/research/Preliminary.pdf)
-- [Contributing](CONTRIBUTING.md) · [Agent guidelines](AGENTS.md)
+Full methods and results: **[docs/evaluation.md](docs/evaluation.md)** · **[evaluation/README.md](evaluation/README.md)**
 
 ## Disclaimer
 

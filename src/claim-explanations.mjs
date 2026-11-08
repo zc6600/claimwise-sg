@@ -184,8 +184,8 @@ export function generateClauseAudit(
   const shieldReason = inputs.liability === "non_fault"
     ? "Non-Fault Subrogation"
     : inputs.ncdProtector && isNcdProtectorEligible(inputs)
-    ? "NCD Protector Endorsement"
-    : "Windscreen Endorsement W1";
+      ? "NCD Protector Endorsement"
+      : "Windscreen Endorsement W1";
 
   audit.push({
     id: "ncd_step_down",
