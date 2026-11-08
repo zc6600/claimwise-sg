@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { INSURER_PROFILES, NCD_STEPS } from "../../src/decision-data.mjs";
 import { formatCurrency } from "../../src/formatters.mjs";
 import { isNcdProtectorEligible } from "../../src/ncd/premium-path.mjs";
+import {
+  buildShareParams,
+  parseSharedInputs,
+  sameClaimInputs,
+} from "../../src/claim-share-link.mjs";
 import { useAuth } from "../../components/AuthProvider";
 import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";
@@ -68,29 +73,6 @@ function validateAllInputs(candidate) {
     if (msg) nextErrors[field] = msg;
   }
   return nextErrors;
-}
-
-function areInputsEqual(a, b) {
-  if (!a || !b) return false;
-  return (
-    a.insurer === b.insurer &&
-    Number(a.currentPremium) === Number(b.currentPremium) &&
-    Number(a.currentNcd) === Number(b.currentNcd) &&
-    Number(a.excess) === Number(b.excess) &&
-    Number(a.repairCost) === Number(b.repairCost) &&
-    Number(a.horizonYears) === Number(b.horizonYears) &&
-    Boolean(a.ncdProtector) === Boolean(b.ncdProtector) &&
-    a.liability === b.liability &&
-    Boolean(a.thirdPartyClaim) === Boolean(b.thirdPartyClaim) &&
-    a.workshopType === b.workshopType &&
-    Boolean(a.youngDriverInvolved) === Boolean(b.youngDriverInvolved) &&
-    a.repairType === b.repairType &&
-    (a.vehicleUsage || "private") === (b.vehicleUsage || "private") &&
-    Number(a.commercialClaimLoading ?? 0) === Number(b.commercialClaimLoading ?? 0) &&
-    Number(a.dailyDowntimeCost ?? 0) === Number(b.dailyDowntimeCost ?? 0) &&
-    Number(a.claimDowntimeDays ?? 0) === Number(b.claimDowntimeDays ?? 0) &&
-    Number(a.selfPayDowntimeDays ?? 0) === Number(b.selfPayDowntimeDays ?? 0)
-  );
 }
 
 async function requestDecision(inputs, user) {
@@ -158,155 +140,7 @@ export default function CalculatorPage() {
     const params = new URLSearchParams(window.location.search);
     if (!params.toString()) return;
 
-    const parsed = { ...DEFAULT_INPUTS };
-    let hasExplicitParams = false;
-
-    if (params.has("insurer") && INSURER_PROFILES[params.get("insurer")]) {
-      parsed.insurer = params.get("insurer");
-      hasExplicitParams = true;
-    }
-
-    if (params.has("repairCost")) {
-      const val = Number(params.get("repairCost"));
-      if (Number.isFinite(val) && val > 0) {
-        parsed.repairCost = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("currentPremium")) {
-      const val = Number(params.get("currentPremium"));
-      if (Number.isFinite(val) && val > 0) {
-        parsed.currentPremium = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("currentNcd")) {
-      const val = Number(params.get("currentNcd"));
-      if (NCD_STEPS.includes(val)) {
-        parsed.currentNcd = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("excess")) {
-      const val = Number(params.get("excess"));
-      if (Number.isFinite(val) && val >= 0) {
-        parsed.excess = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("horizonYears")) {
-      const val = Number(params.get("horizonYears"));
-      if ([3, 5].includes(val)) {
-        parsed.horizonYears = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("liability")) {
-      const val = params.get("liability");
-      if (["at_fault", "non_fault", "partial_fault"].includes(val)) {
-        parsed.liability = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("workshopType")) {
-      const val = params.get("workshopType");
-      if (["authorized", "independent"].includes(val)) {
-        parsed.workshopType = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("repairType")) {
-      const val = params.get("repairType");
-      if (["general", "windscreen"].includes(val)) {
-        parsed.repairType = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("vehicleUsage")) {
-      const val = params.get("vehicleUsage");
-      if (["private", "phv"].includes(val)) {
-        parsed.vehicleUsage = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("commercialClaimLoading")) {
-      const val = Number(params.get("commercialClaimLoading"));
-      if (Number.isFinite(val) && val >= 0 && val <= 100) {
-        parsed.commercialClaimLoading = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("dailyDowntimeCost")) {
-      const val = Number(params.get("dailyDowntimeCost"));
-      if (Number.isFinite(val) && val >= 0 && val <= 5000) {
-        parsed.dailyDowntimeCost = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("claimDowntimeDays")) {
-      const val = Number(params.get("claimDowntimeDays"));
-      if (Number.isFinite(val) && val >= 0 && val <= 60) {
-        parsed.claimDowntimeDays = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("selfPayDowntimeDays")) {
-      const val = Number(params.get("selfPayDowntimeDays"));
-      if (Number.isFinite(val) && val >= 0 && val <= 60) {
-        parsed.selfPayDowntimeDays = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("ncdProtector")) {
-      parsed.ncdProtector =
-        params.get("ncdProtector") === "1" || params.get("ncdProtector") === "true";
-      hasExplicitParams = true;
-    }
-
-    if (params.has("youngDriverInvolved")) {
-      parsed.youngDriverInvolved =
-        params.get("youngDriverInvolved") === "1" ||
-        params.get("youngDriverInvolved") === "true";
-      hasExplicitParams = true;
-    }
-
-    if (params.has("thirdPartyClaim")) {
-      parsed.thirdPartyClaim =
-        params.get("thirdPartyClaim") === "1" ||
-        params.get("thirdPartyClaim") === "true";
-      hasExplicitParams = true;
-    }
-
-    if (params.has("baseGrowthRate")) {
-      const val = Number(params.get("baseGrowthRate"));
-      if (Number.isFinite(val) && val >= -20 && val <= 50) {
-        parsed.baseGrowthRate = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (params.has("discountRate")) {
-      const val = Number(params.get("discountRate"));
-      if (Number.isFinite(val) && val >= 0 && val <= 20) {
-        parsed.discountRate = val;
-        hasExplicitParams = true;
-      }
-    }
-
-    if (!isNcdProtectorEligible(parsed)) parsed.ncdProtector = false;
+    const { inputs: parsed, hasExplicitParams } = parseSharedInputs(params, DEFAULT_INPUTS);
 
     if (hasExplicitParams) {
       setInputs(parsed);
@@ -317,7 +151,7 @@ export default function CalculatorPage() {
     }
   }, [authLoading]);
 
-  const isDirty = Boolean(submittedInputs && !areInputsEqual(inputs, submittedInputs));
+  const isDirty = Boolean(submittedInputs && !sameClaimInputs(inputs, submittedInputs));
 
   function handleInputChange(field, value) {
     setInputs((prev) => {
@@ -451,40 +285,7 @@ export default function CalculatorPage() {
   async function handleShare() {
     const active = isDirty ? inputs : (submittedInputs || inputs);
     const url = new URL(window.location.href);
-    url.search = "";
-    if (active.insurer) url.searchParams.set("insurer", active.insurer);
-    if (Number(active.repairCost) > 0) url.searchParams.set("repairCost", String(active.repairCost));
-    if (Number(active.currentPremium) > 0) url.searchParams.set("currentPremium", String(active.currentPremium));
-    if (active.currentNcd !== undefined && active.currentNcd !== "") url.searchParams.set("currentNcd", String(active.currentNcd));
-    if (Number(active.excess) >= 0 && active.excess !== "") url.searchParams.set("excess", String(active.excess));
-    if (active.horizonYears) url.searchParams.set("horizonYears", String(active.horizonYears));
-    if (active.liability) url.searchParams.set("liability", active.liability);
-    if (active.workshopType) url.searchParams.set("workshopType", active.workshopType);
-    if (active.repairType) url.searchParams.set("repairType", active.repairType);
-    if (active.vehicleUsage && active.vehicleUsage !== "private") {
-      url.searchParams.set("vehicleUsage", active.vehicleUsage);
-      if (Number.isFinite(Number(active.commercialClaimLoading))) {
-        url.searchParams.set("commercialClaimLoading", String(active.commercialClaimLoading));
-      }
-      if (Number.isFinite(Number(active.dailyDowntimeCost))) {
-        url.searchParams.set("dailyDowntimeCost", String(active.dailyDowntimeCost));
-      }
-      if (Number.isFinite(Number(active.claimDowntimeDays))) {
-        url.searchParams.set("claimDowntimeDays", String(active.claimDowntimeDays));
-      }
-      if (Number.isFinite(Number(active.selfPayDowntimeDays))) {
-        url.searchParams.set("selfPayDowntimeDays", String(active.selfPayDowntimeDays));
-      }
-    }
-    if (active.ncdProtector) url.searchParams.set("ncdProtector", "1");
-    if (active.youngDriverInvolved) url.searchParams.set("youngDriverInvolved", "1");
-    if (active.thirdPartyClaim) url.searchParams.set("thirdPartyClaim", "1");
-    if (Number(active.baseGrowthRate) !== 5 && Number.isFinite(Number(active.baseGrowthRate))) {
-      url.searchParams.set("baseGrowthRate", String(active.baseGrowthRate));
-    }
-    if (Number(active.discountRate) !== 3 && Number.isFinite(Number(active.discountRate))) {
-      url.searchParams.set("discountRate", String(active.discountRate));
-    }
+    url.search = buildShareParams(active).toString();
     const shareUrl = url.toString();
 
     const repairSummary = Number(active.repairCost) > 0 ? ` for ${formatCurrency(active.repairCost)} repair quote` : "";

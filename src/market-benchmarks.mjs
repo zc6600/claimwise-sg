@@ -1,4 +1,4 @@
-import { SINGAPORE_MARKET_STATS } from "./singapore-market-data.js";
+import { SINGAPORE_MARKET_STATS } from "./singapore-market-data.mjs";
 
 export function getMarketStats() {
   return SINGAPORE_MARKET_STATS;

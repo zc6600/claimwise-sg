@@ -1,4 +1,4 @@
-import { getClausePdfInfo } from "../../../lib/clause-documents.js";
+import { getClausePdfInfo } from "../../../src/clause-documents.mjs";
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({

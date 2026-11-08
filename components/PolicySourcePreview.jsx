@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getClausePdfInfo } from "../lib/clause-documents";
+import { getClausePdfInfo } from "../src/clause-documents.mjs";
 
 export default function PolicySourcePreview({ clauseAudit = [], insurer = "income" }) {
   const [hoveredId, setHoveredId] = useState(null);

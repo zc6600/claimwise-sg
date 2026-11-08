@@ -7,7 +7,7 @@ import {
   isValidCalendarDate,
   SETTLEMENT_MODES,
   PAYMENT_METHODS,
-} from "../lib/settlement-form.js";
+} from "../src/settlement-form.mjs";
 
 const validBaseInputs = {
   noInjuryConfirmed: true,

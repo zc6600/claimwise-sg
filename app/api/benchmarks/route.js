@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMarketStats, compareWithMarketBenchmarks } from "../../../lib/market-benchmarks.js";
+import { getMarketStats, compareWithMarketBenchmarks } from "../../../src/market-benchmarks.mjs";
 
 export async function GET() {
   const stats = getMarketStats();

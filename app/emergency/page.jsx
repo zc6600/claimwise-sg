@@ -7,7 +7,7 @@ import {
   INSURER_HOTLINES,
   RTA_SECTION_84_RULES,
   ON_SCENE_CHECKLIST_ITEMS,
-} from "../../lib/emergency-data";
+} from "../../src/emergency-data.mjs";
 
 export default function EmergencyProtocolPage() {
   const [checkedItems, setCheckedItems] = useState({});

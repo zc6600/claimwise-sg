@@ -8,7 +8,7 @@ import {
   INSURER_HOTLINES,
   RTA_SECTION_84_RULES,
   ON_SCENE_CHECKLIST_ITEMS,
-} from "../lib/emergency-data.js";
+} from "../src/emergency-data.mjs";
 
 test("manifest generates valid Progressive Web App configuration", () => {
   const pwaManifest = manifest();
