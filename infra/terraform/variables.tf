@@ -57,7 +57,7 @@ variable "reminder_from_email" {
 variable "reminder_site_url" {
   description = "Public site URL used in reminder email links; it must serve the API routes"
   type        = string
-  default     = "https://claimwise-sg-721110976915.asia-southeast1.run.app"
+  default     = "https://claimwise.zc6600.wiki"
 }
 
 variable "github_repository" {
