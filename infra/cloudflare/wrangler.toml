@@ -1,0 +1,12 @@
+# Edge proxy for the public hostname. Deploy with: npx wrangler deploy
+name = "claimwise-site-proxy"
+main = "proxy.mjs"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+routes = [
+  { pattern = "claimwise.zc6600.wiki", custom_domain = true }
+]
+
+[vars]
+ORIGIN_URL = "https://claimwise-sg-721110976915.asia-southeast1.run.app"

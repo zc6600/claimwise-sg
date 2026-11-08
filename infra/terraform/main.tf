@@ -412,3 +412,25 @@ resource "google_service_account_iam_member" "github_deployer_runtime_user" {
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.github_deployer.email}"
 }
+
+# 13. Terraform automation account for GitHub Actions
+# Terraform manages IAM, APIs, and Firebase resources, so it needs project ownership.
+# Only jobs in the "infrastructure" environment may impersonate it; that environment
+# is limited to main and requires reviewer approval before a job starts.
+resource "google_service_account" "github_terraform" {
+  project      = var.project_id
+  account_id   = "github-terraform"
+  display_name = "GitHub Actions Terraform applier"
+}
+
+resource "google_service_account_iam_member" "github_terraform_workload_identity" {
+  service_account_id = google_service_account.github_terraform.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principal://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/subject/repo:${var.github_repository}:environment:infrastructure"
+}
+
+resource "google_project_iam_member" "github_terraform_owner" {
+  project = var.project_id
+  role    = "roles/owner"
+  member  = "serviceAccount:${google_service_account.github_terraform.email}"
+}
