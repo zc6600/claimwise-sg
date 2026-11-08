@@ -1,4 +1,8 @@
-project_id           = "claimwise-sg"
-region               = "asia-southeast1"
-google_client_id     = "721110976915-2bgbn6qsiuip62opbva4kipisqn8138b.apps.googleusercontent.com"
-google_client_secret = "YOUR_GOOGLE_CLIENT_SECRET"
+# All variables default to production values. Copy to terraform.tfvars only to override.
+# project_id         = "claimwise-sg"
+# region             = "asia-southeast1"
+# reminder_site_url  = "https://claimwise.example"
+# authorized_domains = ["localhost", "claimwise.example"]
+
+# Needed only when the Google sign-in provider is created for the first time.
+# google_client_secret = "..."

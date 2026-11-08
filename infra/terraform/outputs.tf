@@ -27,3 +27,13 @@ output "firestore_ruleset" {
   description = "Deployed Firestore Ruleset Name"
   value       = google_firebaserules_ruleset.firestore.name
 }
+
+output "github_workload_identity_provider" {
+  description = "Workload Identity provider used by the GitHub Actions deploy workflow"
+  value       = google_iam_workload_identity_pool_provider.github.name
+}
+
+output "github_deployer_email" {
+  description = "Service account impersonated by the GitHub Actions deploy workflow"
+  value       = google_service_account.github_deployer.email
+}
