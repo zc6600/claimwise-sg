@@ -8,6 +8,7 @@ import {
   compareQuotes,
 } from "../../src/car-decisions/quote-comparison.mjs";
 import { useMyCar } from "../my-car/useMyCar";
+import { NCD_STEPS } from "../../src/decision-data.mjs";
 import { NumberField, ResultRows, SelectField } from "./ToolFields";
 
 const emptyQuote = (index) => ({
@@ -24,8 +25,13 @@ export default function QuoteComparisonTool() {
   const [quotes, setQuotes] = useState([emptyQuote(0), emptyQuote(1)]);
 
   useEffect(() => {
-    if (applied.current || (car.currentPremium === "" && car.excess === "")) return;
+    if (applied.current || (car.currentPremium === "" && car.excess === "" && car.currentNcd === "")) {
+      return;
+    }
     applied.current = true;
+    if (car.currentNcd !== "") {
+      setSettings((current) => ({ ...current, currentNcd: car.currentNcd }));
+    }
     setQuotes((current) =>
       current.map((quote, index) =>
         index === 0 ? { ...quote, premium: car.currentPremium, excess: car.excess } : quote
@@ -37,6 +43,8 @@ export default function QuoteComparisonTool() {
     setQuotes((current) =>
       current.map((quote, position) => (position === index ? { ...quote, [field]: value } : quote))
     );
+  const removeQuote = (index) =>
+    setQuotes((current) => current.filter((_, position) => position !== index));
   const updateSetting = (field) => (value) =>
     setSettings((current) => ({ ...current, [field]: value }));
 
@@ -49,6 +57,16 @@ export default function QuoteComparisonTool() {
         {quotes.map((quote, index) => (
           <fieldset className="tool-fieldset" key={index}>
             <legend>Quote {index + 1}</legend>
+            {quotes.length > 2 ? (
+              <button
+                type="button"
+                className="button button-ghost tool-remove"
+                aria-label={`Remove quote ${index + 1}`}
+                onClick={() => removeQuote(index)}
+              >
+                Remove
+              </button>
+            ) : null}
             <div className="field">
               <label htmlFor={`label-${index}`}>Name</label>
               <input
@@ -96,19 +114,27 @@ export default function QuoteComparisonTool() {
 
         <h2 className="tool-subheading">Your situation</h2>
         <div className="field-grid two-col">
+          <SelectField
+            id="currentNcd"
+            label="Current NCD"
+            value={String(settings.currentNcd)}
+            onChange={updateSetting("currentNcd")}
+            options={NCD_STEPS.map((step) => ({ value: String(step), label: `${step}%` }))}
+          />
           <NumberField
-            id="claimProbabilityPct"
-            label="Chance of claiming this year"
+            id="incidentProbabilityPct"
+            label="Chance of an at-fault accident this year"
             suffix="%"
             max={100}
             hint="The default is an illustration, not a statistic."
-            value={settings.claimProbabilityPct}
-            onChange={updateSetting("claimProbabilityPct")}
+            value={settings.incidentProbabilityPct}
+            onChange={updateSetting("incidentProbabilityPct")}
           />
           <NumberField
             id="typicalRepairCost"
             label="Typical repair bill"
             prefix="S$"
+            hint="We assume you claim only when that beats paying the workshop yourself."
             value={settings.typicalRepairCost}
             onChange={updateSetting("typicalRepairCost")}
           />
@@ -139,17 +165,21 @@ export default function QuoteComparisonTool() {
                 ? "."
                 : `, about ${formatCurrency(result.expectedSavingVsLowestPremium)} a year less than ${result.lowestPremiumLabel}.`}
             </p>
-            {result.quotes.map((quote) => (
-              <div className="tool-quote" key={`${quote.label}-${quote.premium}-${quote.excess}`}>
+            {result.quotes.map((quote, position) => (
+              <div className="tool-quote" key={position}>
                 <h3>{quote.label}</h3>
                 <ResultRows
                   rows={[
                     ["Expected cost", formatCurrency(quote.expectedCost)],
-                    ["Cost in a year with a claim", formatCurrency(quote.costWithClaim)],
-                    ["You pay per claim", formatCurrency(quote.outOfPocketPerClaim)],
+                    ["Cost in a year with an accident", formatCurrency(quote.costWithIncident)],
+                    [
+                      quote.wouldClaim ? "Per accident: claim" : "Per accident: pay workshop",
+                      formatCurrency(quote.costPerIncident),
+                    ],
+                    ["NCD loss if you claim", formatCurrency(quote.ncdLoss)],
                     ...(quote.breakEvenProbabilityPct === null
                       ? []
-                      : [[`Beats ${result.lowestPremiumLabel} above`, `${quote.breakEvenProbabilityPct}% claim chance`]]),
+                      : [[`Beats ${result.lowestPremiumLabel} above`, `${quote.breakEvenProbabilityPct}% accident chance`]]),
                   ]}
                 />
               </div>

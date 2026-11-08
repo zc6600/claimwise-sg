@@ -1,12 +1,19 @@
+import { calculateDecision } from "../decision-engine.mjs";
 import { roundMoney, toBoundedNumber } from "./shared.mjs";
 
 export const MAX_QUOTES = 4;
 
 export const QUOTE_COMPARISON_DEFAULTS = {
-  claimProbabilityPct: 5,
+  currentNcd: 50,
+  incidentProbabilityPct: 5,
   typicalRepairCost: 2500,
   usesNonAuthorisedWorkshop: false,
 };
+
+// Matches the NCD Protector tool: five renewals capture the full recovery from a 30-point drop.
+const NCD_LOSS_HORIZON_YEARS = 5;
+const NCD_LOSS_GROWTH_RATE_PCT = 5;
+const NCD_LOSS_DISCOUNT_RATE_PCT = 3;
 
 function normalizeQuote(raw, index) {
   const label = typeof raw?.label === "string" ? raw.label.trim().slice(0, 60) : "";
@@ -25,10 +32,36 @@ export function normalizeQuoteComparisonInputs(raw = {}) {
       .slice(0, MAX_QUOTES)
       .map(normalizeQuote)
       .filter((quote) => quote.premium > 0),
-    claimProbabilityPct: toBoundedNumber(raw.claimProbabilityPct, { min: 0, max: 100 }),
+    currentNcd: toBoundedNumber(raw.currentNcd, {
+      min: 0,
+      max: 50,
+      fallback: QUOTE_COMPARISON_DEFAULTS.currentNcd,
+    }),
+    incidentProbabilityPct: toBoundedNumber(raw.incidentProbabilityPct, { min: 0, max: 100 }),
     typicalRepairCost: toBoundedNumber(raw.typicalRepairCost, { min: 0, max: 500000 }),
     usesNonAuthorisedWorkshop: raw.usesNonAuthorisedWorkshop === true,
   };
+}
+
+/**
+ * Discounted renewal-premium increase caused by one at-fault own-damage claim, assuming
+ * the policyholder renews at this quote's premium. It reuses the claim calculator's NCD
+ * path so both tools price the same step-down identically.
+ */
+export function ncdLossPresentValue(premium, currentNcd) {
+  if (premium <= 0 || currentNcd <= 0) return 0;
+  const { baseScenario } = calculateDecision({
+    insurer: "other",
+    currentPremium: premium,
+    currentNcd,
+    horizonYears: NCD_LOSS_HORIZON_YEARS,
+    baseGrowthRate: NCD_LOSS_GROWTH_RATE_PCT,
+    discountRate: NCD_LOSS_DISCOUNT_RATE_PCT,
+    liability: "at_fault",
+    repairCost: 0,
+    excess: 0,
+  });
+  return Math.max(0, baseScenario.claimFutureDiscounted - baseScenario.selfPayFutureDiscounted);
 }
 
 function lowestBy(items, key) {
@@ -36,22 +69,25 @@ function lowestBy(items, key) {
 }
 
 /**
- * Finds the claim probability at which a dearer quote with a lower out-of-pocket
- * claim cost overtakes the lowest-premium quote. The result is null when the dearer
- * quote never catches up.
+ * Finds the incident probability at which a quote with a lower cost per incident
+ * overtakes the lowest-premium quote. An equally priced quote wins at any positive
+ * probability, so its threshold is zero. The result is null when the quote never
+ * catches up.
  */
 function breakEvenAgainst(quote, lowestPremiumQuote) {
   if (quote === lowestPremiumQuote) return null;
   const extraPremium = quote.premium - lowestPremiumQuote.premium;
-  const claimSaving = lowestPremiumQuote.outOfPocketPerClaim - quote.outOfPocketPerClaim;
-  if (extraPremium <= 0 || claimSaving <= 0) return null;
-  const probabilityPct = (extraPremium / claimSaving) * 100;
+  const incidentSaving = lowestPremiumQuote.costPerIncident - quote.costPerIncident;
+  if (extraPremium < 0 || incidentSaving <= 0) return null;
+  const probabilityPct = (extraPremium / incidentSaving) * 100;
   return probabilityPct <= 100 ? roundMoney(probabilityPct) : null;
 }
 
 /**
- * Ranks renewal quotes by expected first-year cost. Future NCD effects are excluded
- * because a claim reduces the NCD under every quote in the same way.
+ * Ranks renewal quotes by expected first-year cost. After an incident the policyholder
+ * picks the cheaper of self-paying the repair and claiming, where claiming costs the
+ * effective excess plus the NCD loss on future renewals. A low excess therefore only
+ * helps when the repair bill is large enough to be worth claiming.
  */
 export function compareQuotes(rawInputs) {
   const inputs = normalizeQuoteComparisonInputs(rawInputs);
@@ -59,17 +95,22 @@ export function compareQuotes(rawInputs) {
     return { inputs, ready: false, quotes: [] };
   }
 
-  const probability = inputs.claimProbabilityPct / 100;
+  const probability = inputs.incidentProbabilityPct / 100;
   const evaluated = inputs.quotes.map((quote) => {
     const effectiveExcess =
       quote.excess + (inputs.usesNonAuthorisedWorkshop ? quote.workshopSurcharge : 0);
-    const outOfPocketPerClaim = Math.min(inputs.typicalRepairCost, effectiveExcess);
+    const ncdLoss = ncdLossPresentValue(quote.premium, inputs.currentNcd);
+    const claimCost = Math.min(inputs.typicalRepairCost, effectiveExcess) + ncdLoss;
+    const wouldClaim = claimCost < inputs.typicalRepairCost;
+    const costPerIncident = wouldClaim ? claimCost : inputs.typicalRepairCost;
     return {
       ...quote,
       effectiveExcess: roundMoney(effectiveExcess),
-      outOfPocketPerClaim: roundMoney(outOfPocketPerClaim),
-      costWithClaim: roundMoney(quote.premium + outOfPocketPerClaim),
-      expectedCost: roundMoney(quote.premium + probability * outOfPocketPerClaim),
+      ncdLoss: roundMoney(ncdLoss),
+      wouldClaim,
+      costPerIncident: roundMoney(costPerIncident),
+      costWithIncident: roundMoney(quote.premium + costPerIncident),
+      expectedCost: roundMoney(quote.premium + probability * costPerIncident),
     };
   });
 
@@ -87,7 +128,6 @@ export function compareQuotes(rawInputs) {
     quotes,
     bestLabel: quotes[0].label,
     lowestPremiumLabel: lowestPremiumQuote.label,
-    bestIfClaimLabel: lowestBy(quotes, "costWithClaim").label,
     lowestPremiumIsBest: quotes[0].expectedCost === lowestPremiumQuote.expectedCost,
     expectedSavingVsLowestPremium: roundMoney(lowestPremiumQuote.expectedCost - quotes[0].expectedCost),
   };

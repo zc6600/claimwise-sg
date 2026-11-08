@@ -3,7 +3,6 @@ import { SITE_URL } from "../lib/site-url";
 const PUBLIC_PATHS = [
   "/",
   "/calculator",
-  "/tools",
   "/tools/ncd-protector",
   "/tools/quote-compare",
   "/tools/coe-renewal",

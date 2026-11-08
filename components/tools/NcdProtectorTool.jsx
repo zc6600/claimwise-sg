@@ -18,13 +18,14 @@ const VERDICTS = {
 
 function describeBreakEven(result) {
   if (result.breakEvenProbabilityPct === null) {
-    return "Add your premium to see the break-even point.";
+    return "A protected claim would not change your renewal premiums.";
   }
   if (result.breakEvenProbabilityPct === 0) return "The rider is free, so it costs nothing to keep.";
   if (result.breakEvenProbabilityPct > 100) {
     return "Even one claim every year would not cover this rider price.";
   }
-  const years = Math.max(1, Math.round(result.claimEveryYears));
+  // Round down so the stated frequency is never below the break-even claim chance.
+  const years = Math.max(1, Math.floor(result.claimEveryYears));
   return `It pays off if you expect one at-fault claim about every ${years} years or more often.`;
 }
 
@@ -106,7 +107,9 @@ export default function NcdProtectorTool() {
       </form>
 
       <aside className="tool-result" aria-live="polite">
-        {result.eligible ? (
+        {result.eligible && !result.ready ? (
+          <p className="tool-headline">Enter your renewal premium to see the break-even point.</p>
+        ) : result.eligible ? (
           <>
             <span className={`tool-verdict ${verdict.tone}`}>{verdict.title}</span>
             <p className="tool-headline">

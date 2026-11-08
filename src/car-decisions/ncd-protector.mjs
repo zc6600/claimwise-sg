@@ -60,7 +60,11 @@ export function evaluateNcdProtector(rawInputs) {
   const inputs = normalizeNcdProtectorInputs(rawInputs);
 
   if (!isNcdProtectorEligible(inputs)) {
-    return { inputs, eligible: false, recommendation: "ineligible" };
+    return { inputs, eligible: false, ready: false, recommendation: "ineligible" };
+  }
+
+  if (inputs.currentPremium <= 0) {
+    return { inputs, eligible: true, ready: false, recommendation: "incomplete" };
   }
 
   const premiumLossAvoided = roundMoney(
@@ -71,6 +75,7 @@ export function evaluateNcdProtector(rawInputs) {
     return {
       inputs,
       eligible: true,
+      ready: true,
       premiumLossAvoided: 0,
       breakEvenProbabilityPct: null,
       claimEveryYears: null,
@@ -91,6 +96,7 @@ export function evaluateNcdProtector(rawInputs) {
   return {
     inputs,
     eligible: true,
+    ready: true,
     premiumLossAvoided,
     breakEvenProbabilityPct,
     claimEveryYears:

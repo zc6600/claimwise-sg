@@ -17,9 +17,9 @@ The decision engine models No-Claim Discount (NCD) step-downs, excess and worksh
 
 | Feature | Route | What it does |
 | --- | --- | --- |
-| Claim vs. self-pay calculator | `/`, `/calculator` | Multi-year cash-flow comparison, break-even threshold, renewal schedule, and clause audit; shareable links and printable report |
+| Claim vs. self-pay calculator | `/calculator` | Multi-year cash-flow comparison, break-even threshold, renewal schedule, and clause audit; shareable links and printable report |
 | Trajectory and stress test | `/calculator` results | Cumulative cost and NCD recovery charts; exposure if a second at-fault claim follows within 12 months |
-| Car decision tools | `/tools` | NCD Protector break-even, renewal quote comparison, COE renewal vs. replacement, car loan early settlement |
+| Car decision tools (landing page) | `/` | NCD Protector break-even, renewal quote comparison, COE renewal vs. replacement, car loan early settlement |
 | My Car and reminders | `/my-car` | Saves key dates and policy figures to prefill the tools; optional email reminders before renewal, COE expiry, and loan review |
 | Private settlement | `/settlement` | GIA Motor Claims Framework settlement agreement with statutory prerequisites |
 | Emergency kit | `/emergency` | Offline on-scene checklist, reporting rules, tow-truck scam warnings, and hotlines for underground carparks |
