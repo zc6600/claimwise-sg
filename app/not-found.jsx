@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Page Not Found · ClaimWise SG",
+  title: "Page Not Found",
   description: "The requested page could not be found on ClaimWise SG.",
 };
 
@@ -28,8 +28,8 @@ export default function NotFound() {
           marginBottom: "32px",
         }}
       >
-        The page you requested could not be located. You can navigate back to the
-        motor claim calculator or review Singapore insurer rules.
+        The page you requested could not be found. Pick a tool from the home page, or go
+        straight to the claim or self-pay calculator.
       </p>
       <div
         className="hero-actions"
@@ -40,11 +40,11 @@ export default function NotFound() {
           flexWrap: "wrap",
         }}
       >
-        <Link href="/calculator" className="button button-primary button-large">
-          Open calculator <span aria-hidden="true">→</span>
+        <Link href="/" className="button button-primary button-large">
+          Browse car tools <span aria-hidden="true">→</span>
         </Link>
-        <Link href="/" className="button button-secondary">
-          Return to home
+        <Link href="/calculator" className="button button-secondary">
+          Claim or self-pay calculator
         </Link>
       </div>
     </section>

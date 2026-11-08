@@ -3,7 +3,7 @@ import { INSURER_PROFILES } from "../../src/decision-data.mjs";
 import { formatCurrency } from "../../src/formatters.mjs";
 
 export const metadata = {
-  title: "Insurer Rules & NCD Schedule · ClaimWise SG",
+  title: "Insurer Rules & NCD Schedule",
   description:
     "Singapore motor insurer profiles, No Claims Discount (NCD) step-down schedule, and workshop/driver excess surcharges.",
 };

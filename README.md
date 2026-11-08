@@ -18,7 +18,7 @@ ClaimWise does not sell insurance or loans. Every tool runs on the figures you e
 
 The landing page (`/`) links all five. Supporting pages:
 
-- **My Car** (`/my-car`): save renewal, COE, and loan dates once to prefill the tools and get email reminders before each date.
+- **My Car** (`/my-car`): save your premium, NCD, excess, and renewal, COE, and loan dates. The claim calculator and renewal tools prefill from it, and you can get email reminders before each date.
 - **Emergency kit** (`/emergency`): an offline checklist for the accident scene, with reporting rules and hotlines.
 - **Private settlement** (`/settlement`): a settlement agreement under the GIA Motor Claims Framework.
 - **Insurer rules** (`/rules`): excesses, NCD scale, and the official policy PDFs at the cited page.

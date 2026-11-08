@@ -31,7 +31,7 @@ export default function GlobalError({ error, reset }) {
         }}
       >
         An unexpected error occurred while processing your request. You can attempt
-        to reload the component state or return to the calculator.
+        to reload the page or return to the car tools.
       </p>
       <div
         className="hero-actions"
@@ -49,8 +49,8 @@ export default function GlobalError({ error, reset }) {
         >
           Try again
         </button>
-        <Link href="/calculator" className="button button-secondary">
-          Open calculator
+        <Link href="/" className="button button-secondary">
+          Browse car tools
         </Link>
       </div>
     </section>

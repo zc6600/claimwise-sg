@@ -1,10 +1,10 @@
 export default function manifest() {
   return {
-    name: "ClaimWise SG · Motor Insurance Decision Support",
+    name: "ClaimWise SG · Singapore Car Decision Tools",
     short_name: "ClaimWise SG",
     description:
-      "Actuarial motor insurance claim decision support & GIA private settlement generator for Singapore motorists.",
-    start_url: "/calculator",
+      "Independent calculators for Singapore car owners: claim or self-pay, NCD Protector, renewal quotes, COE renewal, and car loan settlement.",
+    start_url: "/",
     display: "standalone",
     background_color: "#0b1320",
     theme_color: "#0b1320",

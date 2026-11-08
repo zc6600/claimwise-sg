@@ -8,6 +8,7 @@ import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";
 import CalculatorForm from "../../components/CalculatorForm";
 import CalculatorResults from "../../components/CalculatorResults";
+import { useMyCar } from "../../components/my-car/useMyCar";
 
 const DEFAULT_INPUTS = {
   insurer: "income",
@@ -126,6 +127,28 @@ export default function CalculatorPage() {
   const premiumInputRef = useRef(null);
   const excessInputRef = useRef(null);
   const initialShareProcessedRef = useRef(false);
+  const myCarAppliedRef = useRef(false);
+  const { car } = useMyCar();
+
+  // Saved My Car figures prefill the policy fields once, unless a shared link already set them.
+  useEffect(() => {
+    if (myCarAppliedRef.current || typeof window === "undefined") return;
+    if (window.location.search) {
+      myCarAppliedRef.current = true;
+      return;
+    }
+    if (car.currentPremium === "" && car.currentNcd === "" && car.excess === "") return;
+    myCarAppliedRef.current = true;
+    setInputs((current) => {
+      const next = { ...current };
+      if (car.currentPremium !== "") next.currentPremium = Number(car.currentPremium);
+      if (car.excess !== "") next.excess = Number(car.excess);
+      if (car.currentNcd !== "" && NCD_STEPS.includes(Number(car.currentNcd))) {
+        next.currentNcd = Number(car.currentNcd);
+      }
+      return next;
+    });
+  }, [car]);
 
   useEffect(() => {
     if (typeof window === "undefined" || authLoading || initialShareProcessedRef.current) return;

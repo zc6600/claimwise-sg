@@ -16,7 +16,7 @@ test("manifest generates valid Progressive Web App configuration", () => {
   assert.equal(typeof pwaManifest, "object");
   assert.equal(pwaManifest.short_name, "ClaimWise SG");
   assert.equal(pwaManifest.display, "standalone");
-  assert.equal(pwaManifest.start_url, "/calculator");
+  assert.equal(pwaManifest.start_url, "/");
   assert.equal(pwaManifest.theme_color, "#0b1320");
   assert.equal(pwaManifest.background_color, "#0b1320");
 

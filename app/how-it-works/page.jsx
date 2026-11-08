@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "How It Works · ClaimWise SG",
+  title: "How It Works",
   description:
     "Learn how ClaimWise SG models motor insurance claim decisions, NCD step-downs, and break-even repair costs in Singapore.",
 };
