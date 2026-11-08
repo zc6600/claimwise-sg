@@ -1,8 +1,5 @@
-import {
-  calculateDecision,
-  INSURER_PROFILES,
-  NCD_STEPS,
-} from "../../../src/decision-engine.mjs";
+import { calculateDecision } from "../../../src/decision-engine.mjs";
+import { INSURER_PROFILES, NCD_STEPS } from "../../../src/decision-data.mjs";
 import { compareWithMarketBenchmarks } from "../../../lib/market-benchmarks.js";
 import { persistCalculationDecision } from "../../../lib/server-calculation-storage.js";
 

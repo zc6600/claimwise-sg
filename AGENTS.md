@@ -27,8 +27,8 @@ Before declaring any task or PR complete, you **must** verify that the test suit
 ```bash
 npm test
 ```
-- The test runner executes Node's native test module (`node:test`) across 122 deterministic actuarial decision engine, storage, security headers, GIA private settlement, trajectory visualizer, PHV commercial actuarial, consecutive claim stress test, offline PWA emergency kit, car decision tools, My Car, email reminder, and benchmark test cases in `tests/*.test.mjs`.
-- All 122 tests must pass with 0 failures (`# pass 122, # fail 0`).
+- The test runner executes Node's native test module (`node:test`) across 124 deterministic actuarial decision engine, storage, security headers, GIA private settlement, trajectory visualizer, PHV commercial actuarial, consecutive claim stress test, offline PWA emergency kit, car decision tools, My Car, email reminder, and benchmark test cases in `tests/*.test.mjs`.
+- All 124 tests must pass with 0 failures (`# pass 124, # fail 0`).
 - If UI components or routes were modified, also verify compilation:
   ```bash
   npm run build
@@ -37,7 +37,7 @@ npm test
 ### 3. Safety Guardrails & Protected Files
 - **Do not modify `.github/workflows/`** unless explicitly instructed by a human administrator. Modifications to workflow files from automated agents will result in an immediate `BLOCK` verdict by the PR Agent.
 - **Do not commit secrets**: Never touch or commit `.env.local` or any private credentials/tokens.
-- **Actuarial Logic Integrity**: When editing `src/decision-engine.mjs` or `data/singapore_market_stats.json`, preserve the mathematical rigor and benchmark assertions defined in `tests/decision-engine.test.mjs`.
+- **Actuarial Logic Integrity**: When editing `src/decision-engine.mjs`, `src/ncd/premium-path.mjs`, or `data/singapore_market_stats.json`, preserve the mathematical rigor and benchmark assertions defined in `tests/decision-engine.test.mjs`.
 
 ### 4. Language, Professionalism & Clean Code Standards
 - **Strict Separation Between Chat and Codebase**: While conversational chat responses with users can adapt to the user's preferred natural language (e.g., answering in Chinese when addressed in Chinese), all codebase artifacts—including source code, comments, docstrings, tests, configuration files, commit messages, and formal technical documentation—must strictly use clean, professional English.

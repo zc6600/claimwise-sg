@@ -1,4 +1,4 @@
-import { clamp, roundMoney, toBoundedNumber } from "./shared.mjs";
+import { clamp, roundMoney, toBoundedNumber } from "../numeric.mjs";
 
 export const LOAN_PREPAYMENT_DEFAULTS = {
   originalPrincipal: 80000,

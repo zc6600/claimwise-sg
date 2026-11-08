@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { INSURER_PROFILES, NCD_STEPS } from "../../src/decision-data.mjs";
-import { formatCurrency } from "../../src/decision-engine.mjs";
+import { formatCurrency } from "../../src/formatters.mjs";
 import { useAuth } from "../../components/AuthProvider";
 import { saveCalculationRecord } from "../../lib/history-service";
 import CalculationHistory from "../../components/CalculationHistory";

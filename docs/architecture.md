@@ -38,8 +38,8 @@ flowchart LR
 
 | Area | Routes | Where the logic runs |
 | --- | --- | --- |
-| Claim vs. self-pay decision | `/`, `/calculator` | Server: `POST /api/decision` → `src/decision-engine.mjs` |
-| Trajectory chart, stress test | `/calculator` results | Browser: `lib/trajectory-calculator.js`, `lib/stress-test-calculator.js` |
+| Claim vs. self-pay decision | `/calculator` | Server: `POST /api/decision` → `src/decision-engine.mjs` |
+| Trajectory chart, stress test | `/calculator` results | Browser: `src/trajectory-calculator.mjs`, `src/stress-test-calculator.mjs` |
 | Car decision tools | `/tools/*` | Browser: `src/car-decisions/*.mjs` |
 | My Car | `/my-car` | Browser + Firestore Web SDK: `src/my-car.mjs`, `lib/my-car-service.js` |
 | Email reminders | `/my-car`, `/reminders/*` | Server: `app/api/reminders/*` → `lib/reminders/*` |
@@ -76,12 +76,14 @@ sequenceDiagram
 
 ## 3. Car Decision Tools
 
-The landing page (`/`) links the claim calculator and four tools under `/tools/*`; `/tools` itself permanently redirects to `/`. The four tools call pure functions in `src/car-decisions/`. They make no API requests and store nothing on the server. Shared helpers bound every input, so malformed values fall back to safe defaults instead of `NaN`.
+The landing page (`/`) links the claim calculator and four tools under `/tools/*`; `/tools` itself permanently redirects to `/`. The four tools call pure functions in `src/car-decisions/`. They make no API requests and store nothing on the server. Numeric helpers in `src/numeric.mjs` bound every input, so malformed values fall back to safe defaults instead of `NaN`.
+
+All NCD premium modelling lives in `src/ncd/premium-path.mjs`: the step-down and recovery rules, NCD Protector eligibility, the renewal-premium path, and the present value of one claim's premium loss. The claim engine, the NCD Protector tool, and the quote comparison all use it (the stress test shares `nextNcd` but keeps the step-down size from the saved decision's insurer profile), so every surface prices the same claim identically. `src/` holds only pure calculation modules; `lib/` holds code with side effects such as Firebase, storage, and email.
 
 | Tool | Decision rule |
 | --- | --- |
-| NCD Protector | Prices the five-year renewal-premium loss of one at-fault claim with and without the rider using `calculateDecision`. Break-even probability = rider cost ÷ loss avoided; within 0.25 points is neutral. |
-| Quote comparison | Ranks 2–4 quotes by premium + accident probability × cost per accident. Cost per accident is the cheaper of self-paying the repair and claiming, where claiming costs min(repair cost, excess + workshop surcharge) plus the five-year NCD loss at that quote's premium from `calculateDecision`. |
+| NCD Protector | Prices the five-year renewal-premium loss of one at-fault claim with and without the rider using `claimPremiumLossPresentValue` from `src/ncd/premium-path.mjs`. Break-even probability = rider cost ÷ loss avoided; within 0.25 points is neutral. |
+| Quote comparison | Ranks 2–4 quotes by premium + accident probability × cost per accident. Cost per accident is the cheaper of self-paying the repair and claiming, where claiming costs min(repair cost, excess + workshop surcharge) plus the five-year NCD loss at that quote's premium from the same helper. |
 | COE renewal | Compares 5-year renewal, 10-year renewal, and replacement by equivalent annual cost. Deregistration value (PARF by cohort, pro-rated COE rebate, scrap) is an opportunity cost of renewing. Road tax rises 10% per year past age 10, up to 50%. |
 | Loan settlement | Settlement = remaining instalments − Rule of 78 rebate + fees and penalty, compared with continuing at the alternative return; bisection finds the break-even return. |
 

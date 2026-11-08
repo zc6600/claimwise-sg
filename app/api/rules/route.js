@@ -1,4 +1,4 @@
-import { INSURER_PROFILES, NCD_STEPS } from "../../../src/decision-engine.mjs";
+import { INSURER_PROFILES, NCD_STEPS } from "../../../src/decision-data.mjs";
 
 export async function GET() {
   return Response.json(

@@ -1,5 +1,5 @@
-import { calculateDecision, isNcdProtectorEligible } from "../decision-engine.mjs";
-import { roundMoney, toBoundedNumber } from "./shared.mjs";
+import { claimPremiumLossPresentValue, isNcdProtectorEligible } from "../ncd/premium-path.mjs";
+import { roundMoney, toBoundedNumber } from "../numeric.mjs";
 
 export const NCD_PROTECTOR_DEFAULTS = {
   insurer: "other",
@@ -35,22 +35,6 @@ export function normalizeNcdProtectorInputs(raw = {}) {
   };
 }
 
-function claimPremiumsPresentValue(inputs, ncdProtector) {
-  const decision = calculateDecision({
-    insurer: inputs.insurer,
-    currentPremium: inputs.currentPremium,
-    currentNcd: inputs.currentNcd,
-    baseGrowthRate: inputs.baseGrowthRate,
-    discountRate: inputs.discountRate,
-    horizonYears: COMPARISON_HORIZON_YEARS,
-    ncdProtector,
-    liability: "at_fault",
-    repairCost: 0,
-    excess: 0,
-  });
-  return decision.baseScenario.claimFutureDiscounted;
-}
-
 /**
  * Prices the NCD Protector rider as insurance on the renewal-premium loss of one
  * at-fault claim. The rider is worthwhile when the chance of making such a claim this
@@ -67,9 +51,14 @@ export function evaluateNcdProtector(rawInputs) {
     return { inputs, eligible: true, ready: false, recommendation: "incomplete" };
   }
 
-  const premiumLossAvoided = roundMoney(
-    claimPremiumsPresentValue(inputs, false) - claimPremiumsPresentValue(inputs, true)
-  );
+  const premiumLossAvoided = roundMoney(claimPremiumLossPresentValue({
+    currentPremium: inputs.currentPremium,
+    currentNcd: inputs.currentNcd,
+    insurer: inputs.insurer,
+    horizonYears: COMPARISON_HORIZON_YEARS,
+    growthRate: inputs.baseGrowthRate,
+    discountRate: inputs.discountRate,
+  }));
 
   if (premiumLossAvoided <= 0) {
     return {
