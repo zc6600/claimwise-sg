@@ -29,7 +29,7 @@ npm run dev      # http://localhost:3000
 npm run build    # required when routes or UI change
 ```
 
-Main routes: `/`, `/calculator`, `/tools`, `/my-car`, `/settlement`, `/emergency`, `/rules`, `/how-it-works`, `/privacy`, and `/api/health`.
+Main routes: `/` (car tools hub), `/calculator`, `/my-car`, `/settlement`, `/emergency`, `/rules`, `/how-it-works`, `/privacy`, and `/api/health`.
 
 ### Environment Variables
 

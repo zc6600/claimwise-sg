@@ -77,8 +77,8 @@ export default function RootLayout({ children }) {
                 </Link>
 
                 <nav className="nav-links" aria-label="Main navigation">
-                  <Link href="/calculator">Calculator</Link>
-                  <Link href="/tools">Car tools</Link>
+                  <Link href="/">Car tools</Link>
+                  <Link href="/calculator">Claim calculator</Link>
                   <Link href="/my-car">My car</Link>
                   <Link href="/settlement">Settlement</Link>
                   <Link href="/emergency">Emergency</Link>
@@ -93,9 +93,8 @@ export default function RootLayout({ children }) {
               </div>
 
               <nav className="mobile-nav section-pad" aria-label="Mobile navigation">
-                <Link href="/">Home</Link>
-                <Link href="/calculator">Calculator</Link>
-                <Link href="/tools">Car tools</Link>
+                <Link href="/">Car tools</Link>
+                <Link href="/calculator">Claim calculator</Link>
                 <Link href="/my-car">My car</Link>
                 <Link href="/settlement">Settlement</Link>
                 <Link href="/emergency">Emergency</Link>
@@ -119,7 +118,7 @@ export default function RootLayout({ children }) {
                     ClaimWise <em>SG</em>
                   </span>
                 </div>
-                <p>Independent motor insurance claim vs. self-pay modelling for Singapore drivers.</p>
+                <p>Independent calculators for the expensive decisions in Singapore car ownership.</p>
                 <span className="footer-meta">
                   Singapore GIA MCF baseline · 2026 · <Link href="/privacy">Privacy</Link>
                 </span>

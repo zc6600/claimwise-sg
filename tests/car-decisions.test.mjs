@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { evaluateNcdProtector } from "../src/car-decisions/ncd-protector.mjs";
-import { compareQuotes } from "../src/car-decisions/quote-comparison.mjs";
+import { compareQuotes, ncdLossPresentValue } from "../src/car-decisions/quote-comparison.mjs";
 import {
   PARF_COHORTS,
   compareCoeOptions,
@@ -75,13 +75,14 @@ test("NCD Protector handles a free rider and zero premium without dividing by ze
   assert.equal(free.recommendation, "buy");
 
   const zero = evaluateNcdProtector({ currentPremium: 0, currentNcd: 50, protectorCost: 50 });
-  assert.equal(zero.premiumLossAvoided, 0);
-  assert.equal(zero.recommendation, "skip");
+  assert.equal(zero.ready, false);
+  assert.equal(zero.recommendation, "incomplete");
 });
 
 test("quote comparison shows a cheaper premium can lose after excess is counted", () => {
   const result = compareQuotes({
-    claimProbabilityPct: 20,
+    currentNcd: 0,
+    incidentProbabilityPct: 20,
     typicalRepairCost: 3000,
     quotes: [
       { label: "Low premium", premium: 1000, excess: 2000 },
@@ -101,11 +102,17 @@ test("quote comparison applies workshop surcharges only for non-authorised repai
     { label: "A", premium: 1000, excess: 600, workshopSurcharge: 1000 },
     { label: "B", premium: 1050, excess: 600, workshopSurcharge: 0 },
   ];
-  const authorised = compareQuotes({ claimProbabilityPct: 10, typicalRepairCost: 3000, quotes });
+  const authorised = compareQuotes({
+    currentNcd: 0,
+    incidentProbabilityPct: 10,
+    typicalRepairCost: 3000,
+    quotes,
+  });
   assert.equal(authorised.bestLabel, "A");
 
   const independent = compareQuotes({
-    claimProbabilityPct: 10,
+    currentNcd: 0,
+    incidentProbabilityPct: 10,
     typicalRepairCost: 3000,
     usesNonAuthorisedWorkshop: true,
     quotes,
@@ -113,16 +120,74 @@ test("quote comparison applies workshop surcharges only for non-authorised repai
   assert.equal(independent.bestLabel, "B");
 });
 
-test("quote comparison caps claim cost at the repair bill", () => {
+test("quote comparison caps the cost of an accident at the repair bill", () => {
   const result = compareQuotes({
-    claimProbabilityPct: 100,
+    currentNcd: 0,
+    incidentProbabilityPct: 100,
     typicalRepairCost: 300,
     quotes: [
       { label: "A", premium: 1000, excess: 600 },
       { label: "B", premium: 1000, excess: 900 },
     ],
   });
-  assert.ok(result.quotes.every((quote) => quote.outOfPocketPerClaim === 300));
+  assert.ok(result.quotes.every((quote) => quote.costPerIncident === 300));
+  assert.ok(result.quotes.every((quote) => quote.wouldClaim === false));
+});
+
+test("an equally priced quote with a lower accident cost wins at any claim chance", () => {
+  const result = compareQuotes({
+    currentNcd: 0,
+    incidentProbabilityPct: 5,
+    typicalRepairCost: 3000,
+    quotes: [
+      { label: "A", premium: 1000, excess: 1500 },
+      { label: "B", premium: 1000, excess: 500 },
+    ],
+  });
+  const b = result.quotes.find((quote) => quote.label === "B");
+  assert.equal(result.lowestPremiumLabel, "A");
+  assert.equal(b.breakEvenProbabilityPct, 0);
+  assert.equal(result.bestLabel, "B");
+});
+
+test("quote comparison prices NCD loss with the same model as the NCD Protector tool", () => {
+  const protector = evaluateNcdProtector({ currentPremium: 1000, currentNcd: 50, protectorCost: 100 });
+  assert.equal(Math.round(ncdLossPresentValue(1000, 50) * 100) / 100, protector.premiumLossAvoided);
+  assert.equal(ncdLossPresentValue(1000, 0), 0);
+  assert.equal(ncdLossPresentValue(0, 50), 0);
+});
+
+test("quote comparison gives no credit for a low excess when claiming is not worth the NCD loss", () => {
+  const result = compareQuotes({
+    currentNcd: 50,
+    incidentProbabilityPct: 20,
+    typicalRepairCost: 1400,
+    quotes: [
+      { label: "High excess", premium: 1000, excess: 1000 },
+      { label: "Low excess", premium: 1050, excess: 200 },
+    ],
+  });
+  // Claiming would cost the excess plus about S$1,200 of NCD loss, above the S$1,400 bill.
+  assert.ok(result.quotes.every((quote) => quote.wouldClaim === false));
+  assert.ok(result.quotes.every((quote) => quote.costPerIncident === 1400));
+  assert.equal(result.bestLabel, "High excess");
+  assert.equal(result.lowestPremiumIsBest, true);
+});
+
+test("quote comparison claims once the repair bill exceeds excess plus NCD loss", () => {
+  const result = compareQuotes({
+    currentNcd: 50,
+    incidentProbabilityPct: 10,
+    typicalRepairCost: 5000,
+    quotes: [
+      { label: "A", premium: 1000, excess: 600 },
+      { label: "B", premium: 1100, excess: 600 },
+    ],
+  });
+  const a = result.quotes.find((quote) => quote.label === "A");
+  assert.equal(a.wouldClaim, true);
+  assert.equal(a.costPerIncident, Math.round((600 + ncdLossPresentValue(1000, 50)) * 100) / 100);
+  assert.equal(result.bestLabel, "A");
 });
 
 test("quote comparison needs two priced quotes", () => {

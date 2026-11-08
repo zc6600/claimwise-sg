@@ -119,14 +119,12 @@ p {
   min-width: 0;
 }
 
-.hero > *,
 .studio-grid > *,
 .principles-grid > *,
 .how-grid > *,
 .decision-form,
 .form-section,
-.field,
-.quick-estimator {
+.field {
   min-width: 0;
   max-width: 100%;
 }
@@ -465,32 +463,8 @@ h3 {
 }
 
 /* ==========================================================================
-   Home Page: Hero + Quick Estimator + Principles
+   Shared Page Actions and Principles
    ========================================================================== */
-.home-page {
-  padding-top: 48px;
-  padding-bottom: 72px;
-}
-
-.hero {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  align-items: start;
-  gap: 56px;
-  padding-bottom: 64px;
-}
-
-.hero-copy {
-  padding-top: 12px;
-}
-
-.hero-lead {
-  color: var(--muted);
-  font-size: 1.0625rem;
-  line-height: 1.65;
-  margin-bottom: 28px;
-  max-width: 54ch;
-}
 
 .hero-actions {
   display: flex;
@@ -500,116 +474,12 @@ h3 {
   margin-bottom: 40px;
 }
 
-.hero-facts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-  margin: 0;
-}
-
-.hero-facts dt {
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.hero-facts dd {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-
-/* Quick Estimator Card on Home */
-.quick-estimator {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.estimator-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-subtle);
-}
-
-.estimator-kicker {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--teal);
-  margin-bottom: 2px;
-}
-
-.estimator-header h2 {
-  font-size: 1.0625rem;
-  margin: 0;
-}
-
-.estimator-assumptions {
-  font-size: 0.75rem;
-  color: var(--muted);
-  background: var(--card);
-  border: 1px solid var(--line);
-  padding: 4px 8px;
-  border-radius: var(--r-sm);
-}
-
-.estimator-controls {
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  border-bottom: 1px solid var(--line);
-}
-
 .field-label-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.preset-pills {
-  display: inline-flex;
-  gap: 4px;
-}
-
-.preset-pill {
-  padding: 3px 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 6px;
-  border: 1px solid var(--line);
-  background: var(--surface-subtle);
-  color: var(--muted);
-}
-
-.preset-pill:hover {
-  color: var(--ink);
-  border-color: var(--line-strong);
-}
-
-.preset-pill.is-selected {
-  background: var(--ink);
-  color: #ffffff;
-  border-color: var(--ink);
-}
-
-.estimator-verdict {
-  padding: 20px 24px;
-  background: var(--card);
 }
 
 .verdict-top {
@@ -640,20 +510,6 @@ h3 {
 .verdict-horizon {
   font-size: 0.75rem;
   color: var(--muted);
-}
-
-.verdict-headline {
-  font-size: 1.5rem;
-  font-weight: 650;
-  letter-spacing: -0.025em;
-  color: var(--ink);
-  margin-bottom: 6px;
-}
-
-.verdict-sub {
-  font-size: 0.875rem;
-  color: var(--muted);
-  margin-bottom: 16px;
 }
 
 /* Break-Even Ruler Visualization */
@@ -727,72 +583,6 @@ h3 {
   color: var(--muted-light);
 }
 
-.estimator-totals {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.estimator-totals span {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.estimator-totals strong {
-  font-size: 1.125rem;
-  font-weight: 650;
-  color: var(--ink);
-}
-
-.estimator-footer {
-  padding: 14px 24px;
-  background: var(--surface-subtle);
-  border-top: 1px solid var(--line);
-}
-
-.estimator-link {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--teal-dark);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.estimator-link:hover {
-  color: var(--ink);
-}
-
-/* Home 3-column principles section */
-.home-principles {
-  padding-top: 56px;
-  border-top: 1px solid var(--line);
-}
-
-.principles-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 24px;
-  margin-bottom: 36px;
-}
-
-.principles-header h2 {
-  max-width: 26ch;
-  margin: 0;
-}
-
-.principles-header p {
-  max-width: 44ch;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9375rem;
-}
-
 .principles-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -804,14 +594,6 @@ h3 {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 24px;
-}
-
-.principle-num {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted-light);
-  margin-bottom: 12px;
 }
 
 .principle-item h3 {
@@ -2394,7 +2176,6 @@ td:first-child {
    Responsive Breakpoints
    ========================================================================== */
 @media (max-width: 960px) {
-  .hero,
   .studio-grid,
   .source-panel {
     grid-template-columns: minmax(0, 1fr);
@@ -2477,7 +2258,6 @@ td:first-child {
     font-weight: 500;
   }
 
-  .home-page,
   .calculator-studio-page,
   .rules-page,
   .how-page {
@@ -2488,8 +2268,7 @@ td:first-child {
   .two-col,
   .three-col,
   .verdict-metrics,
-  .worked-example-grid,
-  .hero-facts {
+  .worked-example-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -2502,11 +2281,7 @@ td:first-child {
   .verdict-card,
   .table-card,
   .worked-example-card,
-  .source-panel,
-  .estimator-header,
-  .estimator-controls,
-  .estimator-verdict,
-  .estimator-footer {
+  .source-panel {
     padding: 18px;
   }
 }
@@ -3384,8 +3159,6 @@ td:first-child {
   color: var(--muted);
 }
 
-
-
 /* ==========================================================================
    Car Decision Tools, My Car, and Reminders
    ========================================================================== */
@@ -3508,6 +3281,13 @@ td:first-child {
   font-weight: 600;
 }
 
+.tool-remove {
+  justify-self: end;
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
 .tool-quote + .tool-quote {
   margin-top: 8px;
 }
@@ -3545,56 +3325,320 @@ td:first-child {
   font-weight: 600;
 }
 
-.tool-hub {
+/* ==========================================================================
+   Landing Page: Hero, Ownership Journey, My Car
+   ========================================================================== */
+.landing-page {
+  padding-top: 48px;
+  padding-bottom: 72px;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 48px;
+  align-items: center;
+  padding-bottom: 56px;
+}
+
+.landing-hero h1 {
+  max-width: 14ch;
+  font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.landing-lead {
+  max-width: 50ch;
+  margin: 18px 0 28px;
+  color: var(--muted);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.landing-answers {
+  padding: 24px;
+  color: #e2f1ef;
+  background: linear-gradient(160deg, #0b1320 0%, #0f2a2c 100%);
+  border-radius: var(--r-lg);
+  box-shadow: 0 18px 40px rgba(11, 19, 32, 0.18);
+}
+
+.landing-answers-kicker {
+  display: block;
+  margin-bottom: 14px;
+  color: #8fd3c9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.landing-answers ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-answers li {
+  display: grid;
+  gap: 3px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--r-md);
+}
+
+.landing-answer-q {
+  color: #a9bec0;
+  font-size: 0.8125rem;
+}
+
+.landing-answers strong {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.landing-answer-setup {
+  color: #7f979a;
+  font-size: 0.75rem;
+}
+
+.landing-journey {
+  padding-top: 48px;
+  border-top: 1px solid var(--line);
+}
+
+.landing-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px 24px;
+  margin-bottom: 28px;
+}
+
+.landing-section-head h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  letter-spacing: -0.025em;
+}
+
+.landing-section-head p {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--muted);
+}
+
+.landing-stages {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 24px;
+  padding: 0 0 28px 28px;
+}
+
+/* Vertical timeline rail linking the ownership stages. */
+.landing-stage::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 0;
+  left: 5px;
+  width: 2px;
+  background: var(--line);
+}
+
+.landing-stage:last-child::before {
+  display: none;
+}
+
+.landing-stage::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--card);
+  border: 3px solid var(--teal);
+  border-radius: 50%;
+}
+
+.landing-stage-head {
+  padding-top: 0;
+}
+
+.landing-stage-step {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.landing-stage-head h2 {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.landing-stage-tools {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
-.tool-hub-card {
-  display: block;
+.landing-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 22px;
   color: inherit;
   text-decoration: none;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.tool-hub-card:hover {
+.landing-tool:hover {
   border-color: var(--teal);
   box-shadow: var(--shadow);
+  transform: translateY(-2px);
 }
 
-.tool-hub-card h2 {
-  margin-top: 8px;
-  font-size: 1.125rem;
+.landing-tool:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
 }
 
-.tool-hub-card p {
+.landing-tool.is-featured {
+  background: linear-gradient(135deg, var(--card) 55%, var(--teal-soft) 100%);
+  border-color: var(--line-strong);
+}
+
+.landing-tool h3 {
+  margin: 0;
+  font-size: 1.1875rem;
+  letter-spacing: -0.015em;
+}
+
+.landing-tool p {
   margin: 0;
   color: var(--muted);
+  font-size: 0.9375rem;
 }
 
-.tool-hub-cta {
+.landing-example {
+  display: grid;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 12px 14px;
+  background: var(--surface-subtle);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--r-sm);
+}
+
+.landing-example-setup {
+  color: var(--muted-light);
+  font-size: 0.75rem;
+}
+
+.landing-example strong {
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.landing-tool-cta {
+  margin-top: auto;
+  padding-top: 6px;
+  color: var(--teal-dark);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.landing-mycar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px 32px;
   margin-top: 24px;
-  padding: 22px;
+  padding: 32px;
   background: var(--teal-soft);
+  border: 1px solid #cde7e3;
   border-radius: var(--r-lg);
 }
 
-.tool-hub-cta h2 {
-  font-size: 1.125rem;
+.landing-mycar h2 {
+  margin: 0 0 6px;
+  font-size: 1.375rem;
 }
 
-.tool-hub-cta p {
+.landing-mycar p {
+  max-width: 56ch;
   margin: 0;
+  color: var(--ink-soft);
+}
+
+.landing-principles {
+  margin-top: 40px;
+}
+
+@media (max-width: 960px) {
+  .landing-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .landing-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (max-width: 650px) {
+  .landing-page {
+    padding-top: 28px;
+    padding-bottom: 48px;
+  }
+
+  .landing-stage-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-mycar {
+    padding: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-tool {
+    transition: none;
+  }
+
+  .landing-tool:hover {
+    transform: none;
+  }
 }
 
 .my-car-stack {

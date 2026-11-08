@@ -68,7 +68,7 @@ sequenceDiagram
   A-->>B: decision and storage status
 ```
 
-- **Requests**: The home estimator debounces input by 500 ms; the full calculator requests a decision only on submit or recalculation.
+- **Requests**: The calculator requests a decision only on submit or recalculation.
 - **Guests**: Records go to `localStorage` (`claimwise_local_history`, newest 20). Signed-in users fall back to it when Firestore is unreachable.
 - **Sign-in sync**: `syncLocalCalculationsToCloud(user)` moves pending browser records into the user's Firestore subcollection.
 - **History**: `components/CalculationHistory.jsx` subscribes through the Web SDK and shows cache, pending-write, server, or browser-fallback state. Opening a record shows the stored `decision` unchanged; **Recalculate & save** runs the current engine and saves a new record.
@@ -76,12 +76,12 @@ sequenceDiagram
 
 ## 3. Car Decision Tools
 
-The four tools under `/tools` call pure functions in `src/car-decisions/`. They make no API requests and store nothing on the server. Shared helpers bound every input, so malformed values fall back to safe defaults instead of `NaN`.
+The landing page (`/`) links the claim calculator and four tools under `/tools/*`; `/tools` itself permanently redirects to `/`. The four tools call pure functions in `src/car-decisions/`. They make no API requests and store nothing on the server. Shared helpers bound every input, so malformed values fall back to safe defaults instead of `NaN`.
 
 | Tool | Decision rule |
 | --- | --- |
 | NCD Protector | Prices the five-year renewal-premium loss of one at-fault claim with and without the rider using `calculateDecision`. Break-even probability = rider cost ÷ loss avoided; within 0.25 points is neutral. |
-| Quote comparison | Ranks 2–4 quotes by premium + claim probability × min(repair cost, excess + workshop surcharge). NCD effects are excluded because a claim affects every quote equally. |
+| Quote comparison | Ranks 2–4 quotes by premium + accident probability × cost per accident. Cost per accident is the cheaper of self-paying the repair and claiming, where claiming costs min(repair cost, excess + workshop surcharge) plus the five-year NCD loss at that quote's premium from `calculateDecision`. |
 | COE renewal | Compares 5-year renewal, 10-year renewal, and replacement by equivalent annual cost. Deregistration value (PARF by cohort, pro-rated COE rebate, scrap) is an opportunity cost of renewing. Road tax rises 10% per year past age 10, up to 50%. |
 | Loan settlement | Settlement = remaining instalments − Rule of 78 rebate + fees and penalty, compared with continuing at the alternative return; bisection finds the break-even return. |
 
