@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { formatCurrency, formatPercent } from "../src/formatters.mjs";
 import { computeConsecutiveClaimStressTest } from "../src/stress-test-calculator.mjs";
+import { meetsProtectorMinimum } from "../src/ncd/premium-path.mjs";
 
 const SECOND_ACCIDENT_PRESETS = [1000, 1500, 2500, 4000];
 
@@ -28,7 +29,7 @@ export default function StressTestSimulator({ decision }) {
 
   const hasProtector = Boolean(
     decision.inputs.ncdProtector &&
-      decision.inputs.currentNcd >= (decision.profile?.minNcdForProtector ?? 50)
+      meetsProtectorMinimum(decision.inputs.currentNcd, decision.profile)
   );
 
   return (
