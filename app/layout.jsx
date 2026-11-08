@@ -80,6 +80,8 @@ export default function RootLayout({ children }) {
                   <Link href="/">Car tools</Link>
                   <Link href="/my-car">My car</Link>
                   <Link href="/emergency">Emergency</Link>
+                  <Link href="/settlement">Settlement</Link>
+                  <Link href="/rules">Rules</Link>
                 </nav>
 
                 <div className="topbar-account">
@@ -91,6 +93,8 @@ export default function RootLayout({ children }) {
                 <Link href="/">Car tools</Link>
                 <Link href="/my-car">My car</Link>
                 <Link href="/emergency">Emergency</Link>
+                <Link href="/settlement">Settlement</Link>
+                <Link href="/rules">Rules</Link>
               </nav>
             </header>
 
@@ -110,9 +114,7 @@ export default function RootLayout({ children }) {
                 </div>
                 <p>Independent calculators for the expensive decisions in Singapore car ownership.</p>
                 <nav className="footer-links" aria-label="More pages">
-                  <Link href="/settlement">Private settlement</Link>
                   <Link href="/how-it-works">How it works</Link>
-                  <Link href="/rules">Insurer rules</Link>
                   <Link href="/privacy">Privacy</Link>
                 </nav>
               </div>
