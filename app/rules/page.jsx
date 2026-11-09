@@ -48,28 +48,35 @@ function WordingTable({ table }) {
 }
 
 function WordingCell({ wording, entry }) {
+  const missing = !entry.excerpt;
   return (
-    <article className="wording-cell">
+    <article className={`wording-cell${missing ? " is-missing" : ""}`}>
       <header className="wording-cell-head">
         <strong>{wording.insurer}</strong>
         {entry.page ? (
           <a href={wordingPageUrl(wording, entry.page)} target="_blank" rel="noreferrer">
             PDF p.{entry.page} <span aria-hidden="true">↗</span>
           </a>
-        ) : null}
+        ) : (
+          <span className="wording-cell-tag">No clause</span>
+        )}
       </header>
-      {entry.section ? <div className="wording-section">{entry.section}</div> : null}
-      {entry.excerpt ? (
-        <blockquote className="wording-quote" cite={wordingPageUrl(wording, entry.page)}>
-          {entry.excerpt.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </blockquote>
-      ) : (
-        <p className="wording-missing">Not stated in this wording.</p>
-      )}
-      {entry.table ? <WordingTable table={entry.table} /> : null}
-      {entry.note ? <p className="wording-note">{entry.note}</p> : null}
+      <p className="wording-summary">{entry.summary}</p>
+      <details className="wording-details">
+        <summary>{missing ? "Why it is missing" : "Read the wording"}</summary>
+        <div className="wording-details-body">
+          {entry.section ? <div className="wording-section">{entry.section}</div> : null}
+          {entry.excerpt ? (
+            <blockquote className="wording-quote" cite={wordingPageUrl(wording, entry.page)}>
+              {entry.excerpt.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </blockquote>
+          ) : null}
+          {entry.table ? <WordingTable table={entry.table} /> : null}
+          {entry.note ? <p className="wording-note">{entry.note}</p> : null}
+        </div>
+      </details>
     </article>
   );
 }
@@ -102,8 +109,16 @@ export default function RulesPage() {
         . Not yet on file: {INSURERS_WITHOUT_WORDING.join(", ")} and other Singapore motor insurers.
       </div>
 
+      <nav className="wording-topic-nav" aria-label="Topics">
+        {WORDING_TOPICS.map((topic) => (
+          <a key={topic.id} href={`#${topic.id}`}>
+            {topic.shortTitle}
+          </a>
+        ))}
+      </nav>
+
       {WORDING_TOPICS.map((topic) => (
-        <div className="table-card" key={topic.id} id={topic.id}>
+        <div className="table-card wording-topic" key={topic.id} id={topic.id}>
           <div className="card-heading">
             <h2>{topic.title}</h2>
             <p>{topic.question}</p>
