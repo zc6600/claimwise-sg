@@ -25,6 +25,7 @@ export default function CalculatorForm({
   onReset,
 }) {
   const ageThreshold = profile.youngDriverAgeThreshold || 25;
+  const licenceYears = (profile.youngDriverLicenceYears ?? 2) === 1 ? "1 year" : `${profile.youngDriverLicenceYears ?? 2} years`;
   const isProtectorEligible = isNcdProtectorEligible(inputs);
 
   return (
@@ -290,9 +291,11 @@ export default function CalculatorForm({
             ))}
           </select>
           <small id="calc-insurer-hint" className="field-hint tabular-nums">
-            −{profile.ncdDropPoints}% NCD step-down · +
-            {formatCurrency(profile.unauthorizedWorkshopExcess)} non-authorised workshop · +
-            {formatCurrency(profile.youngDriverExcess)} young driver
+            −{profile.ncdDropPoints}% NCD step-down ·{" "}
+            {profile.workshopRule
+              ? "authorised workshop rules apply"
+              : `+${formatCurrency(profile.unauthorizedWorkshopExcess)} non-authorised workshop`}{" "}
+            · +{formatCurrency(profile.youngDriverExcess)} young driver
           </small>
         </div>
 
@@ -408,7 +411,9 @@ export default function CalculatorForm({
             >
               <strong>Independent workshop</strong>
               <small className="tabular-nums">
-                Adds +{formatCurrency(profile.unauthorizedWorkshopExcess)} surcharge
+                {profile.workshopRule
+                  ? "Check your plan: may not be covered"
+                  : `Assumes +${formatCurrency(profile.unauthorizedWorkshopExcess)} surcharge`}
               </small>
             </button>
           </div>
@@ -530,7 +535,7 @@ export default function CalculatorForm({
             <span>
               <strong>Young or inexperienced driver at the wheel</strong>
               <small className="tabular-nums">
-                Under {ageThreshold} or licence held under 2 years (+
+                Under {ageThreshold} or licence held under {licenceYears} (+
                 {formatCurrency(profile.youngDriverExcess)} excess)
               </small>
             </span>

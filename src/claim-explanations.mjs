@@ -23,6 +23,14 @@ export function buildAdvisories({
     });
   }
 
+  if (inputs.workshopType === "independent" && profile.workshopRule) {
+    advisories.push({
+      type: "warning",
+      title: "Check your plan's workshop rule before claiming",
+      message: `${profile.workshopRule} This calculation assumes the claim is paid; if your plan restricts workshops, an independent repair may not be covered at all.`,
+    });
+  }
+
   if (excessDetails.unauthorizedWorkshopSurcharge > 0) {
     advisories.push({
       type: "amber",
@@ -36,7 +44,7 @@ export function buildAdvisories({
     advisories.push({
       type: "amber",
       title: "Young / Inexperienced Driver Excess (+S$" + excessDetails.youngDriverSurcharge + ")",
-      message: `Because the driver involved is under ${ageThreshold} or has held a driving license for < 2 years, ${profile.name} requires an additional excess of S$${excessDetails.youngDriverSurcharge}.`,
+      message: `Because the driver involved is under ${ageThreshold} or has held a driving licence for less than ${profile.youngDriverLicenceYears ?? 2} year${(profile.youngDriverLicenceYears ?? 2) === 1 ? "" : "s"}, ${profile.name} requires an additional excess of S$${excessDetails.youngDriverSurcharge}.`,
     });
   }
 
@@ -108,20 +116,31 @@ export function generateClauseAudit(
 
   // 2. Workshop Choice Surcharge
   const hasWorkshopSurcharge = excessDetails.unauthorizedWorkshopSurcharge > 0;
+  const workshopRuleApplies = inputs.workshopType === "independent" && Boolean(profile.workshopRule);
   audit.push({
     id: "workshop_surcharge",
     category: "Excess & Deductibles",
     dataPoint: "Workshop Choice Surcharge",
-    value: hasWorkshopSurcharge ? `+${formatCurrency(excessDetails.unauthorizedWorkshopSurcharge)}` : "S$0 (Waived)",
-    status: hasWorkshopSurcharge ? "active" : "waived",
-    statusLabel: hasWorkshopSurcharge ? "Surcharge Applied" : "Condition Met / Waived",
+    value: hasWorkshopSurcharge
+      ? `+${formatCurrency(excessDetails.unauthorizedWorkshopSurcharge)}`
+      : workshopRuleApplies
+        ? "Depends on your plan"
+        : "S$0 (Waived)",
+    status: hasWorkshopSurcharge ? "active" : workshopRuleApplies ? "warning" : "waived",
+    statusLabel: hasWorkshopSurcharge
+      ? "Surcharge Applied"
+      : workshopRuleApplies
+        ? "Coverage may be refused"
+        : "Condition Met / Waived",
     clauseRef: profile.clauses?.unauthorizedWorkshop?.ref || "Your policy schedule · workshop conditions",
     authority: profile.name,
     statutoryBasis: "Your insurer's authorised workshop terms",
     illustrativeText: profile.clauses?.unauthorizedWorkshop?.text || "Repairs must be carried out at an authorised workshop. Repairs elsewhere incur additional excess.",
     rationale: hasWorkshopSurcharge
-      ? `You selected an independent/unauthorised workshop. Under ${profile.name} Endorsement terms, an additional penalty of ${formatCurrency(excessDetails.unauthorizedWorkshopSurcharge)} is added to your excess.`
-      : `Repairs carried out at an authorised network workshop incur S$0 additional surcharge under ${profile.name} terms.`,
+      ? `You selected an independent workshop. No ${profile.name} wording is on file, so the calculator assumes an additional ${formatCurrency(excessDetails.unauthorizedWorkshopSurcharge)} excess; check your Schedule.`
+      : workshopRuleApplies
+        ? `${profile.workshopRule} No extra excess is added, but check whether your plan covers this workshop.`
+        : `Repairs carried out at an authorised network workshop incur S$0 additional surcharge under ${profile.name} terms.`,
   });
 
   // 3. Young / Inexperienced Driver Surcharge
@@ -139,8 +158,8 @@ export function generateClauseAudit(
     statutoryBasis: "Your policy schedule",
     illustrativeText: profile.clauses?.youngDriver?.text || "An additional excess applies if the vehicle is driven by a young or inexperienced driver as defined in the policy schedule.",
     rationale: hasYoungDriver
-      ? `Because a young or inexperienced driver (under age ${ageThreshold} or holding a Singapore driving licence for under 2 years) was at the wheel, a modeled schedule excess surcharge of ${formatCurrency(excessDetails.youngDriverSurcharge)} is added.`
-      : `Driver meets standard policy age (≥${ageThreshold}) and licensing experience (≥2 years) thresholds; no supplementary excess is incurred.`,
+      ? `Because a young or inexperienced driver (under age ${ageThreshold} or holding a driving licence for under ${profile.youngDriverLicenceYears ?? 2} year${(profile.youngDriverLicenceYears ?? 2) === 1 ? "" : "s"}) was at the wheel, an additional excess of ${formatCurrency(excessDetails.youngDriverSurcharge)} is added.`
+      : `Driver meets standard policy age (≥${ageThreshold}) and licensing experience (≥${profile.youngDriverLicenceYears ?? 2} year${(profile.youngDriverLicenceYears ?? 2) === 1 ? "" : "s"}) thresholds; no supplementary excess is incurred.`,
   });
 
   // 4. Windscreen Special Cover (if windscreen repair)
