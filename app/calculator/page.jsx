@@ -110,18 +110,19 @@ export default function CalculatorPage() {
   const premiumInputRef = useRef(null);
   const excessInputRef = useRef(null);
   const initialShareProcessedRef = useRef(false);
-  const myCarAppliedRef = useRef(false);
-  const { car } = useMyCar();
+  const myCarAppliedRef = useRef(null);
+  const { car, activeCarId } = useMyCar();
 
-  // Saved My Car figures prefill the policy fields once, unless a shared link already set them.
+  // Saved My Car figures prefill the policy fields for the active car, unless a shared link set them.
   useEffect(() => {
-    if (myCarAppliedRef.current || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
     if (window.location.search) {
-      myCarAppliedRef.current = true;
+      myCarAppliedRef.current = activeCarId;
       return;
     }
+    if (myCarAppliedRef.current === activeCarId) return;
     if (car.currentPremium === "" && car.currentNcd === "" && car.excess === "") return;
-    myCarAppliedRef.current = true;
+    myCarAppliedRef.current = activeCarId;
     setInputs((current) => {
       const next = { ...current };
       if (car.currentPremium !== "") next.currentPremium = Number(car.currentPremium);
@@ -131,7 +132,7 @@ export default function CalculatorPage() {
       }
       return next;
     });
-  }, [car]);
+  }, [car, activeCarId]);
 
   useEffect(() => {
     if (typeof window === "undefined" || authLoading || initialShareProcessedRef.current) return;

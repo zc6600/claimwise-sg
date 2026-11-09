@@ -5,11 +5,11 @@ import { useAuth } from "./AuthProvider";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMyCar } from "./my-car/useMyCar";
-import { hasCarDetails } from "../src/my-car.mjs";
+import { formatCarSlotLabel, hasCarDetails } from "../src/my-car.mjs";
 
 export default function NavbarUser() {
   const { user, loading, signOut } = useAuth();
-  const { car } = useMyCar();
+  const { car, cars, activeCarId, selectCar } = useMyCar();
   const [mounted, setMounted] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
@@ -22,12 +22,46 @@ export default function NavbarUser() {
 
   const isMyCarActive = pathname === "/my-car";
   const hasSavedCar = mounted && hasCarDetails(car);
-  const myCarLabel = mounted && car.label ? car.label : "My car";
+  const hasMultipleCars = mounted && cars.length > 1;
+  const activeIndex = Math.max(
+    0,
+    cars.findIndex((item) => item.id === activeCarId)
+  );
+  const myCarLabel =
+    mounted && (car.label || hasMultipleCars)
+      ? formatCarSlotLabel(car, activeIndex)
+      : "My car";
   const myCarStatusTitle = hasSavedCar
     ? `Saved car details (${myCarLabel})`
     : "Save your car details and renewal reminders";
 
-  const myCarLink = (
+  const myCarControl = hasMultipleCars ? (
+    <div
+      className={`nav-mycar-group${isMyCarActive ? " is-active" : ""}${hasSavedCar ? " is-saved" : ""}`}
+    >
+      <span className="nav-mycar-dot" aria-hidden="true" />
+      <select
+        aria-label="Active car"
+        className="nav-mycar-select"
+        value={activeCarId}
+        onChange={(event) => selectCar(event.target.value)}
+      >
+        {cars.map((item, index) => (
+          <option key={item.id} value={item.id}>
+            {formatCarSlotLabel(item, index)}
+          </option>
+        ))}
+      </select>
+      <Link
+        href="/my-car"
+        className="nav-mycar-manage"
+        aria-current={isMyCarActive ? "page" : undefined}
+        title="Manage saved cars and reminders"
+      >
+        Manage ({cars.length})
+      </Link>
+    </div>
+  ) : (
     <Link
       href="/my-car"
       className={`nav-mycar-link${isMyCarActive ? " is-active" : ""}${hasSavedCar ? " is-saved" : ""}`}
@@ -43,7 +77,7 @@ export default function NavbarUser() {
   if (!mounted || loading) {
     return (
       <>
-        {myCarLink}
+        {myCarControl}
         <Link href="/login" className="topbar-cta" suppressHydrationWarning>
           Sign in
         </Link>
@@ -62,7 +96,7 @@ export default function NavbarUser() {
 
     return (
       <>
-        {myCarLink}
+        {myCarControl}
         <span className="nav-user-chip" suppressHydrationWarning>
           {photoURL ? (
             <img
@@ -107,7 +141,7 @@ export default function NavbarUser() {
 
   return (
     <>
-      {myCarLink}
+      {myCarControl}
       <Link href="/login" className="topbar-cta" suppressHydrationWarning>
         Sign in
       </Link>

@@ -30,20 +30,20 @@ function describeBreakEven(result) {
 }
 
 export default function NcdProtectorTool() {
-  const { car } = useMyCar();
-  const applied = useRef(false);
+  const { car, activeCarId } = useMyCar();
+  const applied = useRef(null);
   const [inputs, setInputs] = useState(NCD_PROTECTOR_DEFAULTS);
   const update = (field) => (value) => setInputs((current) => ({ ...current, [field]: value }));
 
   useEffect(() => {
-    if (applied.current || (car.currentPremium === "" && car.currentNcd === "")) return;
-    applied.current = true;
+    if (applied.current === activeCarId || (car.currentPremium === "" && car.currentNcd === "")) return;
+    applied.current = activeCarId;
     setInputs((current) => ({
       ...current,
       currentPremium: car.currentPremium === "" ? current.currentPremium : car.currentPremium,
       currentNcd: car.currentNcd === "" ? current.currentNcd : car.currentNcd,
     }));
-  }, [car]);
+  }, [car, activeCarId]);
 
   const result = useMemo(() => evaluateNcdProtector(inputs), [inputs]);
   const verdict = VERDICTS[result.recommendation];

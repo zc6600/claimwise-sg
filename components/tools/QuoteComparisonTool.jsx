@@ -19,16 +19,19 @@ const emptyQuote = (index) => ({
 });
 
 export default function QuoteComparisonTool() {
-  const { car } = useMyCar();
-  const applied = useRef(false);
+  const { car, activeCarId } = useMyCar();
+  const applied = useRef(null);
   const [settings, setSettings] = useState(QUOTE_COMPARISON_DEFAULTS);
   const [quotes, setQuotes] = useState([emptyQuote(0), emptyQuote(1)]);
 
   useEffect(() => {
-    if (applied.current || (car.currentPremium === "" && car.excess === "" && car.currentNcd === "")) {
+    if (
+      applied.current === activeCarId ||
+      (car.currentPremium === "" && car.excess === "" && car.currentNcd === "")
+    ) {
       return;
     }
-    applied.current = true;
+    applied.current = activeCarId;
     if (car.currentNcd !== "") {
       setSettings((current) => ({ ...current, currentNcd: car.currentNcd }));
     }
@@ -37,7 +40,7 @@ export default function QuoteComparisonTool() {
         index === 0 ? { ...quote, premium: car.currentPremium, excess: car.excess } : quote
       )
     );
-  }, [car]);
+  }, [car, activeCarId]);
 
   const updateQuote = (index, field) => (value) =>
     setQuotes((current) =>

@@ -3,6 +3,9 @@ import { NCD_STEPS } from "./decision-data.mjs";
 
 const MAX_LABEL_LENGTH = 40;
 
+export const VEHICLE_SLOT_IDS = ["primary", "car-2", "car-3", "car-4", "car-5"];
+export const MAX_VEHICLES = VEHICLE_SLOT_IDS.length;
+
 export const EMPTY_CAR = {
   label: "",
   insuranceRenewal: "",
@@ -63,7 +66,70 @@ export function normalizeMyCar(raw = {}) {
 }
 
 export function hasCarDetails(car) {
-  return Object.values(car ?? {}).some((value) => value !== "" && value !== null && value !== undefined);
+  if (!car || typeof car !== "object") return false;
+  return Object.keys(EMPTY_CAR).some((field) => {
+    const value = car[field];
+    return value !== "" && value !== null && value !== undefined;
+  });
+}
+
+export function normalizeCarEntry(raw = {}, fallbackId = "primary") {
+  const requestedId = typeof raw?.id === "string" && VEHICLE_SLOT_IDS.includes(raw.id)
+    ? raw.id
+    : fallbackId;
+  return {
+    id: VEHICLE_SLOT_IDS.includes(requestedId) ? requestedId : "primary",
+    ...normalizeMyCar(raw),
+  };
+}
+
+export function nextVehicleSlotId(cars = []) {
+  const used = new Set((cars ?? []).map((item) => item?.id));
+  return VEHICLE_SLOT_IDS.find((slotId) => !used.has(slotId)) ?? null;
+}
+
+/**
+ * Normalizes a multi-car garage or migrates a single-car payload into a bounded garage
+ * of 1..5 vehicle slots (`primary`, `car-2`..`car-5`).
+ */
+export function normalizeGarage(raw = {}) {
+  const rawList = Array.isArray(raw?.cars)
+    ? raw.cars
+    : raw?.car && typeof raw.car === "object"
+      ? [raw.car]
+      : raw && typeof raw === "object" && Object.keys(EMPTY_CAR).some((key) => key in raw)
+        ? [raw]
+        : [];
+
+  const cars = [];
+  const usedIds = new Set();
+
+  for (const item of rawList) {
+    if (cars.length >= MAX_VEHICLES) break;
+    const fallbackId = VEHICLE_SLOT_IDS.find((slotId) => !usedIds.has(slotId)) ?? "primary";
+    const candidateId =
+      typeof item?.id === "string" && VEHICLE_SLOT_IDS.includes(item.id) && !usedIds.has(item.id)
+        ? item.id
+        : fallbackId;
+    usedIds.add(candidateId);
+    cars.push(normalizeCarEntry(item, candidateId));
+  }
+
+  if (cars.length === 0) {
+    cars.push({ id: "primary", ...EMPTY_CAR });
+  }
+
+  const requestedActiveId = typeof raw?.activeCarId === "string" ? raw.activeCarId : "";
+  const activeCarId = cars.some((item) => item.id === requestedActiveId)
+    ? requestedActiveId
+    : cars[0].id;
+
+  return { cars, activeCarId };
+}
+
+export function formatCarSlotLabel(car, index = 0) {
+  const trimmed = typeof car?.label === "string" ? car.label.trim() : "";
+  return trimmed || `Car ${index + 1}`;
 }
 
 function daysBetween(from, to) {
@@ -85,4 +151,21 @@ export function upcomingDecisions(car, today) {
       };
     })
     .sort((a, b) => a.daysAway - b.daysAway);
+}
+
+/** Aggregates upcoming decisions across all saved vehicles in the garage, sorted by urgency. */
+export function upcomingGarageDecisions(cars = [], today) {
+  const all = [];
+  (cars ?? []).forEach((car, index) => {
+    const carLabel = formatCarSlotLabel(car, index);
+    for (const decision of upcomingDecisions(car, today)) {
+      all.push({
+        ...decision,
+        key: `${car.id || index}:${decision.id}`,
+        carId: car.id || "primary",
+        carLabel,
+      });
+    }
+  });
+  return all.sort((a, b) => a.daysAway - b.daysAway);
 }
