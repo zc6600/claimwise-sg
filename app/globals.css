@@ -1778,6 +1778,105 @@ td:first-child {
   padding-bottom: 32px;
 }
 
+.wording-coverage {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface-subtle);
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.wording-coverage a {
+  color: var(--teal-dark);
+}
+
+.wording-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.wording-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+}
+
+.wording-cell-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wording-cell-head a {
+  flex-shrink: 0;
+  color: var(--teal-dark);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.wording-section {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.wording-quote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--teal);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.wording-quote p {
+  margin: 0 0 8px;
+}
+
+.wording-quote p:last-child {
+  margin-bottom: 0;
+}
+
+.wording-missing {
+  margin: 0;
+  color: var(--amber);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.wording-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.wording-table {
+  min-width: 0;
+  font-size: 0.8125rem;
+}
+
+.table-card.is-assumptions {
+  background: var(--surface-subtle);
+}
+
+@media (max-width: 960px) {
+  .wording-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .how-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
