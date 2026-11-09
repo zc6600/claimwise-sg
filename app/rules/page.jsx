@@ -178,7 +178,11 @@ export default function RulesPage() {
                     <span className="table-sub-cell">{profile.planName}</span>
                   </td>
                   <td>−{profile.ncdDropPoints} points</td>
-                  <td>+{formatCurrency(profile.unauthorizedWorkshopExcess)}</td>
+                  <td>
+                    {profile.workshopRule
+                      ? "No surcharge; plan rule applies"
+                      : `+${formatCurrency(profile.unauthorizedWorkshopExcess)} (assumed)`}
+                  </td>
                   <td>
                     +{formatCurrency(profile.youngDriverExcess)} (under {profile.youngDriverAgeThreshold})
                   </td>

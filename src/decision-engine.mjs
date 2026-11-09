@@ -138,8 +138,8 @@ export function computeEffectiveExcess(inputs) {
   const isUnauthorized = inputs.workshopType === "independent";
   const isYoungDriver = Boolean(inputs.youngDriverInvolved);
 
-  const unauthorizedSurcharge = isUnauthorized ? (profile.unauthorizedWorkshopExcess || 1000) : 0;
-  const youngDriverSurcharge = isYoungDriver ? (profile.youngDriverExcess || 2500) : 0;
+  const unauthorizedSurcharge = isUnauthorized ? (profile.unauthorizedWorkshopExcess ?? 1000) : 0;
+  const youngDriverSurcharge = isYoungDriver ? (profile.youngDriverExcess ?? 2500) : 0;
   const total = inputs.excess + unauthorizedSurcharge + youngDriverSurcharge;
 
   return {

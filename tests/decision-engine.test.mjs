@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { calculateDecision } from "../src/decision-engine.mjs";
 import { isNcdProtectorEligible } from "../src/ncd/premium-path.mjs";
+import { INSURER_PROFILES } from "../src/decision-data.mjs";
 
 const baseInputs = {
   insurer: "income",
@@ -36,10 +37,10 @@ test("NCD Protector preserves the current NCD in the claim path", () => {
 });
 
 test("NCD Protector is ineffective when current NCD is below insurer minNcdForProtector", () => {
-  // Income requires min 50% NCD for protector
+  // MSIG's calculator default requires 50% NCD for the protector
   const incomeUnderThreshold = calculateDecision({
     ...baseInputs,
-    insurer: "income",
+    insurer: "msig",
     currentNcd: 40,
     ncdProtector: true,
   });
@@ -78,21 +79,23 @@ test("NCD Protector is ineffective when current NCD is below insurer minNcdForPr
   assert.equal(etiqaStepDownAudit.status, "protected");
   assert.equal(etiqaStepDownAudit.value, "0% (Shielded / Protected)");
 
-  // Etiqa with 30% NCD is below 40% threshold
+  // Etiqa with 20% NCD is below the 30% threshold in its wording
   const etiqaUnderThreshold = calculateDecision({
     ...baseInputs,
     insurer: "etiqa",
-    currentNcd: 30,
+    currentNcd: 20,
     ncdProtector: true,
   });
-  // 30% docks to 0%
+  // 20% docks to 0%
   assert.equal(etiqaUnderThreshold.claimNcdAfter, 0);
 
   // Helper function test
-  assert.equal(isNcdProtectorEligible({ insurer: "income", currentNcd: 40 }), false);
-  assert.equal(isNcdProtectorEligible({ insurer: "income", currentNcd: 50 }), true);
-  assert.equal(isNcdProtectorEligible({ insurer: "etiqa", currentNcd: 40 }), true);
-  assert.equal(isNcdProtectorEligible({ insurer: "etiqa", currentNcd: 30 }), false);
+  assert.equal(isNcdProtectorEligible({ insurer: "msig", currentNcd: 40 }), false);
+  assert.equal(isNcdProtectorEligible({ insurer: "msig", currentNcd: 50 }), true);
+  assert.equal(isNcdProtectorEligible({ insurer: "income", currentNcd: 30 }), true);
+  assert.equal(isNcdProtectorEligible({ insurer: "income", currentNcd: 20 }), false);
+  assert.equal(isNcdProtectorEligible({ insurer: "etiqa", currentNcd: 30 }), true);
+  assert.equal(isNcdProtectorEligible({ insurer: "etiqa", currentNcd: 20 }), false);
 });
 
 test("break-even repair cost increases when a claim loses NCD", () => {
@@ -207,24 +210,44 @@ test("NCD Protector still shields a third-party claim involving windscreen damag
   assert.equal(result.claimNcdAfter, 50);
 });
 
-test("unauthorized independent workshop adds insurer-specific excess surcharge", () => {
-  const incomeResult = calculateDecision({
-    ...baseInputs,
-    insurer: "income",
-    excess: 600,
-    workshopType: "independent",
-  });
+test("independent workshop follows the wording: coverage warning where wording exists, assumed surcharge otherwise", () => {
   const etiqaResult = calculateDecision({
     ...baseInputs,
     insurer: "etiqa",
     excess: 600,
     workshopType: "independent",
   });
+  const fwdResult = calculateDecision({
+    ...baseInputs,
+    insurer: "fwd",
+    excess: 600,
+    workshopType: "independent",
+  });
 
-  assert.equal(incomeResult.excessDetails.unauthorizedWorkshopSurcharge, 1000);
-  assert.equal(incomeResult.effectiveExcess, 1600);
-  assert.equal(etiqaResult.excessDetails.unauthorizedWorkshopSurcharge, 2000);
-  assert.equal(etiqaResult.effectiveExcess, 2600);
+  // Etiqa's wording reserves the right to decline the claim; it sets no surcharge amount.
+  assert.equal(etiqaResult.excessDetails.unauthorizedWorkshopSurcharge, 0);
+  assert.equal(etiqaResult.effectiveExcess, 600);
+  assert.ok(etiqaResult.advisories.some((a) => a.type === "warning" && a.message.includes("decline")));
+
+  // No FWD wording is bundled, so the labelled S$1,000 assumption still applies.
+  assert.equal(fwdResult.excessDetails.unauthorizedWorkshopSurcharge, 1000);
+  assert.equal(fwdResult.effectiveExcess, 1600);
+});
+
+test("Income and Etiqa young-driver and protector terms match the policy wording", () => {
+  const income = INSURER_PROFILES.income;
+  assert.equal(income.youngDriverAgeThreshold, 27);
+  assert.equal(income.youngDriverLicenceYears, 1);
+  assert.equal(income.youngDriverExcess, 2500);
+  assert.equal(income.minNcdForProtector, 30);
+
+  const etiqa = INSURER_PROFILES.etiqa;
+  assert.equal(etiqa.youngDriverAgeThreshold, 27);
+  assert.equal(etiqa.youngDriverExcess, 4000);
+  assert.equal(etiqa.minNcdForProtector, 30);
+
+  const result = calculateDecision({ ...baseInputs, insurer: "etiqa", excess: 600, youngDriverInvolved: true });
+  assert.equal(result.effectiveExcess, 4600);
 });
 
 test("young/inexperienced driver (<25yo) adds mandatory excess surcharge", () => {
@@ -262,7 +285,7 @@ test("GET /api/rules route exposes all insurer parameters and thresholds", async
   assert.equal(msig.youngDriverAgeThreshold, 23);
   assert.equal(msig.minNcdForProtector, 50);
   const etiqa = data.profiles.find((p) => p.id === "etiqa");
-  assert.equal(etiqa.minNcdForProtector, 40);
+  assert.equal(etiqa.minNcdForProtector, 30);
 });
 
 import { POST as handleDecisionPost } from "../app/api/decision/route.js";
@@ -312,9 +335,9 @@ test("clauseAudit provides policy references and illustrative summaries for calc
   // Check specific clause references
   const workshopItem = result.clauseAudit.find((i) => i.id === "workshop_surcharge");
   assert.ok(workshopItem);
-  assert.equal(workshopItem.status, "active");
-  assert.ok(workshopItem.clauseRef.includes("Clause 4.2")); // Etiqa Tiq Clause 4.2
-  assert.ok(workshopItem.value.includes("2,000"));
+  assert.equal(workshopItem.status, "warning");
+  assert.ok(workshopItem.clauseRef.includes("Authorised Workshop Scheme"));
+  assert.equal(workshopItem.value, "Depends on your plan");
 
   const thirdPartyItem = result.clauseAudit.find((i) => i.id === "third_party_liability");
   assert.ok(thirdPartyItem);
