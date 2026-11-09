@@ -21,13 +21,15 @@ rules_version = '2';
 //       - savings: number
 //       - breakEvenCost: number
 //
-// Collection: users/{userId}/vehicles/primary
+// Collection: users/{userId}/vehicles/{vehicleId}
+// Document ID: 'primary', 'car-2', 'car-3', 'car-4', or 'car-5'
 // Fields:
 //   - userId: string (required, must match request.auth.uid)
 //   - label: string (max 40 chars)
 //   - insuranceRenewal, coeExpiry, loanReview: "YYYY-MM-DD" or empty string
 //   - currentPremium, excess: number or empty string
 //   - currentNcd: number from 0 to 50, or empty string
+//   - isActive: bool (optional)
 //   - updatedAt: string
 //
 // Collection: reminderSubscriptions/{subscriptionId}
@@ -86,7 +88,7 @@ service cloud.firestore {
 
     function isValidVehicle(data, userId) {
       return data.keys().hasOnly(['userId', 'label', 'insuranceRenewal', 'coeExpiry', 'loanReview',
-                                  'currentPremium', 'currentNcd', 'excess', 'updatedAt']) &&
+                                  'currentPremium', 'currentNcd', 'excess', 'isActive', 'updatedAt']) &&
              data.userId == userId &&
              data.label is string && data.label.size() <= 40 &&
              isOptionalDate(data.insuranceRenewal) &&
@@ -96,13 +98,16 @@ service cloud.firestore {
              isOptionalAmount(data.excess) &&
              ((data.currentNcd is string && data.currentNcd == '') ||
               (data.currentNcd is number && data.currentNcd >= 0 && data.currentNcd <= 50)) &&
+             (!('isActive' in data) || data.isActive is bool) &&
              data.updatedAt is string && data.updatedAt.size() <= 40;
     }
 
-    // Saved car details: one document per user
+    // Saved car details: up to 5 vehicles per user
     match /users/{userId}/vehicles/{vehicleId} {
-      allow read, delete: if isOwner(userId) && vehicleId == 'primary';
-      allow create, update: if isOwner(userId) && vehicleId == 'primary' &&
+      allow read, delete: if isOwner(userId) &&
+                             vehicleId in ['primary', 'car-2', 'car-3', 'car-4', 'car-5'];
+      allow create, update: if isOwner(userId) &&
+                               vehicleId in ['primary', 'car-2', 'car-3', 'car-4', 'car-5'] &&
                                isValidVehicle(request.resource.data, userId);
     }
 

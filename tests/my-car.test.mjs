@@ -1,7 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { hasCarDetails, normalizeMyCar, upcomingDecisions } from "../src/my-car.mjs";
+import {
+  hasCarDetails,
+  nextVehicleSlotId,
+  normalizeGarage,
+  normalizeMyCar,
+  upcomingDecisions,
+  upcomingGarageDecisions,
+} from "../src/my-car.mjs";
 
 test("car details keep known fields and drop registration numbers", () => {
   const car = normalizeMyCar({
@@ -46,11 +53,42 @@ test("upcoming decisions are sorted by urgency and flag their planning window", 
   assert.equal(decisions[2].actNow, true);
 });
 
+test("multi-car garage migrates single-car data, assigns bounded slots, and aggregates decisions", () => {
+  const migrated = normalizeGarage({
+    car: { label: "Civic", currentPremium: 1450, currentNcd: 50 },
+  });
+  assert.equal(migrated.cars.length, 1);
+  assert.equal(migrated.cars[0].id, "primary");
+  assert.equal(migrated.cars[0].label, "Civic");
+  assert.equal(migrated.activeCarId, "primary");
+  assert.equal(nextVehicleSlotId(migrated.cars), "car-2");
+
+  const multi = normalizeGarage({
+    cars: [
+      { id: "primary", label: "Daily sedan", insuranceRenewal: "2026-12-15" },
+      { id: "car-2", label: "Weekend OPC", coeExpiry: "2026-11-20" },
+    ],
+    activeCarId: "car-2",
+  });
+  assert.equal(multi.cars.length, 2);
+  assert.equal(multi.activeCarId, "car-2");
+
+  const combined = upcomingGarageDecisions(multi.cars, "2026-11-07");
+  assert.deepEqual(
+    combined.map((item) => [item.carLabel, item.id]),
+    [
+      ["Weekend OPC", "coeExpiry"],
+      ["Daily sedan", "insuranceRenewal"],
+    ]
+  );
+});
+
 test("Firestore rules keep reminder subscriptions server-only", () => {
   const rules = fs.readFileSync("firestore.rules", "utf-8");
   assert.doesNotMatch(rules, /match \/reminderSubscriptions/);
   assert.match(rules, /match \/\{document=\*\*\} \{\s*allow read, write: if false;/);
   assert.match(rules, /match \/users\/\{userId\}\/vehicles\/\{vehicleId\}/);
+  assert.match(rules, /\['primary', 'car-2', 'car-3', 'car-4', 'car-5'\]/);
 });
 
 test("the privacy policy is listed and linked from the reminder consent", () => {

@@ -31,16 +31,16 @@ const ENERGY_DEFAULTS = {
 };
 
 export default function OwnershipCostTool() {
-  const { car } = useMyCar();
-  const applied = useRef(false);
+  const { car, activeCarId } = useMyCar();
+  const applied = useRef(null);
   const [inputs, setInputs] = useState(OWNERSHIP_COST_DEFAULTS);
   const update = (field) => (value) => setInputs((current) => ({ ...current, [field]: value }));
 
   useEffect(() => {
-    if (applied.current || car.currentPremium === "") return;
-    applied.current = true;
+    if (applied.current === activeCarId || car.currentPremium === "") return;
+    applied.current = activeCarId;
     setInputs((current) => ({ ...current, insurancePerYear: car.currentPremium }));
-  }, [car]);
+  }, [car, activeCarId]);
 
   const result = useMemo(() => evaluateOwnershipCost(inputs), [inputs]);
   const isElectric = inputs.powertrain === POWERTRAINS.ELECTRIC;
