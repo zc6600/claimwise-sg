@@ -15,6 +15,8 @@ test("every bundled wording covers every topic with a cited excerpt or an explai
     for (const topic of WORDING_TOPICS) {
       const entry = wording.entries[topic.id];
       assert.ok(entry, `${wording.id} has ${topic.id}`);
+      assert.ok(entry.summary?.length > 0 && entry.summary.length <= 90,
+        `${wording.id}.${topic.id} has a short summary`);
       if (entry.excerpt === null) {
         assert.equal(entry.page, null);
         assert.ok(entry.note?.length > 0, `${wording.id}.${topic.id} explains the missing wording`);

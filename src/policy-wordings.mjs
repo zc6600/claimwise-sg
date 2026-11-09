@@ -5,6 +5,9 @@
  * column layout are normalised, and "…" marks omitted text. Page numbers are physical PDF pages (1-based), which is
  * what `#page=` anchors resolve to, not the folio printed in the footer.
  *
+ * `summary` is a one-line plain reading of the excerpt for scanning; the excerpt
+ * itself is the authority.
+ *
  * An entry with `excerpt: null` means the bundled wording does not state that rule, and
  * `note` explains where the term is set instead (usually the individual Policy Schedule).
  * These records are a reference display only; calculator inputs live in
@@ -14,31 +17,37 @@
 export const WORDING_TOPICS = [
   {
     id: "ownDamageExcess",
+    shortTitle: "Excess",
     title: "Own-damage excess",
     question: "What do I pay first on every accident claim?",
   },
   {
     id: "workshop",
+    shortTitle: "Workshop",
     title: "Workshop requirement",
     question: "Where must the car be repaired?",
   },
   {
     id: "unnamedDriver",
+    shortTitle: "Young drivers",
     title: "Young, inexperienced or unnamed driver excess",
     question: "What extra excess applies to other drivers?",
   },
   {
     id: "windscreen",
+    shortTitle: "Windscreen",
     title: "Windscreen claims",
     question: "What does a windscreen claim cost, and does it affect NCD?",
   },
   {
     id: "ncdScale",
+    shortTitle: "NCD after a claim",
     title: "No-claim discount after a claim",
     question: "How far does my NCD fall after a claim?",
   },
   {
     id: "ncdProtector",
+    shortTitle: "NCD Protector",
     title: "NCD Protector",
     question: "Who can buy NCD protection, and what does it keep?",
   },
@@ -53,6 +62,7 @@ export const POLICY_WORDINGS = [
     pdfFile: "/policies/income_drivo_policy.pdf",
     entries: {
       ownDamageExcess: {
+        summary: "Amount on your Schedule or Certificate",
         page: 1,
         section: "Summary of Private Car insurance cover",
         excerpt: [
@@ -61,6 +71,7 @@ export const POLICY_WORDINGS = [
         note: "The wording sets no amount; your excess is printed on your Schedule or Certificate of Insurance.",
       },
       workshop: {
+        summary: "Set by plan: Premium any workshop, Advantage authorised, Classic Income’s choice",
         page: 3,
         section: "Section 1 · Your vehicle, clause 3",
         excerpt: [
@@ -70,6 +81,7 @@ export const POLICY_WORDINGS = [
         note: "The plan summary (page 1) lists repairs at your preferred workshop under Drivo Premium. The wording states no extra excess for a non-authorised workshop.",
       },
       unnamedDriver: {
+        summary: "S$2,500 under 27 or under 1 year driving; otherwise S$500",
         page: 3,
         section: "Section 1 · Your vehicle, clause 8",
         excerpt: [
@@ -79,6 +91,7 @@ export const POLICY_WORDINGS = [
         ],
       },
       windscreen: {
+        summary: "S$100 or Schedule amount · NCD unaffected",
         page: 1,
         section: "Summary of Private Car insurance cover",
         excerpt: [
@@ -87,6 +100,7 @@ export const POLICY_WORDINGS = [
         note: "Page 7: the NCD reduction “does not apply if you make a windscreen claim.”",
       },
       ncdScale: {
+        summary: "50%→20% · 40%→10% · 30% and under→0%",
         page: 7,
         section: "E · General information, clause 2 No-claim discount (NCD)",
         excerpt: ["If there is a claim made under the policy, we will reduce the discount as follows."],
@@ -100,6 +114,7 @@ export const POLICY_WORDINGS = [
         },
       },
       ncdProtector: {
+        summary: "Available from 30% NCD",
         page: 1,
         section: "Summary of Private Car insurance cover · Optional Cover",
         excerpt: ["NCD Protector (applicable to policy with at least 30% NCD)"],
@@ -115,12 +130,14 @@ export const POLICY_WORDINGS = [
     pdfFile: "/policies/msig_motormax_policy.pdf",
     entries: {
       ownDamageExcess: {
+        summary: "Amount on your Schedule",
         page: 4,
         section: "Exclusions to Section I, clause 1(a)",
         excerpt: ["We shall not be liable to pay for: a) the excess amount as shown in the schedule and its applicable GST"],
         note: "The wording sets no amount; your excess is printed on your Schedule.",
       },
       workshop: {
+        summary: "Authorised workshops only where the endorsement applies",
         page: 19,
         section: "Endorsement · Compulsory Authorised Workshop Usage",
         excerpt: [
@@ -129,6 +146,7 @@ export const POLICY_WORDINGS = [
         note: "This is an endorsement; it applies when it appears on your Schedule. Where it applies, repairs elsewhere are not covered at all rather than charged an extra excess.",
       },
       unnamedDriver: {
+        summary: "S$2,500 under 23 or licence under 2 years",
         page: 5,
         section: "Exclusions to Section I, clause 1(b)",
         excerpt: [
@@ -136,6 +154,7 @@ export const POLICY_WORDINGS = [
         ],
       },
       windscreen: {
+        summary: "S$100 or Schedule amount, whichever is higher · waived for repair · NCD unaffected",
         page: 4,
         section: "Section I, clause 2 · Loss or damage to windscreen, window, IU and OBU",
         excerpt: [
@@ -144,6 +163,7 @@ export const POLICY_WORDINGS = [
         ],
       },
       ncdScale: {
+        summary: "50%→20% · 40%→10% · 30% or less→0% · 2+ claims→0%",
         page: 8,
         section: "No Claim Discount",
         excerpt: [
@@ -152,6 +172,7 @@ export const POLICY_WORDINGS = [
         ],
       },
       ncdProtector: {
+        summary: "Not stated in this wording",
         page: null,
         section: null,
         excerpt: null,
@@ -167,6 +188,7 @@ export const POLICY_WORDINGS = [
     pdfFile: "/policies/etiqa_tiq_motor_policy.pdf",
     entries: {
       ownDamageExcess: {
+        summary: "Amount on your Schedule",
         page: 16,
         section: "Endorsement No. M2(A)P · Excess – Own Damage Claims",
         excerpt: [
@@ -175,6 +197,7 @@ export const POLICY_WORDINGS = [
         note: "The wording sets no amount; your excess is printed on your Schedule.",
       },
       workshop: {
+        summary: "Authorised workshop required, or the claim may be declined",
         page: 19,
         section: "Authorised Workshop Scheme (Exclusive Benefits), clauses 1–2",
         excerpt: [
@@ -183,6 +206,7 @@ export const POLICY_WORDINGS = [
         ],
       },
       unnamedDriver: {
+        summary: "S$4,000 under 27, over 75 or licence under 2 years; S$1,000 other unnamed drivers",
         page: 17,
         section: "Endorsements No. M2U (page 16) and MDP (page 17)",
         excerpt: [
@@ -192,6 +216,7 @@ export const POLICY_WORDINGS = [
         note: "Both are endorsements that apply when shown on your Schedule.",
       },
       windscreen: {
+        summary: "S$100 to replace · S$0 to repair · NCD unaffected",
         page: 17,
         section: "Endorsement No. M89P · Breakage of Glass in Windscreen or Window",
         excerpt: [
@@ -199,6 +224,7 @@ export const POLICY_WORDINGS = [
         ],
       },
       ncdScale: {
+        summary: "50%→20% · 40%→10% · 10–30%→0% · 2+ claims→0%",
         page: 15,
         section: "No Claims Discount (NCD) · (b) Reduction In NCD",
         excerpt: [
@@ -214,6 +240,7 @@ export const POLICY_WORDINGS = [
         },
       },
       ncdProtector: {
+        summary: "From 30% NCD · keeps NCD after 1 claim",
         page: 9,
         section: "Optional Benefits, 1 · NCD Protector (applicable for 30% onwards)",
         excerpt: [
