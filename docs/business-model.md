@@ -1,6 +1,6 @@
 # Business Model
 
-Research checked: 10 November 2026. Scope: consumer acquisition, renewal-switch referral commissions, vehicle-sale referrals, and display advertising.
+Research checked: 10 November 2026. Scope: organic acquisition (SEO and AI search), renewal-switch referral commissions, vehicle-sale referrals, and display advertising.
 
 **Current status:** Production runs with **no live advertisements and no referral links** (`public/ads.txt` uses a placeholder publisher ID pending AdSense approval, and `components/SponsoredAdUnit.jsx` is an unmounted prototype). Every revenue figure below is a forecast built from published third-party prices and stated assumptions, not observed ClaimWise data.
 
@@ -8,7 +8,7 @@ Research checked: 10 November 2026. Scope: consumer acquisition, renewal-switch 
 
 ClaimWise earns when an owner acts on a decision the tools have already priced, not when a page is viewed.
 
-1. **Acquire** owners at expensive decision moments (accident, renewal, loan review, COE expiry) through organic search for long-tail decision queries.
+1. **Acquire** owners at expensive decision moments (accident, renewal, loan review, COE expiry) through organic search and AI assistants only. No money is spent on acquisition: no paid search, no paid SEO tools, and no commissioned content (Section 7).
 2. **Retain** them with **My Car** (`/my-car`), which stores renewal, loan, and COE dates and emails double opt-in reminders 45 days before renewal, 30 days before loan review, and 365 and 90 days before COE expiry.
 3. **Monetize** the action that follows:
 
@@ -101,19 +101,19 @@ The base and optimistic RPMs are Google's Asia-Pacific `Autos & Vehicles` (`2.18
 
 Stage C is treated as a ceiling. At 20,000 visits it implies about 260 switched policies a year in the base case before attribution loss, roughly 0.03% of the national vehicle population.
 
-### 4.3 Operating costs
+### 4.3 Cost basis
 
-| Item | Stage A–B | Stage C | Basis |
-| --- | ---: | ---: | --- |
-| Cloud Run (`min_instance_count = 0`, 1 vCPU, 1 GiB) | S\$0 | S\$0–5 | Within the monthly free request and compute allowance at these volumes (estimate; confirm against billing) |
-| Firestore, Identity Platform, Cloud Scheduler (1 job), Secret Manager | S\$0–1 | S\$0–2 | Free-tier quotas; one scheduler job |
-| Resend email | S\$0 | S\$0 | Free tier: 3,000 emails/month, 100/day ([Resend pricing](https://resend.com/pricing)); ~4 emails per member per year stays under both limits on average up to ~5,000 members, after which Pro is US\$20/month |
-| Cloudflare Worker proxy | S\$0 | S\$0 | Free plan request quota |
-| Domain and Artifact Registry storage | ~S\$4 | ~S\$4 | Estimate |
-| **Monthly operating cost used in the model** | **S\$5** | **S\$10** | |
-| One-off legal review of referral disclosures (Section 5) | S\$2,000 | | Assumption; charged to year 1 |
+The model counts one cost: the domain.
 
-Founder time is not costed. At these volumes, cash costs are negligible, so the decision rests on time and the one-off legal fee.
+| Item | Cost / year | Basis |
+| --- | ---: | --- |
+| Dedicated domain | S\$50 | A `.com` at cost is about US\$11/year and `.com.sg` renews at S\$45–80/year before GST ([Cloudflare `.com`](https://domainoffer.net/tld/com/cloudflare), [`.com.sg` comparison](https://www.qoxy.com/compare-pricing/)); S\$50 covers either |
+
+Deliberately excluded:
+
+- **Acquisition spend.** Growth comes from SEO and AI-search visibility built into the product (Section 7). Rankings and AI citations are not bought; paid search, paid SEO and GEO tools, and outsourced writing are out of scope.
+- **Hosting and email.** Cloud Run (`min_instance_count = 0`), Firestore, Cloud Scheduler, the Cloudflare Worker, and Resend run inside free-tier quotas at Stage A–C volumes.
+- **Founder time and professional fees,** including any legal review of referral disclosures (Section 5).
 
 ### 4.4 Annual results by stage (base case)
 
@@ -124,31 +124,30 @@ Founder time is not costed. At these volumes, cash costs are negligible, so the 
 | Vehicle-sale referrals | 192 | 960 | 3,840 |
 | AdSense | 52 | 262 | 1,046 |
 | **Revenue** | **1,284** | **6,422** | **25,686** |
-| Operating cost | (60) | (60) | (120) |
-| **Steady-state net** | **1,224** | **6,362** | **25,566** |
-| One-off legal review | (2,000) | (2,000) | (2,000) |
-| **Year-1 net** | **(776)** | **4,362** | **23,566** |
+| Domain | (50) | (50) | (50) |
+| **Net** | **1,234** | **6,372** | **25,636** |
 
 ### 4.5 Scenario summary
 
-| Scenario | Revenue per visit | Stage A net / yr | Stage B net / yr | Stage C net / yr | Year-1 net, Stage C | Monthly visits for S\$1,000/month revenue |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Conservative | S\$0.025 | 238 | 1,431 | 5,844 | 3,844 | ~40,200 |
-| Base | S\$0.107 | 1,224 | 6,362 | 25,566 | 23,566 | ~9,300 |
-| Optimistic | S\$0.320 | 3,775 | 19,115 | 76,579 | 74,579 | ~3,100 |
+| Scenario | Revenue per visit | Stage A net / yr | Stage B net / yr | Stage C net / yr | Monthly visits for S\$1,000/month revenue |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Conservative | S\$0.025 | 248 | 1,441 | 5,914 | ~40,200 |
+| Base | S\$0.107 | 1,234 | 6,372 | 25,636 | ~9,300 |
+| Optimistic | S\$0.320 | 3,785 | 19,125 | 76,649 | ~3,100 |
 
-Steady-state net excludes the one-off legal review. For comparison, AdSense alone at the `2.18` reference RPM earns S\$0.0044 per visit and needs ~229,000 monthly visits for S\$1,000/month. The base referral model earns ~25× more per visit and needs ~9,300 visits for the same revenue.
+For comparison, AdSense alone at the `2.18` reference RPM earns S\$0.0044 per visit and needs ~229,000 monthly visits for S\$1,000/month. The base referral model earns ~25× more per visit and needs ~9,300 visits for the same revenue.
 
 ### 4.6 Sensitivity and break-even
 
+- **The domain is covered by about 470 visits a year** in the base case (S\$50 ÷ S\$0.107), so every scenario is profitable from Stage A; the open question is how much revenue organic reach delivers, not whether costs are recovered.
 - **Non-member comparisons drive ~56% of base revenue.** Halving the comparison rate (2% → 1% of visits) cuts base Stage C revenue from S\$25,686 to S\$18,486.
 - **Revenue scales linearly with commission and credit factor.** A move from S\$100 to S\$60 per policy cuts all referral lines by 40%.
-- **The one-off legal fee is recovered** within about 20 months at base Stage A, 4 months at base Stage B, and 1 month at base Stage C.
 - **Per-member value** clears the S\$1-per-user-per-year threshold in the base (S\$3.20) and optimistic (S\$10.80) cases, but not in the conservative case (S\$0.63). The member switch rate is the assumption to measure first.
+- **Paid acquisition stays unprofitable.** Singapore car-insurance keywords bid at roughly S\$2–14 per click ([MarketingAgency.sg](https://marketingagency.sg/insurance-google-ads-cpc-singapore/)), while even the optimistic model earns S\$0.32 per visit. A S\$500 commissioned article would need ~4,700 base-case visits to repay itself.
 
 ## 5. Regulatory and execution risks
 
-- **Introducer boundaries.** The Financial Advisers Act framework lets introducers refer clients and share factual product information, but not give advice, and requires remuneration disclosure ([MAS FAQ](https://www.mas.gov.sg/-/media/mas/regulations-and-financial-stability/regulations-guidance-and-licensing/financial-advisers/faq/faqs-on-financial-advisers-act-financial-advisers-regulations-notices-and-guidelines-281124.pdf), [Caproasia](https://www.caproasia.com/2023/10/05/singapore-mas-chairman-lawrence-wong-on-disclosure-of-introducer-fees-commissions-to-clients-introducers-required-to-disclose-fee-to-clients-to-further-disclose-actual-fee-when-asked-by-clients/)). MAS digital advertising guidelines are reported to cover general insurance ([guide](https://singaporedigitalmarketing.sg/blog/insurance-advertising-singapore/)). No source confirms the position of an unlicensed calculator site taking motor referral fees, so a legal review precedes the first live link. Calculators must output figures, never "buy insurer X".
+- **Introducer boundaries.** The Financial Advisers Act framework lets introducers refer clients and share factual product information, but not give advice, and requires remuneration disclosure ([MAS FAQ](https://www.mas.gov.sg/-/media/mas/regulations-and-financial-stability/regulations-guidance-and-licensing/financial-advisers/faq/faqs-on-financial-advisers-act-financial-advisers-regulations-notices-and-guidelines-281124.pdf), [Caproasia](https://www.caproasia.com/2023/10/05/singapore-mas-chairman-lawrence-wong-on-disclosure-of-introducer-fees-commissions-to-clients-introducers-required-to-disclose-fee-to-clients-to-further-disclose-actual-fee-when-asked-by-clients/)). MAS digital advertising guidelines are reported to cover general insurance ([guide](https://singaporedigitalmarketing.sg/blog/insurance-advertising-singapore/)). No source confirms the position of an unlicensed calculator site taking motor referral fees, so a legal review precedes the first live link (its fee is outside the cost basis in Section 4.3). Calculators must output figures, never "buy insurer X".
 - **New-customer-only payouts.** Revenue depends on owners switching insurers. Owners who renew in place, or renew inside an insurer app, generate nothing.
 - **Attribution gaps.** Cookie windows (30 days at DirectAsia) are shorter than the 45-day reminder lead time, so tracked links must be issued from the comparison result, not from the reminder email alone.
 - **Search competition.** SingSaver and MoneySmart dominate head terms such as `car insurance singapore`; ClaimWise targets decision queries they do not answer in depth.
@@ -164,9 +163,24 @@ Steady-state net excludes the one-off legal review. For comparison, AdSense alon
 | First paid cycle | Confirmed new-customer policies per 100 members | ≥ 2.5 (base: 4) | Below 1 after 12 months |
 | Organic reach | Search Console monthly Singapore visits | 5,000 within 12 months (Stage B) | Below 1,000 after 12 months |
 
-## 7. Search acquisition and lifecycle retention
+## 7. Organic acquisition: SEO and AI search
 
-Focused worked examples answer specific searches and lead into the matching tool, while **My Car** reminders bring owners back at each priced decision:
+Google's ordinary results and AI-assistant citations cannot be bought; they reward pages that answer the query, come from a credible source, are linked from other sites, and are easy to crawl and quote. ClaimWise competes on those signals with work built into the product rather than paid services:
+
+| Lever | What ships | Signal it targets |
+| --- | --- | --- |
+| Primary-source pages | `/rules/{insurer}/{topic}` and `/rules/compare/{topic}`: verbatim policy wording with PDF page numbers | Relevance and credibility for insurer-specific renewal queries that comparison sites do not answer in depth |
+| Programmatic coverage | Each newly verified insurer wording adds an insurer page and six clause pages, and extends six comparison pages | Long-tail reach at near-zero marginal cost |
+| Structured data | schema.org JSON-LD on every page (WebApplication, Article with document citations, BreadcrumbList) | Machine-readable page purpose and sources |
+| AI-assistant access | `/llms.txt`, `/llms-full.txt`, prefilled calculator links, and the MCP server at `/mcp` | Assistants can cite the wording and hand users a ready-made calculation |
+| Built-in sharing | Settlement agreement seen by both drivers; calculator share links | Referral traffic and natural links without promotion |
+| Retention | My Car reminders before each priced decision | Repeat visits that need no new acquisition |
+
+The main handicap is a new domain with few inbound links, so stable rankings typically take 6–12 months. Moving to a dedicated domain early (the only cost in the model) avoids losing accumulated authority in a later migration.
+
+### Query map
+
+Focused worked examples answer specific searches and lead into the matching tool:
 
 | Keyword seeds (research seeds, unverified volume) | Route & offer |
 | --- | --- |
@@ -179,7 +193,7 @@ Focused worked examples answer specific searches and lead into the matching tool
 
 The settlement agreement (`/settlement`) is the only route seen by two drivers per use, which gives it built-in distribution without promotion.
 
-**First milestone:** 1,000 relevant Singapore monthly visits via [Search Console](https://support.google.com/webmasters/answer/7576553?hl=en) to validate distribution, comparison rate, and Page RPM.
+**First milestone:** 1,000 relevant Singapore monthly visits via [Search Console](https://support.google.com/webmasters/answer/7576553?hl=en) (free) to validate distribution, comparison rate, and Page RPM.
 
 ## 8. Google AdSense reference
 
@@ -194,17 +208,17 @@ AdSense remains the revenue floor. Display units sit below guide text and comple
 
 Reaching \$1,000/month from AdSense alone requires **94,518–229,358 visits/month**. Offline PWA sessions generate no impressions. Replace regional multipliers with actual SGD [Page RPM](https://support.google.com/adsense/answer/190515?hl=en) after launch.
 
-## 9. Google Ads test math (S\$152/month cap)
+## 9. Why paid search is excluded
 
-Before spending, export 12-month Singapore search volumes and bids from [Keyword Planner](https://support.google.com/google-ads/answer/3022575?hl=en). A bounded 1-month test at S\$5/day caps spend at **S\$152** ([budget rules](https://support.google.com/google-ads/answer/10486637?hl=en), Singapore physical presence, exact/phrase match):
+Paid search is not used. Each click must cost less than the revenue a visit earns, and Singapore car-insurance keywords bid at roughly S\$2–14 per click ([MarketingAgency.sg](https://marketingagency.sg/insurance-google-ads-cpc-singapore/)):
 
-| Assumed CPC | Clicks for S\$152 | Page views (2/visit) | Break-even SGD Page RPM (`500 × CPC`) | Break-even referral yield per visit |
-| ---: | ---: | ---: | ---: | ---: |
-| S\$0.20 | 760 | 1,520 | S\$100 | S\$0.20 |
-| S\$1.00 | 152 | 304 | S\$500 | S\$1.00 |
-| S\$3.00 | 51 | 101 | S\$1,500 | S\$3.00 |
+| Scenario | Revenue per visit | Highest affordable cost per click |
+| --- | ---: | ---: |
+| Conservative | S\$0.025 | S\$0.025 |
+| Base | S\$0.107 | S\$0.107 |
+| Optimistic | S\$0.320 | S\$0.320 |
 
-Even the optimistic referral yield (S\$0.32 per visit) only covers a CPC of about S\$0.32. Do not scale bought traffic unless attributable SGD revenue per session exceeds CPC.
+Even the optimistic yield covers a click of only about S\$0.32, far below observed bids, so bought traffic loses money in every scenario.
 
 ## 10. Competitor comparison
 

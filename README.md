@@ -29,9 +29,9 @@ Full details and real-world Singapore cases: **[docs/motivation.md](docs/motivat
 The site currently runs with **no live ads and no referral links** (`public/ads.txt` uses a placeholder ID pending AdSense onboarding, and `components/SponsoredAdUnit.jsx` is unmounted).
 
 - **Primary revenue (planned)**: Referral commissions when an owner switches to a new insurer after comparing quotes at renewal (published rates of 8–10% of new-customer premium, modelled at S\$60/S\$100/S\$150 per policy), plus vehicle-sale referrals when a COE decision favours replacing the car. Calculation modules in `src/` never read partner data, and referral links appear only after a completed result with fee disclosure.
-- **Forecast**: In the base case, revenue is ~S\$0.107 per visit (~25× AdSense alone), so S\$1,000/month needs ~9,300 monthly visits instead of ~229,000. Base steady-state net ranges from ~S\$1.2k/year at 1,000 monthly visits to ~S\$25.6k/year at 20,000, against cash costs of S\$5–10/month and a one-off S\$2,000 legal review.
-- **Acquisition & retention**: Search pages answer incident, renewal, loan, and COE questions; **My Car** email reminders bring owners back before renewal, loan review, and COE expiry.
-- **Floor and paid search**: AdSense remains a floor; paid search is treated only as a bounded S\$152/month demand test because even the optimistic referral yield covers a CPC of only ~S\$0.32.
+- **Forecast**: In the base case, revenue is ~S\$0.107 per visit (~25× AdSense alone), so S\$1,000/month needs ~9,300 monthly visits instead of ~229,000. The only cost modelled is the domain (~S\$50/year), so base net ranges from ~S\$1.2k/year at 1,000 monthly visits to ~S\$25.6k/year at 20,000.
+- **Acquisition**: SEO and AI-search visibility only, with no paid acquisition: verbatim insurer-rule pages generated from verified wordings, JSON-LD, `llms.txt`, prefilled links, and the `/mcp` server, plus **My Car** reminders that bring owners back before each decision.
+- **No paid search**: car-insurance clicks bid at roughly S\$2–14, while even the optimistic model earns S\$0.32 per visit.
 
 Full analysis and competitor comparison: **[docs/business-model.md](docs/business-model.md)**
 
