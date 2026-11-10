@@ -38,6 +38,14 @@ const PHV_FIELDS = [
   "selfPayDowntimeDays",
 ];
 
+/** Every query parameter `parseSharedInputs` accepts, in documentation order. */
+export const SHARED_INPUT_FIELDS = [
+  "insurer",
+  ...Object.keys(NUMERIC_FIELDS),
+  ...Object.keys(ENUM_FIELDS),
+  ...BOOLEAN_FIELDS,
+];
+
 const DEFAULT_GROWTH_RATE = 5;
 const DEFAULT_DISCOUNT_RATE = 3;
 

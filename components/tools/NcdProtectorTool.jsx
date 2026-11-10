@@ -7,6 +7,7 @@ import {
   NCD_PROTECTOR_DEFAULTS,
   evaluateNcdProtector,
 } from "../../src/car-decisions/ncd-protector.mjs";
+import { parseNcdProtectorParams } from "../../src/public-links.mjs";
 import { useMyCar } from "../my-car/useMyCar";
 import { NumberField, ResultRows, SelectField } from "./ToolFields";
 
@@ -32,10 +33,22 @@ function describeBreakEven(result) {
 export default function NcdProtectorTool() {
   const { car, activeCarId } = useMyCar();
   const applied = useRef(null);
+  const fromLink = useRef(false);
   const [inputs, setInputs] = useState(NCD_PROTECTOR_DEFAULTS);
   const update = (field) => (value) => setInputs((current) => ({ ...current, [field]: value }));
 
+  // A prefilled link describes a specific case, so it takes priority over saved car details.
   useEffect(() => {
+    const { inputs: linked, hasExplicitParams } = parseNcdProtectorParams(
+      new URLSearchParams(window.location.search)
+    );
+    if (!hasExplicitParams) return;
+    fromLink.current = true;
+    setInputs((current) => ({ ...current, ...linked }));
+  }, []);
+
+  useEffect(() => {
+    if (fromLink.current) return;
     if (applied.current === activeCarId || (car.currentPremium === "" && car.currentNcd === "")) return;
     applied.current = activeCarId;
     setInputs((current) => ({

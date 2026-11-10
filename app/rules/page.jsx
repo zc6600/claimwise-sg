@@ -4,14 +4,21 @@ import { formatCurrency } from "../../src/formatters.mjs";
 import {
   INSURERS_WITHOUT_WORDING,
   POLICY_WORDINGS,
+  WORDINGS_REVIEWED_ON,
   WORDING_TOPICS,
-  wordingPageUrl,
+  topicComparisonPath,
+  wordingTopicPath,
 } from "../../src/policy-wordings.mjs";
+import { WordingCell } from "../../components/rules/Wording";
+import JsonLd from "../../components/JsonLd";
+import { SITE_URL } from "../../lib/site-url";
+import { wordingPageGraph } from "../../src/structured-data.mjs";
 
 export const metadata = {
   title: "Insurer Rules: Policy Wording As Written",
   description:
     "Verbatim excerpts from Singapore motor policy wordings on excess, workshops, young drivers, windscreen claims, NCD and NCD Protector, each linked to the source page.",
+  alternates: { canonical: "/rules" },
 };
 
 const NCD_RECOVERY_ROWS = [
@@ -22,68 +29,23 @@ const NCD_RECOVERY_ROWS = [
   ["5+ years", "50%", "20%", "20% → 30% → 40%", "3 renewals"],
 ];
 
-function WordingTable({ table }) {
-  return (
-    <div className="table-wrap">
-      <table className="wording-table tabular-nums">
-        <thead>
-          <tr>
-            {table.headers.map((header) => (
-              <th key={header}>{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {table.rows.map((row) => (
-            <tr key={row.join("|")}>
-              {row.map((cell, index) => (
-                <td key={index}>{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function WordingCell({ wording, entry }) {
-  const missing = !entry.excerpt;
-  return (
-    <article className={`wording-cell${missing ? " is-missing" : ""}`}>
-      <header className="wording-cell-head">
-        <strong>{wording.insurer}</strong>
-        {entry.page ? (
-          <a href={wordingPageUrl(wording, entry.page)} target="_blank" rel="noreferrer">
-            PDF p.{entry.page} <span aria-hidden="true">↗</span>
-          </a>
-        ) : (
-          <span className="wording-cell-tag">No clause</span>
-        )}
-      </header>
-      <p className="wording-summary">{entry.summary}</p>
-      <details className="wording-details">
-        <summary>{missing ? "Why it is missing" : "Read the wording"}</summary>
-        <div className="wording-details-body">
-          {entry.section ? <div className="wording-section">{entry.section}</div> : null}
-          {entry.excerpt ? (
-            <blockquote className="wording-quote" cite={wordingPageUrl(wording, entry.page)}>
-              {entry.excerpt.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </blockquote>
-          ) : null}
-          {entry.table ? <WordingTable table={entry.table} /> : null}
-          {entry.note ? <p className="wording-note">{entry.note}</p> : null}
-        </div>
-      </details>
-    </article>
-  );
-}
-
 export default function RulesPage() {
   return (
     <section className="rules-page section-pad">
+      <JsonLd
+        data={wordingPageGraph(SITE_URL, {
+          path: "/rules",
+          headline: "Singapore car insurance policy wording, as written",
+          description: metadata.description,
+          dateModified: WORDINGS_REVIEWED_ON,
+          citations: POLICY_WORDINGS.map((wording) => ({
+            name: `${wording.insurer} ${wording.document} (${wording.version})`,
+            path: wording.pdfFile,
+            publisher: wording.insurer,
+          })),
+          crumbs: [{ name: "Insurer rules", path: "/rules" }],
+        })}
+      />
       <div className="page-header">
         <div>
           <div className="section-kicker">Insurer rules</div>
@@ -101,8 +63,9 @@ export default function RulesPage() {
         {POLICY_WORDINGS.map((wording, index) => (
           <span key={wording.id}>
             {index > 0 ? " · " : ""}
+            <Link href={`/rules/${wording.id}`}>{wording.insurer}</Link>{" "}
             <a href={wording.pdfFile} target="_blank" rel="noreferrer">
-              {wording.insurer} {wording.document} ({wording.version})
+              {wording.document} ({wording.version})
             </a>
           </span>
         ))}
@@ -120,12 +83,19 @@ export default function RulesPage() {
       {WORDING_TOPICS.map((topic) => (
         <div className="table-card wording-topic" key={topic.id} id={topic.id}>
           <div className="card-heading">
-            <h2>{topic.title}</h2>
+            <h2>
+              <Link href={topicComparisonPath(topic)}>{topic.title}</Link>
+            </h2>
             <p>{topic.question}</p>
           </div>
           <div className="wording-grid">
             {POLICY_WORDINGS.map((wording) => (
-              <WordingCell key={wording.id} wording={wording} entry={wording.entries[topic.id]} />
+              <WordingCell
+                key={wording.id}
+                wording={wording}
+                entry={wording.entries[topic.id]}
+                href={wordingTopicPath(wording, topic)}
+              />
             ))}
           </div>
         </div>
@@ -135,9 +105,9 @@ export default function RulesPage() {
         <div className="card-heading">
           <h2>How NCD recovers after one claim</h2>
           <p>
-            Worked from the scales quoted above, which match across all three wordings: one claim
-            takes 50% to 20%, 40% to 10%, and 30% or less to 0%, and each claim-free year adds
-            10 points up to 50%.
+            Worked from the scales quoted above, which match across every wording on file: one
+            claim takes 50% to 20%, 40% to 10%, and 30% or less to 0%, and each claim-free year
+            adds 10 points up to 50%. DirectAsia adds a 60% tier after five years at 50%.
           </p>
         </div>
         <div className="table-wrap">

@@ -1,23 +1,9 @@
-import { SITE_URL } from "../lib/site-url";
-
-const PUBLIC_PATHS = [
-  "/",
-  "/calculator",
-  "/tools",
-  "/accident",
-  "/tools/ownership-cost",
-  "/tools/ncd-protector",
-  "/tools/quote-compare",
-  "/tools/coe-renewal",
-  "/tools/loan-prepayment",
-  "/my-car",
-  "/settlement",
-  "/emergency",
-  "/how-it-works",
-  "/rules",
-  "/privacy",
-];
+import { SITE_URL } from "../lib/site-url.js";
+import { allPublicPages } from "../src/site-pages.mjs";
 
 export default function sitemap() {
-  return PUBLIC_PATHS.map((path) => ({ url: `${SITE_URL}${path}` }));
+  return allPublicPages().map((page) => ({
+    url: `${SITE_URL}${page.path}`,
+    ...(page.lastModified ? { lastModified: page.lastModified } : {}),
+  }));
 }

@@ -1,3 +1,7 @@
+import JsonLd from "../../components/JsonLd";
+import { SITE_URL } from "../../lib/site-url";
+import { calculatorGraph } from "../../src/structured-data.mjs";
+
 export const metadata = {
   title: "Claim or Self-Pay Calculator",
   description:
@@ -6,5 +10,20 @@ export const metadata = {
 };
 
 export default function Layout({ children }) {
-  return children;
+  return (
+    <>
+      <JsonLd
+        data={calculatorGraph(SITE_URL, {
+          path: "/calculator",
+          name: "Claim or self-pay calculator",
+          description: metadata.description,
+          crumbs: [
+            { name: "After an accident", path: "/accident" },
+            { name: "Claim or self-pay calculator", path: "/calculator" },
+          ],
+        })}
+      />
+      {children}
+    </>
+  );
 }

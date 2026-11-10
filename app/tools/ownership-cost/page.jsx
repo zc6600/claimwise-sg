@@ -11,6 +11,8 @@ export const metadata = {
 export default function Page() {
   return (
     <ToolPageShell
+      path="/tools/ownership-cost"
+      name="Car ownership cost calculator"
       kicker="Before you buy"
       title="What will this car really cost each month?"
       lead="Depreciation, loan interest, road tax, insurance, fuel, and parking in one monthly figure."

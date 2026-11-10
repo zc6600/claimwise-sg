@@ -10,6 +10,8 @@ export const metadata = {
 export default function Page() {
   return (
     <ToolPageShell
+      path="/tools/ncd-protector"
+      name="NCD Protector calculator"
       kicker="Renewal decision"
       title="Is the NCD Protector worth it?"
       lead="Work out the claim risk at which Singapore’s NCD Protector rider pays for itself, using your own renewal premium."

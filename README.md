@@ -18,7 +18,9 @@ Car ownership rules in Singapore are split across GIA frameworks, LTA schedules,
 | During a car loan | Should I settle the loan early? | `/tools/loan-prepayment` |
 | Before COE expiry | Renew for 5 years, 10 years, or replace the car? | `/tools/coe-renewal` |
 
-The home page (`/`) walks through the tools by ownership stage with worked examples. Top navigation links **Car tools** (`/tools`, a plain list of every calculator and feature), **My car** (`/my-car`, saving key dates and policy figures once to prefill tools and send email reminders), and **After an accident** (`/accident`, which leads to the offline emergency checklist, the claim calculator, and the private settlement agreement). Footer links cover **Insurer rules** (`/rules`), **How it works** (`/how-it-works`), and **Privacy** (`/privacy`).
+The home page (`/`) walks through the tools by ownership stage with worked examples. Top navigation links **Car tools** (`/tools`, a plain list of every calculator and feature), **My car** (`/my-car`, saving key dates and policy figures once to prefill tools and send email reminders), and **After an accident** (`/accident`, which leads to the offline emergency checklist, the claim calculator, and the private settlement agreement). Footer links cover **Insurer rules** (`/rules`), **How it works** (`/how-it-works`), and **Privacy** (`/privacy`). Insurer rules also has one page per insurer (`/rules/{insurer}`), per insurer clause (`/rules/{insurer}/{topic}`), and per topic comparison (`/rules/compare/{topic}`), quoting Income, MSIG, Etiqa, and DirectAsia wordings with PDF page citations.
+
+**For search engines and AI assistants:** every public page is listed in `/sitemap.xml` and `/llms.txt` (with `/llms-full.txt` carrying every quoted clause), carries schema.org JSON-LD, and the claim, NCD Protector, and quote comparison tools accept documented query parameters that prefill them. A stateless [Model Context Protocol](https://modelcontextprotocol.io) server at `/mcp` (Streamable HTTP, no sign-in) exposes `evaluate_claim`, `evaluate_ncd_protector`, `compare_quotes`, and `get_policy_wording`, each returning the same figures as the website plus a link that reopens the calculation.
 
 Full details and real-world Singapore cases: **[docs/motivation.md](docs/motivation.md)**
 
@@ -43,7 +45,7 @@ Single Next.js 15 app on Google Cloud Run (`asia-southeast1`) behind a Cloudflar
 
 ```bash
 npm install
-npm test        # 135 node:test checks across tests/*.test.mjs
+npm test        # 157 node:test checks across tests/*.test.mjs
 npm run dev     # http://localhost:3000
 ```
 
@@ -53,7 +55,7 @@ Full design and deployment: **[docs/architecture.md](docs/architecture.md)** · 
 
 | Part | Evidence |
 | --- | --- |
-| Unit & actuarial suite (`npm test`) | 135/135 checks passing across 13 `node:test` files |
+| Unit & actuarial suite (`npm test`) | 157/157 checks passing across 15 `node:test` files |
 | Decision correctness (`evaluation/correctness.mjs`) | 18/18 model cases; 26/26 local HTTP checks |
 | HTTP performance (`evaluation/PERFORMANCE_REPORT.md`) | Sustained (50 VUs, 60s): 91.8–95.3 req/s, P95 65–120 ms, 0% errors; Burst (200 journeys): 400/400 succeeded |
 | Questionnaire (`evaluation/simple_user_study.py`) | Crossover study protocol and 26-record synthetic pipeline demo (`0` human participants) |

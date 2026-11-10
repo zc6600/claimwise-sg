@@ -4,6 +4,7 @@ export const metadata = {
   title: "How It Works",
   description:
     "Learn how ClaimWise SG models motor insurance claim decisions, NCD step-downs, and break-even repair costs in Singapore.",
+  alternates: { canonical: "/how-it-works" },
 };
 
 export default function HowItWorksPage() {
@@ -83,6 +84,39 @@ export default function HowItWorksPage() {
             <small>S$2,645 − S$1,200</small>
           </div>
         </dl>
+      </div>
+
+      <div className="table-card" id="ai-assistants">
+        <div className="card-heading">
+          <h2>For AI assistants and developers</h2>
+          <p>
+            The same calculations are open to assistants and agents, so an answer can hand the
+            owner a result they can check.
+          </p>
+        </div>
+        <ul className="rules-link-list">
+          <li>
+            <a href="/llms.txt">llms.txt</a>
+            <span>Which page answers which question, and the prefilled link formats.</span>
+          </li>
+          <li>
+            <a href="/llms-full.txt">llms-full.txt</a>
+            <span>Every quoted policy clause and every link parameter.</span>
+          </li>
+          <li>
+            <code>/mcp</code>
+            <span>
+              Model Context Protocol server (Streamable HTTP, no sign-in) with claim, NCD
+              Protector, quote comparison, and policy wording tools.
+            </span>
+          </li>
+          <li>
+            <Link href={"/calculator?insurer=income&repairCost=1500&currentPremium=1650&currentNcd=50&excess=600"}>
+              Example prefilled link
+            </Link>
+            <span>Query parameters open the calculator with the figures already entered.</span>
+          </li>
+        </ul>
       </div>
 
       <div className="source-panel is-compact">

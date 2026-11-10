@@ -14,39 +14,48 @@
  * `INSURER_PROFILES` (src/decision-data.mjs) and are intentionally kept separate.
  */
 
+/** Date the bundled wordings and excerpts were last checked against the insurer PDFs. */
+export const WORDINGS_REVIEWED_ON = "2026-11-10";
+
 export const WORDING_TOPICS = [
   {
     id: "ownDamageExcess",
+    slug: "excess",
     shortTitle: "Excess",
     title: "Own-damage excess",
     question: "What do I pay first on every accident claim?",
   },
   {
     id: "workshop",
+    slug: "workshop",
     shortTitle: "Workshop",
     title: "Workshop requirement",
     question: "Where must the car be repaired?",
   },
   {
     id: "unnamedDriver",
+    slug: "young-driver-excess",
     shortTitle: "Young drivers",
     title: "Young, inexperienced or unnamed driver excess",
     question: "What extra excess applies to other drivers?",
   },
   {
     id: "windscreen",
+    slug: "windscreen",
     shortTitle: "Windscreen",
     title: "Windscreen claims",
     question: "What does a windscreen claim cost, and does it affect NCD?",
   },
   {
     id: "ncdScale",
+    slug: "ncd-after-claim",
     shortTitle: "NCD after a claim",
     title: "No-claim discount after a claim",
     question: "How far does my NCD fall after a claim?",
   },
   {
     id: "ncdProtector",
+    slug: "ncd-protector",
     shortTitle: "NCD Protector",
     title: "NCD Protector",
     question: "Who can buy NCD protection, and what does it keep?",
@@ -56,6 +65,7 @@ export const WORDING_TOPICS = [
 export const POLICY_WORDINGS = [
   {
     id: "income",
+    calculatorInsurer: "income",
     insurer: "Income Insurance",
     document: "Drivo Private Car — Summary of Cover and Policy Conditions",
     version: "MT/Private Car/202609",
@@ -124,6 +134,7 @@ export const POLICY_WORDINGS = [
   },
   {
     id: "msig",
+    calculatorInsurer: "msig",
     insurer: "MSIG Insurance",
     document: "MotorMax Policy Wording",
     version: "QMX032604",
@@ -182,6 +193,7 @@ export const POLICY_WORDINGS = [
   },
   {
     id: "etiqa",
+    calculatorInsurer: "etiqa",
     insurer: "Etiqa",
     document: "Tiq Private Car Insurance Policy Wording",
     version: "V19 · February 2026",
@@ -257,6 +269,95 @@ export const POLICY_WORDINGS = [
       },
     },
   },
+  {
+    id: "directasia",
+    calculatorInsurer: null,
+    insurer: "DirectAsia",
+    document: "Motor Car Insurance Policy Wording",
+    version: "SGMotorCarAllVers7 · 01 Jul 2026",
+    pdfFile: "/policies/directasia_motor_car_policy.pdf",
+    entries: {
+      ownDamageExcess: {
+        summary: "Amount on your Schedule and Certificate · excesses are cumulative",
+        page: 4,
+        section: "Your Policy",
+        excerpt: ["Applicable excess are shown on your certificate of insurance and your policy schedule."],
+        note: "The wording sets no own-damage amount. Page 18 defines excess as cumulative: “These amounts are cumulative and the total cumulative excess is payable by you.”",
+      },
+      workshop: {
+        summary: "Approved workshops only, unless the My Workshop benefit is bought",
+        page: 6,
+        section: "Section 1 · Your Vehicle, clause 3",
+        excerpt: [
+          "If you are insured under the My Workshop benefit, you will be allowed to repair your vehicle at any workshop in Singapore. Otherwise, your vehicle must be repaired at our list of approved workshop to claim under this policy.",
+        ],
+        note: "My Workshop is an optional benefit for Comprehensive and Third Party, Fire and Theft cover (page 7).",
+      },
+      unnamedDriver: {
+        summary: "S$2,500 under 30 or licence under 2 years (Flexible plan)",
+        page: 6,
+        section: "Section 1 · Your Vehicle, clause 6",
+        excerpt: [
+          "If your policy is under Flexible plan, the following excess will apply to each and every claim under this section, depending on the driver at the time of accident:",
+        ],
+        table: {
+          headers: ["Driver", "Excess"],
+          rows: [
+            ["Young and/or inexperienced driver", "$2,500"],
+            ["Any authorised driver who is not Young and/or inexperienced", "As per own damage excess in the policy schedule."],
+          ],
+        },
+        note: "Page 19 defines a young and/or inexperienced driver as one who “is below the age of 30; or holds a driving licence for less than 2 years.” The Value and Value Plus plans restrict who may drive instead (page 4).",
+      },
+      windscreen: {
+        summary: "Schedule excess applies · approved workshop · NCD unaffected",
+        page: 6,
+        section: "Section 1 · Your Vehicle, clause 5",
+        excerpt: [
+          "If only windscreen of your vehicle is damaged due to an accident, we will pay the cost of replacement or repair as long as: a. you inform us before any repairs or replacement of your windscreen; b. repair is authorised by us and are carried out at the approved workshop.",
+          "Your windscreen claim will not affect your No Claim Discount, however, the excess shown in your policy schedule will apply for each and every claim.",
+        ],
+      },
+      ncdScale: {
+        summary: "60% or 50%→20% · 40%→10% · 30% and under→0% · 2+ claims→0%",
+        page: 13,
+        section: "General Information, clause 2 · No Claim Discount (NCD)",
+        excerpt: [
+          "If there are claims made against your policy, we will reduce the No Claim Discount as follows:",
+          "Without the optional no claim discount protector plus cover;",
+        ],
+        table: {
+          headers: ["Entitled current NCD", "1 claim", "2 or more claims"],
+          rows: [
+            ["60%", "20%", "0%"],
+            ["50%", "20%", "0%"],
+            ["40%", "10%", "0%"],
+            ["0-30%", "0%", "0%"],
+          ],
+        },
+        note: "The same page adds a 60% tier for five years of consecutive 50% NCD, and an extra 10% reduction if an accident is not reported within 24 hours or by the next working day.",
+      },
+      ncdProtector: {
+        summary: "From 30% NCD · one claim does not reduce NCD",
+        page: 9,
+        section: "Optional Benefits, 7 · No Claim Discount Protector Plus",
+        excerpt: [
+          "This benefit is available to you if your current No Claim Discount entitlement is 30%, 40% or 50% and your vehicle continues to be insured by us.",
+          "We will retain your current No Claim Discount entitlement if you make no more than one claim during the period of insurance. However, No Claim Discount will be reduced from the second claim.",
+        ],
+        table: {
+          headers: ["Entitled current NCD", "1 claim (NCD Protector plus)", "2 claims", "3 or more claims"],
+          rows: [
+            ["60%", "60%", "20%", "0%"],
+            ["50%", "50%", "20%", "0%"],
+            ["40%", "50%", "10%", "0%"],
+            ["30%", "40%", "0%", "0%"],
+          ],
+        },
+        note: "The table is on page 13. It shows the NCD still stepping up after one protected claim (40% to 50%, 30% to 40%).",
+      },
+    },
+  },
 ];
 
 /** Insurers modelled by the calculator for which no policy wording is bundled. */
@@ -264,4 +365,27 @@ export const INSURERS_WITHOUT_WORDING = ["FWD Singapore"];
 
 export function wordingPageUrl(wording, page) {
   return page ? `${wording.pdfFile}#page=${page}&view=FitH` : wording.pdfFile;
+}
+
+export function findWording(id) {
+  return POLICY_WORDINGS.find((wording) => wording.id === id) ?? null;
+}
+
+export function findTopicBySlug(slug) {
+  return WORDING_TOPICS.find((topic) => topic.slug === slug) ?? null;
+}
+
+/** Public route for one insurer's wording on one topic. */
+export function wordingTopicPath(wording, topic) {
+  return `/rules/${wording.id}/${topic.slug}`;
+}
+
+/** Public route comparing every bundled wording on one topic. */
+export function topicComparisonPath(topic) {
+  return `/rules/compare/${topic.slug}`;
+}
+
+/** The calculator that prices the decision a wording topic affects. */
+export function topicToolPath(topic) {
+  return topic.id === "ncdProtector" ? "/tools/ncd-protector" : "/calculator";
 }

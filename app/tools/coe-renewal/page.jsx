@@ -10,6 +10,8 @@ export const metadata = {
 export default function Page() {
   return (
     <ToolPageShell
+      path="/tools/coe-renewal"
+      name="COE renewal calculator"
       kicker="COE decision"
       title="Renew your COE, or replace the car?"
       lead="Compare the yearly cost of a 5-year renewal, a 10-year renewal, and replacing the car, including rebates and road tax surcharges."

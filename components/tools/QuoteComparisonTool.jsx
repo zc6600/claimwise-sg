@@ -7,6 +7,7 @@ import {
   QUOTE_COMPARISON_DEFAULTS,
   compareQuotes,
 } from "../../src/car-decisions/quote-comparison.mjs";
+import { parseQuoteCompareParams } from "../../src/public-links.mjs";
 import { useMyCar } from "../my-car/useMyCar";
 import { NCD_STEPS } from "../../src/decision-data.mjs";
 import { NumberField, ResultRows, SelectField } from "./ToolFields";
@@ -23,8 +24,23 @@ export default function QuoteComparisonTool() {
   const applied = useRef(null);
   const [settings, setSettings] = useState(QUOTE_COMPARISON_DEFAULTS);
   const [quotes, setQuotes] = useState([emptyQuote(0), emptyQuote(1)]);
+  const fromLink = useRef(false);
+
+  // A prefilled link describes a specific comparison, so it takes priority over saved car details.
+  useEffect(() => {
+    const linked = parseQuoteCompareParams(new URLSearchParams(window.location.search));
+    if (!linked.hasExplicitParams) return;
+    fromLink.current = true;
+    setSettings((current) => ({ ...current, ...linked.settings }));
+    if (linked.quotes.length > 0) {
+      const padded = [...linked.quotes];
+      while (padded.length < 2) padded.push(emptyQuote(padded.length));
+      setQuotes(padded);
+    }
+  }, []);
 
   useEffect(() => {
+    if (fromLink.current) return;
     if (
       applied.current === activeCarId ||
       (car.currentPremium === "" && car.excess === "" && car.currentNcd === "")

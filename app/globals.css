@@ -1822,7 +1822,7 @@ td:first-child {
 
 .wording-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: auto auto auto;
   gap: 0 16px;
   align-items: start;
@@ -1950,6 +1950,101 @@ td:first-child {
 
 .table-card.is-assumptions {
   background: var(--surface-subtle);
+}
+
+.wording-cell-head strong a {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  white-space: normal;
+}
+
+.card-heading h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-heading h2 a:hover {
+  color: var(--teal-dark);
+  text-decoration: underline;
+}
+
+.wording-single {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wording-single.is-missing {
+  background: var(--amber-soft);
+  border-color: var(--amber-border);
+}
+
+.wording-single .wording-quote {
+  font-size: 1rem;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.breadcrumbs li + li::before {
+  content: "›";
+  margin-right: 6px;
+  color: var(--muted-light);
+}
+
+.breadcrumbs a {
+  color: var(--teal-dark);
+}
+
+.rules-link-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rules-link-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rules-link-list a {
+  color: var(--teal-dark);
+  font-weight: 600;
+}
+
+.rules-link-list span {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.rules-other-insurers {
+  margin-top: 20px;
+}
+
+@media (max-width: 1200px) {
+  .wording-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .rules-link-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 960px) {
