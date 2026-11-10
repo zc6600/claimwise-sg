@@ -26,14 +26,15 @@ Full details and real-world Singapore cases: **[docs/motivation.md](docs/motivat
 
 ## 2. Business Model
 
-The site currently runs with **no live ads and no referral links** (`public/ads.txt` uses a placeholder ID pending AdSense onboarding, and `components/SponsoredAdUnit.jsx` is unmounted).
+Car owners face a few expensive decisions, search for answers, and get a neutral calculation on their own figures; when an owner then switches insurer, ClaimWise earns a referral fee. Production runs with no live referral links or ads yet, so the figures below are forecasts.
 
-- **Primary revenue (planned)**: Referral commissions when an owner switches to a new insurer after comparing quotes at renewal (published rates of 8–10% of new-customer premium, modelled at S\$60/S\$100/S\$150 per policy), plus vehicle-sale referrals when a COE decision favours replacing the car. Calculation modules in `src/` never read partner data, and referral links appear only after a completed result with fee disclosure.
-- **Forecast**: In the base case, revenue is ~S\$0.107 per visit (~25× AdSense alone), so S\$1,000/month needs ~9,300 monthly visits instead of ~229,000. The only cost modelled is the domain (~S\$50/year), so base net ranges from ~S\$1.2k/year at 1,000 monthly visits to ~S\$25.6k/year at 20,000.
-- **Acquisition**: SEO and AI-search visibility only, with no paid acquisition: verbatim insurer-rule pages generated from verified wordings, JSON-LD, `llms.txt`, prefilled links, and the `/mcp` server, plus **My Car** reminders that bring owners back before each decision.
-- **No paid search**: car-insurance clicks bid at roughly S\$2–14, while even the optimistic model earns S\$0.32 per visit.
+- **Users**: Singapore car owners at an accident, a renewal, a loan review, or COE expiry; renewal recurs for ~996,000 vehicles every year.
+- **Arrival**: Google search and AI assistants, through insurer rule pages quoting policy wording, JSON-LD, `llms.txt`, prefilled links, and the `/mcp` server; **My Car** reminders bring owners back before each decision.
+- **Revenue**: a referral commission when an owner switches insurer after comparing quotes (~S\$100 per switch, S\$3.20 per member per year in the base case), plus vehicle-sale referrals and AdSense. Calculation modules in `src/` never read partner data.
+- **Profit**: with the domain (~S\$50/year) as the only cost, base-case net is ~S\$1.2k, S\$6.4k, and S\$25.6k a year at 1,000, 5,000, and 20,000 monthly visits.
+- **Next**: prove that 4% of My Car members switch insurer each year.
 
-Full analysis and competitor comparison: **[docs/business-model.md](docs/business-model.md)**
+Full model, sources, and landscape: **[docs/business-model.md](docs/business-model.md)**
 
 ## 3. Architecture
 
