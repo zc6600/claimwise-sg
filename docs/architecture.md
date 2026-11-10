@@ -23,7 +23,9 @@ flowchart LR
 | Ownership cost, renewal, loan, and COE tools | `/tools/ownership-cost`, `/tools/ncd-protector`, `/tools/quote-compare`, `/tools/loan-prepayment`, `/tools/coe-renewal` | Browser: `src/car-decisions/*.mjs`, `src/ncd/premium-path.mjs` |
 | My Car & email reminders | `/my-car`, `/reminders/*`, `/api/reminders/*` | `src/my-car.mjs`, `lib/my-car-service.js`, `src/reminders/*`, `lib/reminders/*` |
 | Emergency kit & private settlement | `/emergency`, `/settlement` | `src/emergency-data.mjs`, `public/sw.js`, `src/settlement-form.mjs` |
-| Rules, clauses, benchmarks | `/rules`, `/how-it-works`, `/api/rules`, `/api/clause-preview`, `/api/benchmarks` | `src/clause-documents.mjs`, `src/market-benchmarks.mjs` |
+| Rules, clauses, benchmarks | `/rules`, `/rules/{insurer}`, `/rules/{insurer}/{topic}`, `/rules/compare/{topic}`, `/how-it-works`, `/api/rules`, `/api/clause-preview`, `/api/benchmarks` | `src/policy-wordings.mjs` (verbatim excerpts, statically generated pages), `src/clause-documents.mjs`, `src/market-benchmarks.mjs` |
+| Search and AI discovery | `/sitemap.xml`, `/robots.txt`, `/llms.txt`, `/llms-full.txt`, JSON-LD on every page | `src/site-pages.mjs`, `src/llms-text.mjs`, `src/structured-data.mjs`, `src/public-links.mjs` (prefilled link formats) |
+| MCP server | `POST /mcp` (stateless Streamable HTTP, JSON responses) | `src/mcp/server.mjs` adapts `src/decision-engine.mjs`, `src/car-decisions/*.mjs`, and `src/policy-wordings.mjs`; input validation shared with `/api/decision` via `src/decision-validation.mjs` |
 
 ## 2. Shared Actuarial Core (`src/`)
 

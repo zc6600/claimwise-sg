@@ -10,6 +10,8 @@ export const metadata = {
 export default function Page() {
   return (
     <ToolPageShell
+      path="/tools/loan-prepayment"
+      name="Car loan early settlement calculator"
       kicker="Loan decision"
       title="Should you settle your car loan early?"
       lead="Estimate your early settlement under the Rule of 78, then compare it with what your cash could earn elsewhere."

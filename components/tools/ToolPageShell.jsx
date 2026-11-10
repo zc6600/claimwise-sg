@@ -1,8 +1,24 @@
 import Link from "next/link";
+import JsonLd from "../JsonLd";
+import { SITE_URL } from "../../lib/site-url";
+import { calculatorGraph } from "../../src/structured-data.mjs";
 
-export default function ToolPageShell({ kicker, title, lead, children, method, sources }) {
+export default function ToolPageShell({ kicker, title, lead, children, method, sources, path, name }) {
   return (
     <section className="tool-page section-pad">
+      {path ? (
+        <JsonLd
+          data={calculatorGraph(SITE_URL, {
+            path,
+            name: name ?? title,
+            description: lead,
+            crumbs: [
+              { name: "Car tools", path: "/tools" },
+              { name: name ?? title, path },
+            ],
+          })}
+        />
+      ) : null}
       <div className="page-header">
         <div>
           <div className="section-kicker">{kicker}</div>

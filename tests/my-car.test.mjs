@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { allPublicPages } from "../src/site-pages.mjs";
 import {
   hasCarDetails,
   nextVehicleSlotId,
@@ -92,7 +93,7 @@ test("Firestore rules keep reminder subscriptions server-only", () => {
 });
 
 test("the privacy policy is listed and linked from the reminder consent", () => {
-  assert.match(fs.readFileSync("app/sitemap.js", "utf-8"), /"\/privacy"/);
+  assert.ok(allPublicPages().some((page) => page.path === "/privacy"));
   assert.match(fs.readFileSync("app/layout.jsx", "utf-8"), /href="\/privacy"/);
   assert.match(
     fs.readFileSync("components/reminders/ReminderSignup.jsx", "utf-8"),

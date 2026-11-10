@@ -10,6 +10,8 @@ export const metadata = {
 export default function Page() {
   return (
     <ToolPageShell
+      path="/tools/quote-compare"
+      name="Car insurance quote comparison"
       kicker="Renewal decision"
       title="Is the cheaper quote really cheaper?"
       lead="Compare renewal quotes on premium plus what an accident would really cost you, including excess, workshop surcharges, and NCD loss."

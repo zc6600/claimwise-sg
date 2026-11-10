@@ -5,6 +5,8 @@ import Providers from "../components/Providers";
 import NavbarUser from "../components/NavbarUser";
 import OfflineStatusBanner from "../components/OfflineStatusBanner";
 import { SITE_URL } from "../lib/site-url";
+import JsonLd from "../components/JsonLd";
+import { siteGraph } from "../src/structured-data.mjs";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,6 +62,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.variable}>
       <body>
+        <JsonLd data={siteGraph(SITE_URL)} />
         <Providers>
           <OfflineStatusBanner />
           <div className="site-shell">
