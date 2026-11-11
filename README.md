@@ -46,7 +46,7 @@ Single Next.js 15 app on Google Cloud Run (`asia-southeast1`) behind a Cloudflar
 
 ```bash
 npm install
-npm test        # 157 node:test checks across tests/*.test.mjs
+npm test        # 159 node:test checks across tests/*.test.mjs
 npm run dev     # http://localhost:3000
 ```
 
@@ -56,7 +56,7 @@ Full design and deployment: **[docs/architecture.md](docs/architecture.md)** · 
 
 | Part | Evidence |
 | --- | --- |
-| Unit & actuarial suite (`npm test`) | 157/157 checks passing across 15 `node:test` files |
+| Unit & actuarial suite (`npm test`) | 159/159 checks passing across 15 `node:test` files |
 | Decision correctness (`evaluation/correctness.mjs`) | 18/18 model cases; 26/26 local HTTP checks |
 | HTTP performance (`evaluation/PERFORMANCE_REPORT.md`) | Sustained (50 VUs, 60s): 91.8–95.3 req/s, P95 65–120 ms, 0% errors; Burst (200 journeys): 400/400 succeeded |
 | Questionnaire (`evaluation/simple_user_study.py`) | Crossover study protocol and 26-record synthetic pipeline demo (`0` human participants) |
