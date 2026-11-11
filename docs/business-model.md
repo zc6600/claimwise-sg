@@ -1,6 +1,6 @@
 # Business Model
 
-Research checked: 10 November 2026. Every revenue figure is a forecast built from published third-party prices and stated assumptions; production runs with no live referral links or advertisements yet.
+Research checked: 11 November 2026. Every revenue figure is a forecast built from published third-party prices, Google Ads Keyword Planner data (Singapore, English, Oct 2025 – Sep 2026), and stated assumptions; production runs with no live referral links or advertisements yet.
 
 ## Summary
 
@@ -16,14 +16,15 @@ Car owners face a few expensive decisions → they search for answers → ClaimW
 
 ## 1. Who the users are
 
-Owners meet four decisions that each cost hundreds to thousands of dollars:
+Owners face five money decisions that each cost hundreds to thousands of dollars:
 
 | Moment | Frequency | Question | Tool |
 | --- | --- | --- | --- |
-| Accident | Occasional, urgent | Claim, or pay the workshop directly? | `/calculator` |
+| Buying / owning | Before purchase or yearly | What does a car truly cost per month after depreciation, tax, and loan interest? | `/tools/ownership-cost` |
 | **Renewal** | **Every car, every year** | Switch insurer? Buy the NCD Protector? | `/tools/quote-compare`, `/tools/ncd-protector` |
-| Car loan | Once per loan | Settle early? | `/tools/loan-prepayment` |
+| Car loan | Once per loan | Settle early under the Rule of 78? | `/tools/loan-prepayment` |
 | COE expiry | Once per decade | Renew for 5 or 10 years, or replace? | `/tools/coe-renewal` |
+| Accident | Occasional, urgent | Report at an IDAC, claim, or pay the workshop directly? | `/accident`, `/calculator`, `/settlement` |
 
 Renewal is the moment the business is built around, because it recurs for the whole fleet every year.
 
@@ -47,18 +48,37 @@ Owners search before they decide. Google's ordinary results and AI-assistant cit
 | Coverage growth | Each newly verified insurer wording adds an insurer page and six clause pages, and extends six comparison pages | Long-tail reach at near-zero marginal cost |
 | AI assistants | `/llms.txt`, `/llms-full.txt`, prefilled calculator links, and the MCP server at `/mcp` | Assistants cite the wording and hand users a ready-made calculation |
 | Sharing | Settlement agreements seen by both drivers; calculator share links | Referral visits and natural links |
-| Return visits | **My Car** (`/my-car`) emails double opt-in reminders 45 days before renewal, 30 days before loan review, and 365 and 90 days before COE expiry | Owners come back at each priced decision |
+| Return visits | **My Car** (`/my-car`) saves up to five vehicles per household and emails double opt-in reminders 45 days before renewal, 30 days before loan review, and 365 and 90 days before COE expiry | Owners come back at each priced decision |
 
 A dedicated domain, adopted early, keeps accumulated search authority in one place; stable rankings for a new domain typically take 6–12 months.
 
-| Query seeds (unverified volume) | Route |
-| --- | --- |
-| `should I claim car insurance singapore`, `claim or self pay car repair singapore` | `/calculator`: claim versus self-pay break-even |
-| `PHV accident downtime singapore` | `/calculator` (PHV): downtime loss and commercial loading |
-| `NCD loss after accident singapore`, `NCD protector singapore` | `/tools/ncd-protector`, `/rules/compare/ncd-protector` |
-| `car insurance excess singapore`, `{insurer} excess young driver` | `/tools/quote-compare`, `/rules/{insurer}/young-driver-excess` |
-| `car loan early settlement rule of 78 singapore` | `/tools/loan-prepayment` |
-| `COE renewal 5 or 10 years calculator singapore` | `/tools/coe-renewal` |
+### Search demand and unserved space
+
+Google Ads Keyword Planner data for Singapore (`Location: Singapore`, `Language: English`, `Oct 2025 – Sep 2026`) shows both the scale of recurring owner demand and where existing platforms leave the market open:
+
+| Singapore keyword | Avg. monthly searches | 3-month trend | Competition | Top-of-page bid (low – high) | Landing route |
+| --- | :---: | :---: | :---: | :---: | --- |
+| `car insurance singapore` | 1K – 10K | 0% | High | S\$5.86 – S\$14.05 | `/tools/quote-compare` |
+| `coe renewal` | 1K – 10K | 0% | Medium | S\$1.56 – S\$5.95 | `/tools/coe-renewal` |
+| `coe renewal loan` | 1K – 10K | 0% | Medium | S\$1.18 – S\$4.75 | `/tools/coe-renewal`, `/tools/loan-prepayment` |
+| `car accident singapore` | 1K – 10K | 0% | Low | — | `/accident`, `/emergency` |
+| `ncd car insurance` / `car insurance ncd` | 100 – 1K | 0% | Medium | S\$5.67 – S\$11.09 | `/calculator`, `/tools/ncd-protector` |
+| `no claims discount` / `no claim discount` | 100 – 1K | +900% | Low | — | `/calculator`, `/rules/compare/ncd-step-down` |
+| `ncd protector` | 100 – 1K | 0% | Low | S\$2.81 – S\$7.57 | `/tools/ncd-protector`, `/rules/compare/ncd-protector` |
+| `parf rebate calculator` | 100 – 1K | +900% | Low | S\$0.04 – S\$2.94 | `/tools/coe-renewal`, `/tools/ownership-cost` |
+| `cost of owning a car in singapore` | 100 – 1K | 0% | Low | S\$0.02 – S\$1.79 | `/tools/ownership-cost` |
+| `car depreciation calculator singapore` | 100 – 1K | 0% | Low | — | `/tools/ownership-cost` |
+| `road tax calculator singapore` | 100 – 1K | 0% | Low | — | `/tools/ownership-cost`, `/tools/coe-renewal` |
+| `car loan calculator singapore` | 100 – 1K | 0% | Low | S\$0.33 – S\$2.15 | `/tools/loan-prepayment`, `/tools/ownership-cost` |
+| `accident reporting centre` / `car accident report` | 100 – 1K | 0% | Low | S\$1.20 – S\$4.89 | `/accident`, `/emergency` |
+| `third party insurance coverage` | 100 – 1K | 0% | Medium | S\$3.66 – S\$11.07 | `/rules`, `/calculator` |
+| `claim accident` / `car accident claim` | 10 – 100 | +900% | Low–Med | S\$1.76 – S\$5.07 | `/calculator` |
+| `car accident private settlement` | 10 – 100 | 0% | Low | S\$1.42 – S\$5.03 | `/settlement` |
+
+Three empirical observations emerge from the search data:
+1. **Search volume validates concrete market demand for decision tools.** Monthly query volumes of 100–1,000 across specific calculation terms (`no claims discount`, `ncd protector`, `parf rebate calculator`, `cost of owning a car in singapore`, `car depreciation calculator singapore`, `road tax calculator singapore`, `accident reporting centre`) demonstrate that thousands of Singapore vehicle owners actively seek mathematical and rule-based answers each month.
+2. **Incumbent platforms leave this search demand uncaptured.** Major players like [Motorist](https://www.motorist.sg/) and financial comparison portals focus their paid bidding and product funnels almost exclusively on broad transaction terms (`car insurance singapore` at High competition, S\$5.86–14.05/click; `coe renewal` at S\$1.56–5.95/click) to collect contact information for human broker callbacks. Because incumbents do not target mid-funnel decision calculations, advertiser competition on these specific tool queries remains Low, leaving an established search audience open to organic capture.
+3. **Everyday drivers search concrete rules and actions rather than legal jargon.** After a minor incident or ahead of renewal, drivers rarely search legal phrasing like `private settlement` (10–100/month); they search `accident reporting centre`, `no claims discount`, `ncd protector`, or `parf rebate calculator`. Serving those specific queries captures high-intent traffic at zero marginal acquisition cost, while **My Car** retains them for recurring annual renewals.
 
 ## 3. How it earns
 
@@ -187,9 +207,9 @@ Stage C implies about 260 switched policies a year in the base case before attri
 
 | Dimension | ClaimWise SG | [interest.sg](https://interest.sg/car-cost/motor-insurance-ncd-calculator/) | [MoneyBees](https://themoneybees.co/calculators/car-insurance-ncd) | [Motorist](https://www.motorist.sg/) |
 | --- | --- | --- | --- | --- |
-| Scope | 6 car calculators, insurer rule pages, settlement agreement, offline emergency kit, My Car reminders, MCP server | 9 car tools within 34 finance calculators | NCD calculator within 220+ tools; adviser lead handoff | Reminders, insurance quotes, COE renewal, used-car sales |
-| Decision model | Discounted NCD cash flows (`src/ncd/premium-path.mjs`); base, workshop, and young-driver excess; PHV downtime and loading | Custom base premiums, explicit excess and cap | 5-year extra premium | Quote handoff |
+| Scope | 6 car calculators, insurer rule pages, settlement agreement, offline emergency kit, multi-car My Car garage & reminders, MCP server | 9 car tools within 34 finance calculators | NCD calculator within 220+ tools; adviser lead handoff | App & portal for reminders, brokered insurance quotes, COE renewal loans, and used-car sales |
+| Decision model | Discounted NCD cash flows (`src/ncd/premium-path.mjs`); base, workshop, and young-driver excess; PHV downtime and loading; PARF/COE/Rule-of-78 math | Custom base premiums, explicit excess and cap | 5-year extra premium | Lead form handoff to human brokers |
 | Policy wording | Verbatim excerpts with PDF page citations for four insurers | Not observed | Not observed | Not observed |
 | Revenue | Referral commissions, vehicle-sale referrals, AdSense | Display ads | Adviser leads | Service fees, commissions, car-sale fees (third-party estimate near US\$4.2 million revenue, [Gaps](https://gaps.com/automotive/)) |
 
-Comparison sites such as SingSaver and MoneySmart rank for broad terms like `car insurance singapore`; ClaimWise answers the narrower decision and insurer-clause questions.
+Comparison portals such as SingSaver and MoneySmart compete for broad shopping terms like `car insurance singapore`, while [Motorist](https://www.motorist.sg/) routes owners into brokered quote and consignment workflows that require submitting contact and vehicle details. ClaimWise occupies the unserved self-serve layer before that handoff: instant, no-sign-up calculators and verbatim policy clauses that answer the exact decision questions (`no claims discount`, `ncd protector`, `parf rebate calculator`, `cost of owning a car in singapore`) owners are already searching for.
