@@ -66,3 +66,13 @@ test("a shared link cannot switch on an NCD Protector the NCD does not qualify f
   assert.equal(inputs.currentNcd, 20);
   assert.equal(inputs.ncdProtector, false);
 });
+
+test("sameClaimInputs ignores PHV parameters for private vehicles but not for PHV", () => {
+  const privateA = { ...DEFAULTS, repairCost: 1200, commercialClaimLoading: 15, dailyDowntimeCost: 80 };
+  const privateB = { ...DEFAULTS, repairCost: 1200, commercialClaimLoading: 0, dailyDowntimeCost: 0 };
+  assert.equal(sameClaimInputs(privateA, privateB), true);
+
+  const phvA = { ...privateA, vehicleUsage: "phv" };
+  const phvB = { ...privateB, vehicleUsage: "phv" };
+  assert.equal(sameClaimInputs(phvA, phvB), false);
+});

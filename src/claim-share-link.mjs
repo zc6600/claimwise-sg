@@ -144,9 +144,8 @@ export function sameClaimInputs(a, b) {
     Boolean(a.youngDriverInvolved) === Boolean(b.youngDriverInvolved) &&
     a.repairType === b.repairType &&
     (a.vehicleUsage || "private") === (b.vehicleUsage || "private") &&
-    Number(a.commercialClaimLoading ?? 0) === Number(b.commercialClaimLoading ?? 0) &&
-    Number(a.dailyDowntimeCost ?? 0) === Number(b.dailyDowntimeCost ?? 0) &&
-    Number(a.claimDowntimeDays ?? 0) === Number(b.claimDowntimeDays ?? 0) &&
-    Number(a.selfPayDowntimeDays ?? 0) === Number(b.selfPayDowntimeDays ?? 0)
+    // PHV parameters have no effect on a private policy, so they only matter for PHV.
+    ((a.vehicleUsage || "private") !== "phv" ||
+      PHV_FIELDS.every((field) => Number(a[field] ?? 0) === Number(b[field] ?? 0)))
   );
 }

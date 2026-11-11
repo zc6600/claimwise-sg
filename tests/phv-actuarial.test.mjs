@@ -189,3 +189,31 @@ test("PHV with zero downtime cost preserves actuarial continuity", () => {
   assert.equal(decision.baseScenario.selfPayDay0Cost, 2500);
   assert.equal(decision.baseScenario.claimDay0Cost, 1500);
 });
+
+test("private vehicle ignores PHV loading and downtime parameters supplied alongside it", () => {
+  const base = {
+    insurer: "income",
+    currentPremium: 1650,
+    currentNcd: 50,
+    excess: 600,
+    repairCost: 3000,
+    vehicleUsage: "private",
+  };
+  const withPhvParams = calculateDecision({
+    ...base,
+    commercialClaimLoading: 15,
+    dailyDowntimeCost: 80,
+    claimDowntimeDays: 5,
+    selfPayDowntimeDays: 1,
+  });
+  const plain = calculateDecision(base);
+
+  assert.equal(withPhvParams.inputs.commercialClaimLoading, 0);
+  assert.equal(withPhvParams.inputs.dailyDowntimeCost, 0);
+  assert.equal(withPhvParams.baseScenario.netDowntimeCost, 0);
+  assert.equal(
+    withPhvParams.baseScenario.breakEvenRepairCost,
+    plain.baseScenario.breakEvenRepairCost
+  );
+  assert.equal(Math.round(plain.baseScenario.breakEvenRepairCost), 2645);
+});

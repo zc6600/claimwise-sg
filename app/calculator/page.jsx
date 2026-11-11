@@ -32,10 +32,10 @@ const DEFAULT_INPUTS = {
   youngDriverInvolved: false,
   repairType: "general",
   vehicleUsage: "private",
-  commercialClaimLoading: 15,
-  dailyDowntimeCost: 80,
-  claimDowntimeDays: 5,
-  selfPayDowntimeDays: 1,
+  commercialClaimLoading: 0,
+  dailyDowntimeCost: 0,
+  claimDowntimeDays: 0,
+  selfPayDowntimeDays: 0,
 };
 
 function validateField(field, value) {

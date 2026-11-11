@@ -42,36 +42,28 @@ export function normalizeInputs(raw = {}) {
     ? raw.vehicleUsage
     : "private";
   const isPhv = vehicleUsage === "phv";
-  const commercialClaimLoading = clamp(
-    parseNumber(
-      raw.commercialClaimLoading,
-      isPhv ? PHV_DEFAULTS.defaultCommercialLoading : 0
-    ),
-    0,
+  // Commercial loading and loss-of-use apply only to PHV policies; a private
+  // policy ignores any PHV parameters supplied alongside it.
+  const phvParam = (value, fallback, max) =>
+    isPhv ? clamp(parseNumber(value, fallback), 0, max) : 0;
+  const commercialClaimLoading = phvParam(
+    raw.commercialClaimLoading,
+    PHV_DEFAULTS.defaultCommercialLoading,
     100
   );
-  const dailyDowntimeCost = clamp(
-    parseNumber(
-      raw.dailyDowntimeCost,
-      isPhv ? PHV_DEFAULTS.defaultDailyDowntimeCost : 0
-    ),
-    0,
+  const dailyDowntimeCost = phvParam(
+    raw.dailyDowntimeCost,
+    PHV_DEFAULTS.defaultDailyDowntimeCost,
     5000
   );
-  const claimDowntimeDays = clamp(
-    parseNumber(
-      raw.claimDowntimeDays,
-      isPhv ? PHV_DEFAULTS.defaultClaimDowntimeDays : 0
-    ),
-    0,
+  const claimDowntimeDays = phvParam(
+    raw.claimDowntimeDays,
+    PHV_DEFAULTS.defaultClaimDowntimeDays,
     60
   );
-  const selfPayDowntimeDays = clamp(
-    parseNumber(
-      raw.selfPayDowntimeDays,
-      isPhv ? PHV_DEFAULTS.defaultSelfPayDowntimeDays : 0
-    ),
-    0,
+  const selfPayDowntimeDays = phvParam(
+    raw.selfPayDowntimeDays,
+    PHV_DEFAULTS.defaultSelfPayDowntimeDays,
     60
   );
 
