@@ -1066,6 +1066,26 @@ h3 {
 /* ==========================================================================
    Right Column: Sticky Results & Answer Panel
    ========================================================================== */
+/* Supporting analysis spans the full page width below the form and answer. */
+.studio-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin-top: 28px;
+}
+
+.studio-details-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.studio-details-col > .trajectory-card {
+  margin-top: 0;
+}
+
 .studio-results {
   position: sticky;
   top: 84px;
@@ -2576,6 +2596,7 @@ td:first-child {
   }
 
   .studio-grid,
+  .studio-details,
   .source-panel {
     grid-template-columns: minmax(0, 1fr);
     gap: 28px;
@@ -2732,7 +2753,8 @@ td:first-child {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
-  .studio-grid {
+  .studio-grid,
+  .studio-details {
     display: block;
   }
   .studio-results {

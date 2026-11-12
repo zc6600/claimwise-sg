@@ -41,7 +41,10 @@ export default function CalculatorResults({
   onToggleTable,
   onRunSampleScenario,
   onShare,
+  part = "summary",
+  historySlot = null,
 }) {
+  if (part === "details" && !decision) return null;
   if (!decision) {
     return (
       <section className="preview-blueprint-card" aria-live="polite">
@@ -153,7 +156,7 @@ export default function CalculatorResults({
   );
   const breakEvenPct = Math.min(92, Math.max(8, (breakEven / scaleMax) * 100));
 
-  return (
+  const summary = (
     <>
       {resultMode && (
         <div className="result-source-banner" role="status">
@@ -488,122 +491,134 @@ export default function CalculatorResults({
         </div>
       )}
 
-      {/* 3b. Interactive Multi-Year Trajectory Visualizer */}
-      <TrajectoryVisualizer
-        baseScenario={baseScenario}
-        inputs={decision.inputs}
-        effectiveExcess={decision.effectiveExcess}
-      />
+    </>
+  );
 
-      {/* 3c. Consecutive Incident Stress-Test & Resilience Buffer Simulator */}
-      <StressTestSimulator decision={decision} />
+  if (part === "summary") return summary;
 
-      {/* 4. Expandable Year-by-Year Schedule */}
-      <div className="breakdown-card">
-        <button
-          type="button"
-          className="breakdown-toggle"
-          aria-expanded={showTable}
-          onClick={onToggleTable}
-        >
-          <div>
-            <strong>Year-by-year renewal schedule</strong>
-            <span>
-              Nominal annual premiums and NCD recovery over{" "}
-              {decision.inputs.horizonYears} years
-            </span>
-          </div>
-          <svg
-            className={`chevron-icon ${showTable ? "is-open" : ""}`}
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+  return (
+    <>
+      <div className="studio-details-col">
+        {/* 3b. Interactive Multi-Year Trajectory Visualizer */}
+        <TrajectoryVisualizer
+          baseScenario={baseScenario}
+          inputs={decision.inputs}
+          effectiveExcess={decision.effectiveExcess}
+        />
+
+        {/* 3c. Consecutive Incident Stress-Test & Resilience Buffer Simulator */}
+        <StressTestSimulator decision={decision} />
+
+        {/* 4. Expandable Year-by-Year Schedule */}
+        <div className="breakdown-card">
+          <button
+            type="button"
+            className="breakdown-toggle"
+            aria-expanded={showTable}
+            onClick={onToggleTable}
           >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
+            <div>
+              <strong>Year-by-year renewal schedule</strong>
+              <span>
+                Nominal annual premiums and NCD recovery over{" "}
+                {decision.inputs.horizonYears} years
+              </span>
+            </div>
+            <svg
+              className={`chevron-icon ${showTable ? "is-open" : ""}`}
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
 
-        <div
-          className={`breakdown-body ${showTable ? "is-open" : ""}`}
-          hidden={!showTable}
-        >
-          <div className="table-wrap">
-            <table className="tabular-nums">
-              <thead>
-                <tr>
-                  <th>Year</th>
-                  <th>Self-pay NCD</th>
-                  <th>Self-pay premium</th>
-                  <th>Claim NCD</th>
-                  <th>Claim premium</th>
-                  <th>Annual penalty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {baseScenario?.selfPayYears.map((selfPayYear, idx) => {
-                  const claimYear = baseScenario.claimYears[idx];
-                  const gap = claimYear.premium - selfPayYear.premium;
-                  return (
-                    <tr key={selfPayYear.year}>
-                      <td>Year {selfPayYear.year}</td>
-                      <td>{formatPercent(selfPayYear.ncd)}</td>
-                      <td>{formatCurrency(selfPayYear.premium)}</td>
-                      <td>{formatPercent(claimYear.ncd)}</td>
-                      <td>{formatCurrency(claimYear.premium)}</td>
-                      <td className={gap > 0 ? "is-negative" : "is-positive"}>
-                        {gap > 0 ? `+${formatCurrency(gap)}` : formatCurrency(gap)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div
+            className={`breakdown-body ${showTable ? "is-open" : ""}`}
+            hidden={!showTable}
+          >
+            <div className="table-wrap">
+              <table className="tabular-nums">
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th>Self-pay NCD</th>
+                    <th>Self-pay premium</th>
+                    <th>Claim NCD</th>
+                    <th>Claim premium</th>
+                    <th>Annual penalty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {baseScenario?.selfPayYears.map((selfPayYear, idx) => {
+                    const claimYear = baseScenario.claimYears[idx];
+                    const gap = claimYear.premium - selfPayYear.premium;
+                    return (
+                      <tr key={selfPayYear.year}>
+                        <td>Year {selfPayYear.year}</td>
+                        <td>{formatPercent(selfPayYear.ncd)}</td>
+                        <td>{formatCurrency(selfPayYear.premium)}</td>
+                        <td>{formatPercent(claimYear.ncd)}</td>
+                        <td>{formatCurrency(claimYear.premium)}</td>
+                        <td className={gap > 0 ? "is-negative" : "is-positive"}>
+                          {gap > 0 ? `+${formatCurrency(gap)}` : formatCurrency(gap)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 5. Official Policy Clause Audit & PDF Source Viewer */}
-      <PolicySourcePreview
-        clauseAudit={decision.clauseAudit}
-        insurer={decision.inputs.insurer}
-      />
+      <div className="studio-details-col">
+        {/* 5. Official Policy Clause Audit & PDF Source Viewer */}
+        <PolicySourcePreview
+          clauseAudit={decision.clauseAudit}
+          insurer={decision.inputs.insurer}
+        />
 
-      {/* 6. Utility Actions */}
-      <div className="result-toolbar">
-        <span
-          role="status"
-          className={`button button-secondary ${
-            saveStatus.startsWith("Saved") ? "is-saved" : ""
-          }`}
-        >
-          {saveStatus || "Saved automatically"}
-        </span>
-        <button type="button" className="button button-ghost" onClick={onShare}>
-          {shareStatus}
-        </button>
-        <button
-          type="button"
-          className="button button-ghost"
-          onClick={() => window.print()}
-        >
-          Print / PDF
-        </button>
-      </div>
+        {/* 6. Utility Actions */}
+        <div className="result-toolbar">
+          <span
+            role="status"
+            className={`button button-secondary ${
+              saveStatus.startsWith("Saved") ? "is-saved" : ""
+            }`}
+          >
+            {saveStatus || "Saved automatically"}
+          </span>
+          <button type="button" className="button button-ghost" onClick={onShare}>
+            {shareStatus}
+          </button>
+          <button
+            type="button"
+            className="button button-ghost"
+            onClick={() => window.print()}
+          >
+            Print / PDF
+          </button>
+        </div>
 
-      {/* 7. GIA MCF 24-Hour Rule */}
-      <div className="result-disclaimer">
-        <p>
-          <strong>GIA 24-hour reporting rule:</strong> Under the Singapore Motor Claims
-          Framework, all accidents must be reported to your insurer within 24 hours (or by
-          the next working day), regardless of whether you file a claim. Reporting an
-          incident does not obligate you to claim.
-        </p>
+        {/* 7. GIA MCF 24-Hour Rule */}
+        <div className="result-disclaimer">
+          <p>
+            <strong>GIA 24-hour reporting rule:</strong> Under the Singapore Motor Claims
+            Framework, all accidents must be reported to your insurer within 24 hours (or by
+            the next working day), regardless of whether you file a claim. Reporting an
+            incident does not obligate you to claim.
+          </p>
+        </div>
+        {historySlot}
       </div>
     </>
   );

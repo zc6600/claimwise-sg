@@ -395,6 +395,31 @@ export default function CalculatorPage() {
   const profile = INSURER_PROFILES[inputs.insurer] || INSURER_PROFILES.other;
   const hasValidDraftQuote = Number(inputs.repairCost) > 0;
 
+  const resultProps = {
+    inputs,
+    profile,
+    decision,
+    resultMode,
+    isDirty,
+    isCalculating,
+    authLoading,
+    hasValidDraftQuote,
+    showTable,
+    saveStatus,
+    shareStatus,
+    onToggleTable: () => setShowTable(!showTable),
+    onRunSampleScenario: handleRunSampleScenario,
+    onShare: handleShare,
+  };
+
+  const history = (
+    <CalculationHistory
+      onLoadRecord={handleLoadRecord}
+      onRecalculateRecord={handleRecalculateRecord}
+      isCalculating={isCalculating}
+    />
+  );
+
   return (
     <div className="calculator-studio-page section-pad">
       <div className="page-header">
@@ -429,30 +454,16 @@ export default function CalculatorPage() {
         />
 
         <div className="studio-results">
-          <CalculatorResults
-            inputs={inputs}
-            profile={profile}
-            decision={decision}
-            resultMode={resultMode}
-            isDirty={isDirty}
-            isCalculating={isCalculating}
-            authLoading={authLoading}
-            hasValidDraftQuote={hasValidDraftQuote}
-            showTable={showTable}
-            saveStatus={saveStatus}
-            shareStatus={shareStatus}
-            onToggleTable={() => setShowTable(!showTable)}
-            onRunSampleScenario={handleRunSampleScenario}
-            onShare={handleShare}
-          />
-
-          <CalculationHistory
-            onLoadRecord={handleLoadRecord}
-            onRecalculateRecord={handleRecalculateRecord}
-            isCalculating={isCalculating}
-          />
+          <CalculatorResults {...resultProps} part="summary" />
+          {!decision && history}
         </div>
       </div>
+
+      {decision && (
+        <div className="studio-details">
+          <CalculatorResults {...resultProps} part="details" historySlot={history} />
+        </div>
+      )}
     </div>
   );
 }
